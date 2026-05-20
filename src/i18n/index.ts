@@ -275,7 +275,24 @@ export const messages = {
     subtitle: { tr: 'Almanca öğrenmenin en eğlenceli yolu', en: 'The most fun way to learn German' },
     welcomeContinue: { tr: 'Devam', en: 'Continue' },
 
-    // ─── STEP 2: MOTIVATION (çoklu seçim, 1-3) ───
+    // ─── STEP 2: LEVEL CHECK (sıfırdan mı, placement test mi?) ───
+    levelCheckTitle: { tr: 'Seviyene göre başlayalım', en: "Let's start at your level" },
+    levelCheckSubtitle: {
+      tr: 'İki seçeneğin var — sana uygun olanı seç',
+      en: 'Two options — pick what suits you',
+    },
+    levelScratch: { tr: 'Sıfırdan başlıyorum', en: "I'm starting from scratch" },
+    levelScratchDesc: {
+      tr: "Almanca'ya yeni başlıyorum — A1'den başla",
+      en: "I'm new to German — start at A1",
+    },
+    levelPlacement: { tr: 'Seviyemi test et', en: 'Test my level' },
+    levelPlacementDesc: {
+      tr: '6 soruluk hızlı test (~2 dakika)',
+      en: 'Quick 6-question test (~2 min)',
+    },
+
+    // ─── STEP 3: MOTIVATION (çoklu seçim, 1-3) ───
     motivationTitle: { tr: "Almanca'yı neden öğrenmek istiyorsun?", en: 'Why do you want to learn German?' },
     motivationSubtitle: { tr: 'Birden çok seçebilirsin (1-3) — sana göre bir yolculuk hazırlayacağız', en: 'Pick up to 3 — we will tailor your journey' },
     motivationCounter: { tr: '{count} / 3 seçili', en: '{count} / 3 selected' },
@@ -354,6 +371,42 @@ export const messages = {
     summaryMedia: { tr: 'Film ve diziler altyazısız keyifli olacak', en: 'Movies and shows without subtitles' },
     summaryAcademic: { tr: 'Akademik metinler ve formal dil', en: 'Academic texts and formal language' },
     summaryCurious: { tr: 'Yeni bir dünya, yeni bir bakış açısı', en: 'A new world, a new perspective' },
+  },
+
+  // 🔄 Tekrar Merkezi (SM-2 Spaced Repetition)
+  review: {
+    // Boş durum: hiç tekrar yok
+    emptyTitle: { tr: 'Bütün tekrarlar tamam!', en: 'All caught up!' },
+    emptySubtitle: {
+      tr: 'Henüz tekrar bekleyen kelime yok. Önce birkaç ders yap.',
+      en: 'No words waiting for review. Complete a few lessons first.',
+    },
+
+    // Tamamlanma ekranı
+    completeTitle: { tr: 'Harika iş!', en: 'Great job!' },
+    completeSubtitle: { tr: '{count} kelimeyi tekrar ettin', en: 'You reviewed {count} words' },
+    statCorrect: { tr: 'DOĞRU', en: 'CORRECT' },
+    statWrong: { tr: 'YANLIŞ', en: 'WRONG' },
+    statAccuracy: { tr: 'BAŞARI', en: 'ACCURACY' },
+
+    // Flashcard etiketleri
+    cardLabelSource: { tr: 'TÜRKÇE', en: 'TURKISH' },
+    cardLabelTarget: { tr: 'ALMANCA', en: 'GERMAN' },
+    cardHint: {
+      tr: 'Almancasını düşün, sonra cevabı gör',
+      en: 'Think of the German, then reveal',
+    },
+    showAnswer: { tr: 'Cevabı Göster', en: 'Show Answer' },
+    judgeWrong: { tr: 'Hatırlamadım', en: "Didn't know" },
+    judgeCorrect: { tr: 'Biliyordum', en: 'Knew it' },
+
+    // Map ekranı banner (>= 3 kelime due ise görünür)
+    bannerTitle: { tr: '{count} kelime tekrar bekliyor', en: '{count} words ready for review' },
+    bannerSubtitle: {
+      tr: 'Aklında kalması için zamanı gelen kelimeler',
+      en: 'Words due for review to keep them fresh',
+    },
+    bannerCta: { tr: 'Tekrarı başlat — {count} kelime', en: 'Start review — {count} words' },
   },
 
   // Daily goal

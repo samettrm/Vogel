@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vogel",
     "slug": "Vogel",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "vogel",
@@ -10,7 +10,13 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yenipc002.Vogel"
+      "bundleIdentifier": "com.yenipc002.Vogel",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Vogel, Almanca telaffuz alıştırmaları için mikrofona erişmek istiyor. Konuşma kaydı cihazınızda kalır, sunucuya gönderilmez.",
+        "NSSpeechRecognitionUsageDescription": "Vogel, Almanca telaffuzunuzu değerlendirmek için konuşma tanıma kullanır.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

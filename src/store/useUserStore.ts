@@ -257,6 +257,61 @@ function getNextReviewDelayMs(isCorrect: boolean, nextStrength: number): number 
   return 24 * 60 * 60 * 1000;
 }
 
+// 🧠 SM-2 (SuperMemo) algoritması — Spaced Repetition
+//
+// Klasik SM-2'nin sadeleştirilmiş binary versiyonu:
+//   - Doğru cevap → quality = 4 (doğru ama biraz tereddtlü)
+//   - Yanlış cevap → quality = 2 (yanlış, ama hatırlamaya çalıştı)
+//
+// Algoritma her kelimeye 3 metrik atar:
+//   - repetitions: kaç kez üst üste doğru yanıtlandı
+//   - interval: bir sonraki tekrar için gün sayısı
+//   - easeFactor: "kolaylık katsayısı" — zorlandığya kelimelerde düşer, kolaylarda yükselir
+//
+// Hesaplama:
+//   Doğru cevap:
+//     repetitions += 1
+//     interval: 1 → 6 → prev * easeFactor
+//     easeFactor: max(1.3, ef + 0.1)
+//   Yanlış cevap:
+//     repetitions = 0
+//     interval = 1 (gün)
+//     easeFactor: max(1.3, ef - 0.2)
+//
+// Sonuç: zorlanılan kelimeler sık tekrarlanır, kolaylar uzun aralıklarla.
+function applySM2(
+  existing: ReviewItem | undefined,
+  isCorrect: boolean,
+): { repetitions: number; interval: number; easeFactor: number; nextReviewAt: number } {
+  const now = Date.now();
+  const prevRep = existing?.repetitions ?? 0;
+  const prevInt = existing?.interval ?? 1;
+  const prevEf = existing?.easeFactor ?? 2.5;
+
+  let repetitions: number;
+  let intervalDays: number;
+  let easeFactor: number;
+
+  if (isCorrect) {
+    repetitions = prevRep + 1;
+    if (repetitions === 1) {
+      intervalDays = 1;
+    } else if (repetitions === 2) {
+      intervalDays = 6;
+    } else {
+      intervalDays = Math.max(1, Math.round(prevInt * prevEf));
+    }
+    easeFactor = Math.min(3.0, prevEf + 0.1);
+  } else {
+    repetitions = 0;
+    intervalDays = 1;
+    easeFactor = Math.max(1.3, prevEf - 0.2);
+  }
+
+  const nextReviewAt = now + intervalDays * 24 * 60 * 60 * 1000;
+  return { repetitions, interval: intervalDays, easeFactor, nextReviewAt };
+}
+
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
@@ -457,11 +512,15 @@ export const useUserStore = create<UserState>()(
           const nextStrength = isCorrect ? Math.min(5, previousStrength + 1) : 0;
           const nextCorrectStreak = isCorrect ? (existing?.correctStreak ?? 0) + 1 : 0;
 
+          // 🎓 Kelime "öğrenildi" — strength 5 + 3 ardarda doğru
           if (isCorrect && nextCorrectStreak >= 3 && nextStrength >= 5) {
             const remaining = { ...state.reviewItems };
             delete remaining[payload.id];
             return { reviewItems: remaining };
           }
+
+          // 🧠 SM-2 algoritması ile sonraki tekrar zamanını hesapla
+          const sm2 = applySM2(existing, isCorrect);
 
           const nextItem: ReviewItem = {
             id: payload.id,
@@ -474,11 +533,11 @@ export const useUserStore = create<UserState>()(
             correctCount: (existing?.correctCount ?? 0) + (isCorrect ? 1 : 0),
             correctStreak: nextCorrectStreak,
             strength: nextStrength,
-            repetitions: existing?.repetitions ?? 0,
-            interval: existing?.interval ?? 1,
-            easeFactor: existing?.easeFactor ?? 2.5,
+            repetitions: sm2.repetitions,
+            interval: sm2.interval,
+            easeFactor: sm2.easeFactor,
             lastAnsweredAt: now,
-            nextReviewAt: now + getNextReviewDelayMs(isCorrect, nextStrength),
+            nextReviewAt: sm2.nextReviewAt,
           };
 
           return {

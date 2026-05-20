@@ -361,7 +361,75 @@ function WelcomeStep({
   );
 }
 
-// ─── Step 2: Motivasyon (ÇOKLU) ───
+// ─── Step 2: LevelCheck — Sıfırdan mı, yoksa seviye testi mi? ───
+function LevelCheckStep({
+  c, t, styles,
+  startingLevel,
+  onChooseScratch,
+  onChoosePlacement,
+  birdStyle,
+}: {
+  c: ReturnType<typeof useThemeColors>;
+  t: ReturnType<typeof useT>;
+  styles: StepStyles;
+  startingLevel: CEFRLevel;
+  onChooseScratch: () => void;
+  onChoosePlacement: () => void;
+  birdStyle: ReturnType<typeof useAnimatedStyle>;
+}) {
+  return (
+    <Animated.View entering={FadeInRight.duration(300)} exiting={FadeOutLeft.duration(200)}>
+      {/* Mascot — ortada, küçük */}
+      <View style={{ alignItems: 'center', marginBottom: spacing.lg, marginTop: spacing.sm }}>
+        <Animated.View style={[styles.levelCheckMascot, birdStyle]}>
+          <Text style={styles.levelCheckMascotEmoji}>🎯</Text>
+        </Animated.View>
+      </View>
+
+      <Text style={[styles.stepTitle, { textAlign: 'center' }]}>{t('onboarding.levelCheckTitle')}</Text>
+      <Text style={[styles.stepSubtitle, { textAlign: 'center' }]}>{t('onboarding.levelCheckSubtitle')}</Text>
+
+      <View style={styles.levelCheckCardList}>
+        {/* Seçenek 1: Sıfırdan başla */}
+        <Pressable
+          onPress={onChooseScratch}
+          style={({ pressed }) => [
+            styles.levelCheckCard,
+            pressed && styles.levelCheckCardPressed,
+          ]}
+        >
+          <Text style={styles.levelCheckEmoji}>🌱</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.levelCheckLabel}>{t('onboarding.levelScratch')}</Text>
+            <Text style={styles.levelCheckDesc}>{t('onboarding.levelScratchDesc')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={c.textLow} />
+        </Pressable>
+
+        {/* Seçenek 2: Seviye testi (vurgulu) */}
+        <Pressable
+          onPress={onChoosePlacement}
+          style={({ pressed }) => [
+            styles.levelCheckCard,
+            styles.levelCheckCardHighlight,
+            pressed && styles.levelCheckCardPressed,
+          ]}
+        >
+          <Text style={styles.levelCheckEmoji}>🎓</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.levelCheckLabel, { color: c.purpleLight }]}>
+              {t('onboarding.levelPlacement')}
+            </Text>
+            <Text style={styles.levelCheckDesc}>{t('onboarding.levelPlacementDesc')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={c.purple} />
+        </Pressable>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ─── Step 3: Motivasyon (ÇOKLU) ───
 function MotivationStep({
   c, t, styles, selected, onToggle,
 }: {
@@ -1272,5 +1340,44 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       shadowOpacity: 0, elevation: 0,
     },
     nextButtonText: { ...textStyles.button, color: c.textOnNeon, fontSize: 15 },
+
+    // ─── Step 2 LevelCheck — placement test entry ───
+    placementOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: c.bg,
+      zIndex: 100,
+    },
+    levelCheckMascot: {
+      width: 80, height: 80, borderRadius: 40,
+      backgroundColor: c.purpleBg,
+      borderWidth: 2, borderColor: c.purple,
+      alignItems: 'center', justifyContent: 'center',
+      shadowColor: c.purple, shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.5, shadowRadius: 16, elevation: 8,
+    },
+    levelCheckMascotEmoji: { fontSize: 44 },
+    levelCheckCardList: { gap: spacing.md, marginTop: spacing.md },
+    levelCheckCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: c.glassBg,
+      borderWidth: 1.5,
+      borderColor: c.glassBorderStrong,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.base,
+      paddingVertical: spacing.md,
+      minHeight: 72,
+    },
+    levelCheckCardHighlight: {
+      borderColor: c.purple,
+      backgroundColor: c.purpleBg,
+      shadowColor: c.purple, shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.45, shadowRadius: 10, elevation: 5,
+    },
+    levelCheckCardPressed: { opacity: 0.85, transform: [{ scale: 0.99 }] },
+    levelCheckEmoji: { fontSize: 36 },
+    levelCheckLabel: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 15 },
+    levelCheckDesc: { ...textStyles.body, color: c.textLow, fontSize: 12, marginTop: 2 },
   });
 }

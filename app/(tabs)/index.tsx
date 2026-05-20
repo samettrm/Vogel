@@ -12,6 +12,7 @@ import { TopStatusBar } from '../../src/components/map/TopStatusBar';
 import { MapPath } from '../../src/components/map/MapPath';
 import { BirdMascot } from '../../src/components/map/BirdMascot';
 import { LevelTabs } from '../../src/components/map/LevelTabs';
+import { ReviewBanner } from '../../src/components/review/ReviewBanner';
 import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
 import type { LessonNodeState } from '../../src/components/map/LessonNode';
 import type { Lesson, Unit } from '../../src/types';
@@ -171,12 +172,16 @@ export default function HomeScreen() {
   const keyExtractor = useCallback((u: Unit) => u.id, []);
 
   const ListHeader = useMemo(() => (
-    <View style={[styles.levelHeader, { borderLeftColor: lc.main }]}>
-      <View style={[styles.levelPill, { backgroundColor: lc.bg, borderColor: lc.main }]}>
-        <Text style={[styles.levelPillText, { color: lc.light }]}>{selectedLevel}</Text>
+    <View>
+      {/* 🔄 Tekrar Sırası banner — SM-2 algoritmasıyla due olan kelimeler varsa görünür */}
+      <ReviewBanner />
+      <View style={[styles.levelHeader, { borderLeftColor: lc.main }]}>
+        <View style={[styles.levelPill, { backgroundColor: lc.bg, borderColor: lc.main }]}>
+          <Text style={[styles.levelPillText, { color: lc.light }]}>{selectedLevel}</Text>
+        </View>
+        <Text style={[styles.levelTitle, { color: lc.light }]}>{course.title}</Text>
+        <Text style={styles.levelDescription}>{course.description}</Text>
       </View>
-      <Text style={[styles.levelTitle, { color: lc.light }]}>{course.title}</Text>
-      <Text style={styles.levelDescription}>{course.description}</Text>
     </View>
   ), [styles, lc, selectedLevel, course.title, course.description]);
 
