@@ -1,0 +1,8 @@
+node_modules
+.expo
+.git
+*.log
+
+C:/Users/i9pc/AppData/Local/ElevatedDiagnostics
+../AppData/Local/ElevatedDiagnostics
+AppData/Local/ElevatedDiagnostics

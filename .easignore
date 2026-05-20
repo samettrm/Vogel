@@ -1,0 +1,62 @@
+# EAS Build ignore — bu dosya EAS Build cloud upload'unda hangi dosyaların atlanacağını söyler.
+# .gitignore'a benzer çalışır. Var olduğunda EAS sadece bunu okur (.gitignore'a fallback yapmaz).
+
+# ─── Node / Build artefacts ───
+node_modules
+.expo
+dist
+web-build
+*.log
+
+# ─── Native generated ───
+/android
+/ios
+.kotlin
+
+# ─── Git ───
+.git
+
+# ─── OS junk ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── IDE ───
+.vscode
+.idea
+
+# ─── Local env ───
+.env.local
+.env.*.local
+
+# ─── Windows kullanıcı klasörü sızıntıları (kritik) ───
+# Bu paternler "AppData/Local/Temp/..." gibi yanlışlıkla projeye giren Windows yollarını engeller.
+AppData
+AppData/**
+Local/Temp
+Local/Temp/**
+Temp
+*.tmp
+*.temp
+
+# ─── Yardımcı araç çıktıları ───
+code2prompt-x86_64-pc-windows-msvc.exe
+*.zip
+*.tar
+*.tar.gz
+
+# ─── Backup / eski ───
+_easignore_OLD_FOLDER
+*.bak
+*.orig
+
+# ─── TypeScript build ───
+*.tsbuildinfo
+
+# ─── Documentation (build'de gerek yok) ───
+APK_BUILD.md
+KURULUM.md
+VOGEL_HANDOFF.md
+README_UYGULAMA.md
+CHANGELOG.md
+projem.txt
