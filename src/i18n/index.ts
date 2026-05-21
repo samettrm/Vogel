@@ -397,6 +397,7 @@ export const messages = {
       en: 'Think of the German, then reveal',
     },
     showAnswer: { tr: 'Cevabı Göster', en: 'Show Answer' },
+    tapToHear: { tr: 'Sesi için dokun', en: 'Tap to hear' },
     judgeWrong: { tr: 'Hatırlamadım', en: "Didn't know" },
     judgeCorrect: { tr: 'Biliyordum', en: 'Knew it' },
 

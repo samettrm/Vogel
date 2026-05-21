@@ -85,14 +85,18 @@ export default function ReviewCenter() {
     Haptics.selectionAsync().catch(() => {});
     flip.value = withTiming(1, { duration: 500, easing: Easing.inOut(Easing.cubic) });
     setIsFlipped(true);
+    // 🔇 OTOMATİK SES KALDIRILDI — kullanıcı izinsiz ses çalmak istemiyor olabilir.
+    // Speaker butonu kartta zaten var, isterse dokunarak Almancayı duyar.
+  }, [flip]);
 
-    // Almanca telaffuzunu otomatik söyle
-    if (currentItem) {
-      try {
-        Speech.speak(currentItem.targetText, { language: 'de-DE', rate: 0.9 });
-      } catch {}
-    }
-  }, [flip, currentItem]);
+  // 🔊 Manuel ses çalma — kullanıcı speaker butonuna dokununca
+  const handleSpeakTarget = useCallback(() => {
+    if (!currentItem) return;
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      Speech.speak(currentItem.targetText, { language: 'de-DE', rate: 0.9 });
+    } catch {}
+  }, [currentItem]);
 
   const handleAnswer = useCallback(
     (isCorrect: boolean) => {
@@ -247,20 +251,19 @@ export default function ReviewCenter() {
           <Text style={styles.cardHint}>{t('review.cardHint')}</Text>
         </Animated.View>
 
-        {/* Card back: Almanca (targetText) */}
+        {/* Card back: Almanca (targetText) + 🔊 ses butonu (manuel) */}
         <Animated.View style={[styles.card, backStyle, styles.cardBack]}>
           <Text style={styles.cardLabel}>{t('review.cardLabelTarget')}</Text>
           <Text style={styles.cardText}>{currentItem.targetText}</Text>
           <Pressable
-            onPress={() => {
-              Haptics.selectionAsync().catch(() => {});
-              try {
-                Speech.speak(currentItem.targetText, { language: 'de-DE', rate: 0.9 });
-              } catch {}
-            }}
-            style={({ pressed }) => [styles.speakerBtn, pressed && { opacity: 0.7 }]}
+            onPress={handleSpeakTarget}
+            style={({ pressed }) => [styles.speakerBtn, pressed && styles.speakerBtnPressed]}
+            accessibilityRole="button"
+            accessibilityLabel={t('review.tapToHear')}
+            hitSlop={12}
           >
-            <Ionicons name="volume-high" size={24} color={c.neon} />
+            <Ionicons name="volume-high" size={22} color={c.neon} />
+            <Text style={styles.speakerBtnText}>{t('review.tapToHear')}</Text>
           </Pressable>
         </Animated.View>
       </View>
@@ -401,11 +404,23 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       marginTop: spacing.sm,
     },
     speakerBtn: {
-      width: 48, height: 48, borderRadius: 24,
+      flexDirection: 'row',
+      gap: spacing.xs,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      minHeight: 40,
+      borderRadius: radius.pill,
       backgroundColor: c.glassBg,
       borderWidth: 1, borderColor: c.neon,
       alignItems: 'center', justifyContent: 'center',
       marginTop: spacing.sm,
+    },
+    speakerBtnPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
+    speakerBtnText: {
+      ...textStyles.label,
+      color: c.neon,
+      fontSize: 11,
+      letterSpacing: 0.5,
     },
 
     // Action bar
