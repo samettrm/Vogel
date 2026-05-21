@@ -57,6 +57,9 @@ export default function HomeScreen() {
   const onResetCancel = useCallback(() => setShowResetConfirm(false), []);
 
   const listRef = useRef<FlatList<Unit>>(null);
+  // 🚀 PERF: Auto-scroll SADECE ilk açılışta (level başına bir kez) yapılır.
+  // Her ders sonrası currentLessonId değişince tekrar scroll edilmesin → telefon ısınmasın.
+  const didInitialScrollRef = useRef(false);
 
   const course = useMemo(
     () => getCourseByLevel(selectedLevel) ?? ALL_COURSES[0],
@@ -81,10 +84,14 @@ export default function HomeScreen() {
 
   useEffect(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
+    // 🔄 Level değişince initial scroll flag'i sıfırla → yeni level'da bir kez auto-scroll yapılsın
+    didInitialScrollRef.current = false;
   }, [selectedLevel]);
 
-  // Current lesson'a otomatik scroll
+  // Current lesson'a otomatik scroll — SADECE İLK AÇILIŞTA (level başına bir kez)
   useEffect(() => {
+    if (!hasHydrated) return;
+    if (didInitialScrollRef.current) return;  // ✋ Zaten bir kez scroll edildi, tekrar etme
     if (!currentLessonId) return;
     let cumulativeHeight = 0;
     let targetY = 0;
@@ -101,9 +108,10 @@ export default function HomeScreen() {
         offset: Math.max(0, targetY - SCREEN_HEIGHT * 0.35),
         animated: true,
       });
+      didInitialScrollRef.current = true;  // ✅ Flag set — bir daha scroll yok
     }, 450);
     return () => clearTimeout(tt);
-  }, [currentLessonId, course.units]);
+  }, [hasHydrated, currentLessonId, course.units]);
 
   const getLessonInfo = useCallback((lesson: Lesson) => {
     const state: LessonNodeState = completedLessons.has(lesson.id)

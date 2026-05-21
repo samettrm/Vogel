@@ -709,7 +709,7 @@ export const TR_DE_A1: Course = {
             { id: 'tr-de-a1-u7-l4-e3', type: 'multipleChoice', question: '"schlafen" ne demek?', options: [{ id: 'a', text: 'uyumak' }, { id: 'b', text: 'uyanmak' }, { id: 'c', text: 'kalkmak' }, { id: 'd', text: 'oturmak' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u7-l4-e4', type: 'multipleChoice', question: '"müde" ne demek?', options: [{ id: 'a', text: 'yorgun' }, { id: 'b', text: 'enerjik' }, { id: 'c', text: 'hasta' }, { id: 'd', text: 'aç' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u7-l4-e5', type: 'multipleChoice', question: '"fit" ne demek?', options: [{ id: 'a', text: 'formda' }, { id: 'b', text: 'kilolu' }, { id: 'c', text: 'güçlü' }, { id: 'd', text: 'hızlı' }], correctOptionId: 'a' },
-            { id: 'tr-de-a1-u7-l4-e6', type: 'translate', prompt: 'Yorgunum, uyumak istiyorum.', correctAnswer: 'Ich bin müde, ich will schlafen', wordBank: ['Ich', 'bin', 'müde', 'will', 'schlafen', 'wach'] },
+            { id: 'tr-de-a1-u7-l4-e6', type: 'translate', prompt: 'Yorgunum, uyumak istiyorum.', correctAnswer: 'Ich bin müde und will schlafen', wordBank: ['Ich', 'bin', 'müde', 'und', 'will', 'schlafen', 'wach'] },
             { id: 'tr-de-a1-u7-l4-e7', type: 'fillBlank', prompt: 'Ich gehe ___. (duşa)', correctAnswer: 'duschen', wordBank: ['duschen', 'schlafen', 'waschen', 'essen'] },
           ],
         },
