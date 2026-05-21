@@ -904,7 +904,7 @@ export const TR_DE_A2: Course = {
             { id: 'tr-de-a2-u9-l6-e3', type: 'multipleChoice', question: '"Ich hoffe, dass..." ne demek?', options: [{ id: 'a', text: 'Umarım ki...' }, { id: 'b', text: 'Düşünüyorum' }, { id: 'c', text: 'Bekliyorum' }, { id: 'd', text: 'Diliyorum' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u9-l6-e4', type: 'multipleChoice', question: '"Ich weiß nicht, ob..." ne demek?', options: [{ id: 'a', text: 'Bilmiyorum ki...' }, { id: 'b', text: 'Biliyorum ki' }, { id: 'c', text: 'Eminim ki' }, { id: 'd', text: 'Tahmin ediyorum' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u9-l6-e5', type: 'multipleChoice', question: '"weil" ne demek?', options: [{ id: 'a', text: 'Çünkü' }, { id: 'b', text: 'Ama' }, { id: 'c', text: 'Eğer' }, { id: 'd', text: 've' }], correctOptionId: 'a' },
-            { id: 'tr-de-a2-u9-l6-e6', type: 'translate', prompt: 'Sanırım gelebilirim.', correctAnswer: 'Ich glaube, dass ich kommen kann', wordBank: ['Ich', 'glaube', 'dass', 'kommen', 'kann', 'will', 'muss'] },
+            { id: 'tr-de-a2-u9-l6-e6', type: 'translate', prompt: 'Sanırım gelebilirim.', correctAnswer: 'Ich glaube, dass ich kommen kann', wordBank: ['Ich', 'ich', 'glaube', 'dass', 'kommen', 'kann', 'will', 'muss'] },
             { id: 'tr-de-a2-u9-l6-e7', type: 'listen', prompt: 'Dinle.', audioText: 'Ich hoffe, dass du kommst', translation: 'Umarım gelirsin', correctAnswer: 'Ich hoffe, dass du kommst', wordBank: ['Ich', 'hoffe', 'dass', 'du', 'kommst', 'gehst', 'kannst'] },
           ],
         },

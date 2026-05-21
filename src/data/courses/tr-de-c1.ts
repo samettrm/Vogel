@@ -702,7 +702,7 @@ export const TR_DE_C1: Course = {
             { id: 'tr-de-c1-u7-l5-e3', type: 'multipleChoice', question: '"als ob" ne demek?', options: [{ id: 'a', text: 'sanki / -miş gibi' }, { id: 'b', text: 'olmasa' }, { id: 'c', text: 'olduğu kadar' }, { id: 'd', text: 'mademki' }], correctOptionId: 'a' },
             { id: 'tr-de-c1-u7-l5-e4', type: 'multipleChoice', question: '"je ... desto" ne demek?', options: [{ id: 'a', text: 'ne kadar... o kadar' }, { id: 'b', text: 'hem... hem de' }, { id: 'c', text: 'ya... ya da' }, { id: 'd', text: 'ne... ne de' }], correctOptionId: 'a' },
             { id: 'tr-de-c1-u7-l5-e5', type: 'multipleChoice', question: '"ohne dass" ne demek?', options: [{ id: 'a', text: 'olmadan / -meden' }, { id: 'b', text: 'olmazsa' }, { id: 'c', text: 'olmasa' }, { id: 'd', text: 'olmuyor' }], correctOptionId: 'a' },
-            { id: 'tr-de-c1-u7-l5-e6', type: 'translate', prompt: 'Ne kadar çok çalışırsan o kadar başarılı olursun.', correctAnswer: 'Je mehr du arbeitest, desto erfolgreicher wirst du', wordBank: ['Je', 'mehr', 'du', 'arbeitest', 'desto', 'erfolgreicher', 'wirst'] },
+            { id: 'tr-de-c1-u7-l5-e6', type: 'translate', prompt: 'Ne kadar çok çalışırsan o kadar başarılı olursun.', correctAnswer: 'Je mehr du arbeitest, desto erfolgreicher wirst du', wordBank: ['Je', 'mehr', 'du', 'du', 'arbeitest', 'desto', 'erfolgreicher', 'wirst'] },
             { id: 'tr-de-c1-u7-l5-e7', type: 'fillBlank', prompt: '___ es regnet, bleibe ich zu Hause. (şart)', correctAnswer: 'Sofern', wordBank: ['Sofern', 'Insofern', 'Obwohl', 'Bevor'] },
           ],
         },

@@ -77,19 +77,30 @@ function extractOptions(text) {
 // ────────────────────────────────────────────────────────────────
 // Helper: bir cümleyi kelimelere ayır (noktalama dahil)
 // "Ich habe gegessen." → ['Ich', 'habe', 'gegessen.']
-// wordBank match için noktalamayı temizleyebiliriz
 // ────────────────────────────────────────────────────────────────
 function tokenize(sentence) {
   return sentence.trim().split(/\s+/);
 }
 
 // ────────────────────────────────────────────────────────────────
+// Helper: token'ı normalize et — noktalamayı sil, küçük harfe çevir.
+// Uygulama (TranslateExercise.normalizeText) cevabı kontrol ederken
+// noktalamayı temizleyip lowercase yaptığı için validator da aynısını
+// yapmalı. Aksi halde "Abend," vs "Abend" yanlış pozitif üretir.
+// ────────────────────────────────────────────────────────────────
+function normalizeToken(tok) {
+  return tok.toLocaleLowerCase('de-DE').replace(/[.,!?;:…"«»„“”]/g, '');
+}
+
+// ────────────────────────────────────────────────────────────────
 // Türkçe karakter eksikliği detector
 // Türkçe metinde olması beklenen ama olmayan ı/ş/ğ/ü/ö/ç
 // ────────────────────────────────────────────────────────────────
+// NOT: Buraya SADECE gerçekten ı/ş/ç/ğ/ö/ü harfi eksik yazılmış
+// (hatalı) formlar girer. "saat", "merhaba", "seviyorum" gibi zaten
+// düz harfle doğru yazılan kelimeler ŞÜPHELİ DEĞİLDİR.
 const TR_SUSPICIOUS_WORDS = [
-  // Yazım kontrolü — "ı" eksik tespit
-  /\b(yapilir|yapilan|kosuyor|kosar|cocuk|gormek|gorduğum|sevimli|bilgi|degil|guzel|dogru|gunluk|gunaydin|sabah|saat|merhaba|tesekkur|lutfen|ozur|ucretsiz|aksam|olmak|kalmak|yapmak|gitmek|gelmek|bekleme|bilmiyorum|anliyorum|seviyorum|istiyor|kazaniyorum)\b/gi,
+  /\b(yapilir|yapilan|kosuyor|kosar|cocuk|gormek|gorduğum|degil|guzel|dogru|gunluk|gunaydin|tesekkur|lutfen|ozur|ucretsiz|aksam|anliyorum|kazaniyorum)\b/gi,
 ];
 
 // Türkçe yer/diller/şehirler
@@ -232,10 +243,38 @@ for (const file of files) {
         }
       }
 
-      // translate ve listen için kelime kelime kontrolü
+      // translate ve listen için kelime kelime kontrolü.
+      // Multiset karşılaştırması: aynı kelime cümlede N kez geçiyorsa
+      // wordBank'te de en az N adet olmalı (örn: "Ich glaube, dass ich...").
+      // Noktalama + büyük/küçük harf normalize edilir (uygulama da öyle yapar).
       if (type === 'translate' || type === 'listen') {
-        const correctTokens = tokenize(correctAnswer);
-        const missingTokens = correctTokens.filter((t) => !wordBank.includes(t));
+        const correctTokens = tokenize(correctAnswer)
+          .map(normalizeToken)
+          .filter(Boolean);
+
+        const bankCounts = {};
+        for (const w of wordBank) {
+          const n = normalizeToken(w);
+          if (n) bankCounts[n] = (bankCounts[n] || 0) + 1;
+        }
+
+        const needCounts = {};
+        for (const tk of correctTokens) {
+          needCounts[tk] = (needCounts[tk] || 0) + 1;
+        }
+
+        const missingTokens = [];
+        for (const [tok, need] of Object.entries(needCounts)) {
+          const have = bankCounts[tok] || 0;
+          if (have < need) {
+            missingTokens.push(
+              need > 1 || have > 0
+                ? `${tok} (gerekli ${need}, mevcut ${have})`
+                : tok,
+            );
+          }
+        }
+
         if (missingTokens.length > 0) {
           errors.push({
             file,
