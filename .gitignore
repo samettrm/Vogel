@@ -44,3 +44,6 @@ app-example
 
 # Environment files
 .env
+
+# Validator ciktisi (validate-exercises.mjs her calistiginda yeniden uretilir)
+scripts/validator-report.txt
