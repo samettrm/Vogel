@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Dimensions, Easing, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BirdMascot } from '../../src/components/map/BirdMascot';
@@ -59,6 +59,14 @@ export default function HomeScreen() {
   const onResetCancel = useCallback(() => setShowResetConfirm(false), []);
 
   const listRef = useRef<FlatList<Unit>>(null);
+
+  // 📜 Scroll-to-current Button — Duolingo tarz�ı yukarı ok butonu
+  // Kullanıcı aşağı kaydırınca görünür, basınca yavaşta hizlanan animasyonla current lesson'a döner
+  const currentScrollY = useRef(0); // Anlık scroll Y konumu
+  const scrollAnimY = useRef(new Animated.Value(0)).current; // Custom animasyon için
+  const buttonOpacity = useRef(new Animated.Value(0)).current; // Buton fade in/out
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const isAnimatingScrollRef = useRef(false);
 
   const course = useMemo(
     () => getCourseByLevel(selectedLevel) ?? ALL_COURSES[0],
@@ -141,6 +149,74 @@ export default function HomeScreen() {
 
     return () => clearTimeout(tt);
   }, [hasHydrated, currentUnitIndex, currentLessonId, course.units]);
+
+  // 📜 Hedef scroll Y koordinatı — current lesson'ın tam görünür olacağı konum
+  // (useEffect içindeki scrollToIndex formulüyle birebir uyumlu)
+  const targetScrollY = useMemo(() => {
+    if (currentUnitIndex < 0 || !currentLessonId) return 0;
+    let offset = 0;
+    for (let i = 0; i < currentUnitIndex; i++) {
+      const unit = course.units[i];
+      offset += (unit?.lessons?.length ?? 0) * 124 + 40 + 80;
+    }
+    const currentUnit = course.units[currentUnitIndex];
+    const lessonIndexInUnit = currentUnit?.lessons.findIndex(
+      (l) => l.id === currentLessonId,
+    ) ?? 0;
+    // useEffect ile aynı formul: viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124
+    // FlatList scroll: scrollOffset = unitOffset - viewOffset
+    const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
+    return Math.max(0, offset - viewOffsetValue);
+  }, [currentUnitIndex, currentLessonId, course.units]);
+
+  // 📜 Animated.Value listener → her frame'de FlatList scroll güncelle
+  useEffect(() => {
+    const id = scrollAnimY.addListener(({ value }) => {
+      if (isAnimatingScrollRef.current) {
+        listRef.current?.scrollToOffset({ offset: value, animated: false });
+      }
+    });
+    return () => scrollAnimY.removeListener(id);
+  }, [scrollAnimY]);
+
+  // 📜 Scroll event handler — buton görünürlüğünü kontrol et
+  const handleScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const y = e.nativeEvent.contentOffset.y;
+      currentScrollY.current = y;
+      // Eğer current lesson'dan 400px+ aşağıdaysa butonu göster
+      const shouldShow = y > targetScrollY + 400;
+      if (shouldShow !== showScrollButton) {
+        setShowScrollButton(shouldShow);
+        Animated.timing(buttonOpacity, {
+          toValue: shouldShow ? 1 : 0,
+          duration: 220,
+          useNativeDriver: true,
+        }).start();
+      }
+    },
+    [targetScrollY, showScrollButton, buttonOpacity],
+  );
+
+  // 📜 Butona basınca çalışır — yavaşta hizlanan animasyonla current lesson'a dön
+  // Easing.in(Easing.quad): t^2, yavaş başlar hızlanır (Duolingo gibi)
+  // Duration mesafeye göre dinamik (uzunsa daha uzun süre, kısaysa kısa)
+  const handleScrollToCurrent = useCallback(() => {
+    const startY = currentScrollY.current;
+    const distance = Math.abs(startY - targetScrollY);
+    if (distance < 50) return; // Zaten near current ise atla
+    const duration = Math.min(1400, Math.max(600, distance * 0.5));
+    isAnimatingScrollRef.current = true;
+    scrollAnimY.setValue(startY);
+    Animated.timing(scrollAnimY, {
+      toValue: targetScrollY,
+      duration,
+      easing: Easing.in(Easing.quad), // ⚡ yavaşta hizlanan
+      useNativeDriver: false, // scrollToOffset için zorunlu
+    }).start(() => {
+      isAnimatingScrollRef.current = false;
+    });
+  }, [scrollAnimY, targetScrollY]);
 
   // 📜 scrollToIndex fail olursa (index henuz render edilmediyse) retry
   const onScrollToIndexFailed = useCallback(
@@ -326,7 +402,41 @@ export default function HomeScreen() {
           getItemLayout={getItemLayout}
           initialScrollIndex={Math.max(0, currentUnitIndex)}
           onScrollToIndexFailed={onScrollToIndexFailed}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         />
+
+        {/* ⬆️ Scroll-to-Current Button — Duolingo tarzı yukarı ok butonu */}
+        {/* Kullanıcı aşağı kaydırınca görünür, basınca current lesson'a döner */}
+        <Animated.View
+          style={[
+            styles.scrollToCurrentButton,
+            {
+              opacity: buttonOpacity,
+              transform: [
+                {
+                  scale: buttonOpacity.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.6, 1],
+                  }),
+                },
+              ],
+            },
+          ]}
+          pointerEvents={showScrollButton ? 'auto' : 'none'}
+        >
+          <Pressable
+            onPress={handleScrollToCurrent}
+            style={({ pressed }) => [
+              styles.scrollToCurrentInner,
+              { borderColor: lc.main, backgroundColor: lc.bg },
+              pressed && styles.scrollToCurrentPressed,
+            ]}
+            hitSlop={8}
+          >
+            <Ionicons name="arrow-up" size={26} color={lc.main} />
+          </Pressable>
+        </Animated.View>
       </SafeAreaView>
     </View>
   );
@@ -381,5 +491,30 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     nextLevelCardPressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
     nextLevelLabel: { ...textStyles.label, fontSize: 11 },
     nextLevelCta: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 16 },
+    // ⬆️ Scroll-to-current button — sağ alt köşede floating
+    scrollToCurrentButton: {
+      position: 'absolute',
+      right: spacing.base,
+      bottom: spacing.lg,
+      zIndex: 100,
+      // SafeAreaView içindeyiz, tab bar zaten alt edge'inde
+    },
+    scrollToCurrentInner: {
+      width: 52,
+      height: 52,
+      borderRadius: radius.lg,
+      borderWidth: 1.5,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.35,
+      shadowRadius: 10,
+      elevation: 8,
+    },
+    scrollToCurrentPressed: {
+      opacity: 0.7,
+      transform: [{ scale: 0.9 }],
+    },
   });
 }
