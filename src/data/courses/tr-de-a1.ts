@@ -612,6 +612,10 @@ export const TR_DE_A1: Course = {
           order: 4,
           title: 'Yemekte',
           xpReward: 100,
+          grammarNote: {
+            tr: '"zum" kelimesi "zu" + "dem" kaynaşmasıdır ve bir yöne ya da öğüne işaret eder. Örnek: zum Frühstück (kahvaltıya / kahvaltıda). Bu tür kısaltmalar Almancada çok yaygındır.',
+            en: '"zum" is the contraction of "zu" + "dem" and points toward something or a meal. Example: zum Frühstück (for breakfast). Such contractions are very common in German.',
+          },
           exercises: [
             { id: 'tr-de-a1-u6-l4-e1', type: 'multipleChoice', question: '"essen" ne demek?', options: [{ id: 'a', text: 'yemek (fiil)' }, { id: 'b', text: 'içmek' }, { id: 'c', text: 'pişirmek' }, { id: 'd', text: 'almak' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u6-l4-e2', type: 'multipleChoice', question: '"trinken" ne demek?', options: [{ id: 'a', text: 'içmek' }, { id: 'b', text: 'yemek' }, { id: 'c', text: 'açmak' }, { id: 'd', text: 'kapatmak' }], correctOptionId: 'a' },
@@ -700,6 +704,10 @@ export const TR_DE_A1: Course = {
           order: 3,
           title: 'Doktor ve Eczane',
           xpReward: 100,
+          grammarNote: {
+            tr: '"zu" edatı bir yere yönelmeyi anlatır ve ismin artikeliyle kaynaşır: eril ve nötr isimlerde "zu + dem = zum" (zum Arzt — doktora), dişil isimlerde "zu + der = zur" (zur Apotheke — eczaneye). İsmin artikelini bilmek hangi kısaltmayı seçeceğini söyler.',
+            en: 'The preposition "zu" expresses going somewhere and merges with the noun\'s article: masculine and neuter nouns use "zu + dem = zum" (zum Arzt — to the doctor), feminine nouns use "zu + der = zur" (zur Apotheke — to the pharmacy). Knowing the article tells you which contraction to use.',
+          },
           exercises: [
             { id: 'tr-de-a1-u7-l3-e1', type: 'multipleChoice', question: '"der Arzt" ne demek?', options: [{ id: 'a', text: 'Doktor' }, { id: 'b', text: 'Hemşire' }, { id: 'c', text: 'Eczacı' }, { id: 'd', text: 'Hasta' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u7-l3-e2', type: 'multipleChoice', question: '"die Apotheke" ne demek?', options: [{ id: 'a', text: 'Eczane' }, { id: 'b', text: 'Hastane' }, { id: 'c', text: 'Klinik' }, { id: 'd', text: 'Sağlık ocağı' }], correctOptionId: 'a' },

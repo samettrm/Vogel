@@ -185,6 +185,63 @@ function normalizeAnswer(value: string): string {
     .replace(/\s+/g, ' ').trim();
 }
 
+// ─────────────────────────────────────────────────────────────────
+// 🎯 ADAPTIVE DIFFICULTY — kullanıcının genel doğruluk oranına göre
+// "uygulama" egzersizlerini (translate/listen/fillBlank/matchPairs) sıralar.
+// multipleChoice egzersizleri yeni kelime tanıttığı için her zaman önde,
+// orijinal sırada kalır → öğrenme akışı (önce öğret, sonra uygula) korunur.
+// ─────────────────────────────────────────────────────────────────
+const PRACTICE_DIFFICULTY: Record<string, number> = {
+  fillBlank: 1,
+  matchPairs: 1,
+  translate: 2,
+  speak: 2,
+  listen: 3,
+};
+
+function computeGlobalAccuracy(
+  progress: Record<string, Record<string, 'correct' | 'wrong'>>,
+): number {
+  let correct = 0;
+  let total = 0;
+  for (const lessonProgress of Object.values(progress)) {
+    for (const result of Object.values(lessonProgress)) {
+      total += 1;
+      if (result === 'correct') correct += 1;
+    }
+  }
+  // Yeterli veri yoksa nötr değer döndür — adaptasyon yapılmaz.
+  if (total < 12) return 0.75;
+  return correct / total;
+}
+
+function adaptiveOrder(
+  allExercises: Exercise[],
+  progress: Record<string, Record<string, 'correct' | 'wrong'>>,
+): Exercise[] {
+  const accuracy = computeGlobalAccuracy(progress);
+  // Nötr bölge (orta performans) — orijinal sırayı koru.
+  if (accuracy >= 0.6 && accuracy <= 0.85) return allExercises;
+
+  const teaching: Exercise[] = [];
+  const practice: Exercise[] = [];
+  for (const ex of allExercises) {
+    if (ex.type === 'multipleChoice') teaching.push(ex);
+    else practice.push(ex);
+  }
+
+  // Güçlü kullanıcı (>0.85) → zor uygulama egzersizleri önce.
+  // Zorlanan kullanıcı (<0.6) → kolaylarla ısındır, zorları sona bırak.
+  const strong = accuracy > 0.85;
+  const sortedPractice = [...practice].sort((a, b) => {
+    const da = PRACTICE_DIFFICULTY[a.type] ?? 2;
+    const db = PRACTICE_DIFFICULTY[b.type] ?? 2;
+    return strong ? db - da : da - db;
+  });
+
+  return [...teaching, ...sortedPractice];
+}
+
 export default function LessonScreen() {
   const router = useRouter();
   const c = useThemeColors();
@@ -270,7 +327,9 @@ export default function LessonScreen() {
     const progress = lessonExerciseProgress?.[lesson.id] ?? {};
     const wrongExercises = allExercises.filter((exercise) => progress[exercise.id] === 'wrong');
     if (wrongExercises.length > 0) return wrongExercises;
-    return allExercises;
+    // 🎯 İlk geçişte egzersizler kullanıcının genel performansına göre sıralanır.
+    // (Sadece ders açılışında bir kez — ders ortasında sıra kaymaz.)
+    return adaptiveOrder(allExercises, lessonExerciseProgress ?? {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson?.id]);
 

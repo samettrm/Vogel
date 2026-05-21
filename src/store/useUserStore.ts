@@ -87,6 +87,9 @@ interface UserState {
   hasHydrated: boolean;
   reviewItems: Record<string, ReviewItem>;
   lessonExerciseProgress: Record<string, Record<string, 'correct' | 'wrong'>>;
+  // 🆕 Kullanıcının ilk kez gördüğü kelimeler — çoktan seçmeli egzersizde
+  // "YENİ" rozeti, bir kelime ilk kez çıktığında gösterilir.
+  seenWords: string[];
   currentLeague: string;
   leagueCompetitors: LeagueCompetitor[];
   leagueEndDate: number;
@@ -151,6 +154,7 @@ interface UserState {
   buyKupaPackage: (amount: number) => void;
   recordReviewResult: (payload: ReviewResultPayload, isCorrect: boolean) => void;
   setExerciseResult: (lessonId: string, exerciseId: string, result: 'correct' | 'wrong') => void;
+  markWordSeen: (word: string) => void;
   getDueReviewItems: () => ReviewItem[];
   resetReviewItems: () => void;
   checkLeagueStatus: () => void;
@@ -330,6 +334,7 @@ export const useUserStore = create<UserState>()(
       hasHydrated: false,
       reviewItems: {},
       lessonExerciseProgress: {},
+      seenWords: [],
       dailyQuests: [],
       dailyQuestsDate: null,
       achievementsUnlocked: new Set<string>(),
@@ -477,6 +482,7 @@ export const useUserStore = create<UserState>()(
           completedLessons: new Set<string>(),
           reviewItems: {},
           lessonExerciseProgress: {},
+          seenWords: [],
           currentLeague: 'Bronz Lig',
           leagueCompetitors: createInitialCompetitors(0),
           leagueEndDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
@@ -561,6 +567,13 @@ export const useUserStore = create<UserState>()(
             },
           };
         }),
+
+      markWordSeen: (word) =>
+        set((state) =>
+          state.seenWords.includes(word)
+            ? {}
+            : { seenWords: [...state.seenWords, word] },
+        ),
 
       getDueReviewItems: () => {
         const now = Date.now();
@@ -825,6 +838,7 @@ export const useUserStore = create<UserState>()(
           completedLessons: normalizeCompletedLessons(state.completedLessons),
           reviewItems: normalizeReviewItems(state.reviewItems),
           lessonExerciseProgress: normalizeLessonProgress(state.lessonExerciseProgress),
+          seenWords: Array.isArray(state.seenWords) ? state.seenWords : [],
           lastStudyDate: state.lastStudyDate ?? null,
           streak: state.streak ?? 0,
           xp: state.xp ?? 0,
@@ -866,6 +880,7 @@ export const useUserStore = create<UserState>()(
         completedLessons: state.completedLessons,
         reviewItems: state.reviewItems,
         lessonExerciseProgress: state.lessonExerciseProgress,
+        seenWords: state.seenWords,
         dailyQuests: state.dailyQuests,
         dailyQuestsDate: state.dailyQuestsDate,
         currentLeague: state.currentLeague,

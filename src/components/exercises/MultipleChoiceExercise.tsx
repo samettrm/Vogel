@@ -1,11 +1,19 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
+import { useUserStore } from '../../store/useUserStore';
 import type { Exercise } from '../../types';
 
 type MultipleChoiceExerciseData = Extract<Exercise, { type: 'multipleChoice' }>;
+
+// Soru metnindeki ilk tırnak içi kelimeyi yakalar — örn '"Hallo" ne demek?' → 'Hallo'.
+// Bu, çoktan seçmeli egzersizin tanıttığı Almanca kelimedir.
+function parseQuizWord(question: string): string | null {
+  const m = question.match(/"([^"]+)"/);
+  return m ? m[1] : null;
+}
 
 type Props = {
   exercise: MultipleChoiceExerciseData;
@@ -31,6 +39,23 @@ function MultipleChoiceExerciseImpl({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exercise.id]);
 
+  // 🆕 "YENİ" rozeti — bu egzersizin tanıttığı kelime kullanıcıya ilk kez
+  // gösteriliyorsa true. Mount anında bir kez hesaplanır (egzersiz boyunca sabit),
+  // ardından kelime "görüldü" olarak işaretlenir → sonraki karşılaşmada rozet çıkmaz.
+  const quizWord = useMemo(
+    () => parseQuizWord(exercise.question),
+    [exercise.question],
+  );
+  const [isNewWord] = useState(
+    () => quizWord != null && !useUserStore.getState().seenWords.includes(quizWord),
+  );
+  useEffect(() => {
+    if (isNewWord && quizWord) {
+      useUserStore.getState().markWordSeen(quizWord);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const styles = makeStyles(c);
 
   return (
@@ -39,6 +64,12 @@ function MultipleChoiceExerciseImpl({
 
       <View style={styles.questionCard}>
         <View style={styles.questionTopHighlight} pointerEvents="none" />
+        {isNewWord ? (
+          <View style={styles.newBadge}>
+            <Ionicons name="sparkles" size={11} color={c.bg} />
+            <Text style={styles.newBadgeText}>{t('exercise.newBadge')}</Text>
+          </View>
+        ) : null}
         <Text style={styles.questionText}>{exercise.question}</Text>
       </View>
 
@@ -124,6 +155,17 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       height: 1, backgroundColor: c.glassHighlight,
     },
     questionText: { ...textStyles.heading, color: c.textHigh, fontSize: 26, lineHeight: 32 },
+    newBadge: {
+      position: 'absolute', top: 0, right: 0,
+      flexDirection: 'row', alignItems: 'center', gap: 3,
+      backgroundColor: c.gold,
+      paddingHorizontal: spacing.sm, paddingVertical: 3,
+      borderBottomLeftRadius: radius.md,
+    },
+    newBadgeText: {
+      ...textStyles.caption, color: c.bg,
+      fontSize: 10, fontWeight: '800', letterSpacing: 0.5,
+    },
     options: { gap: spacing.md },
     optionCard: {
       minHeight: 64, borderRadius: radius.lg, borderWidth: 1.5,

@@ -260,6 +260,7 @@ export const messages = {
     tapHint: { tr: 'Kelimeleri sırası ile dokun', en: 'Tap words in order' },
     matchPairs: { tr: 'Eşleştir', en: 'Match the pairs' },
     meaning: { tr: 'Türkçesi', en: 'Meaning' },
+    newBadge: { tr: 'YENİ', en: 'NEW' },
   },
 
   // Onboarding (5 step'li kişiselleştirilmiş akış)
