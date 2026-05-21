@@ -115,6 +115,8 @@ function ListenExerciseImpl({
         onAddWord={onAddWord}
         onRemoveWordAt={onRemoveWordAt}
         labelText={t('exercise.listen')}
+        compactPrompt={true}  // 📦 "Dinle ve cümle oluştur" büyük başlık yerine küçük label olarak
+        translationText={exercise.translation}  // 🌐 Cevap sonrası Türkçe çeviri (varsa)
       />
     </View>
   );

@@ -1,20 +1,20 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
-import { useUserStore } from '../../src/store/useUserStore';
-import { ALL_COURSES, AVAILABLE_LEVELS, getCourseByLevel } from '../../src/data/courses';
-import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
-import { useT } from '../../src/i18n';
-import { TopStatusBar } from '../../src/components/map/TopStatusBar';
-import { MapPath } from '../../src/components/map/MapPath';
 import { BirdMascot } from '../../src/components/map/BirdMascot';
+import type { LessonNodeState } from '../../src/components/map/LessonNode';
 import { LevelTabs } from '../../src/components/map/LevelTabs';
+import { MapPath } from '../../src/components/map/MapPath';
+import { TopStatusBar } from '../../src/components/map/TopStatusBar';
 import { ReviewBanner } from '../../src/components/review/ReviewBanner';
 import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
-import type { LessonNodeState } from '../../src/components/map/LessonNode';
+import { ALL_COURSES, AVAILABLE_LEVELS, getCourseByLevel } from '../../src/data/courses';
+import { useT } from '../../src/i18n';
+import { useUserStore } from '../../src/store/useUserStore';
+import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import type { Lesson, Unit } from '../../src/types';
 
 // ════════════════════════════════════════════════════════════════
@@ -29,6 +29,8 @@ import type { Lesson, Unit } from '../../src/types';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const APPROX_UNIT_HEIGHT = 124 * 6 + 40 + 80 + 16; // 6 ders + header + margin
+
+// (Cache mantığı kaldırıldı — scrollToIndex ile her ders bittiğinde current unit'e snap)
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -57,9 +59,6 @@ export default function HomeScreen() {
   const onResetCancel = useCallback(() => setShowResetConfirm(false), []);
 
   const listRef = useRef<FlatList<Unit>>(null);
-  // 🚀 PERF: Auto-scroll SADECE ilk açılışta (level başına bir kez) yapılır.
-  // Her ders sonrası currentLessonId değişince tekrar scroll edilmesin → telefon ısınmasın.
-  const didInitialScrollRef = useRef(false);
 
   const course = useMemo(
     () => getCourseByLevel(selectedLevel) ?? ALL_COURSES[0],
@@ -82,36 +81,84 @@ export default function HomeScreen() {
     }
   }, [hasHydrated, applyHeartRefills]);
 
-  useEffect(() => {
-    listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    // 🔄 Level değişince initial scroll flag'i sıfırla → yeni level'da bir kez auto-scroll yapılsın
-    didInitialScrollRef.current = false;
-  }, [selectedLevel]);
+  // 📜 Current unit index — hangi ünitede current lesson var?
+  const currentUnitIndex = useMemo(() => {
+    if (!currentLessonId) return -1;
+    return course.units.findIndex((u) =>
+      u.lessons.some((l) => l.id === currentLessonId),
+    );
+  }, [course.units, currentLessonId]);
 
-  // Current lesson'a otomatik scroll — SADECE İLK AÇILIŞTA (level başına bir kez)
+  // 📜 Her ünitenin exact yüksekliği (FlatList'in precise scroll yapabilmesi için)
+  // unit_height = lessons * 124 + header 40 + bottom margin 80
+  const getItemLayout = useCallback(
+    (data: ArrayLike<Unit> | null | undefined, index: number) => {
+      const units = data ? Array.from(data) : [];
+      let offset = 0;
+      for (let i = 0; i < index; i++) {
+        const unit = units[i];
+        offset += (unit?.lessons?.length ?? 0) * 124 + 40 + 80;
+      }
+      const length = (units[index]?.lessons?.length ?? 0) * 124 + 40 + 80;
+      return { length, offset, index };
+    },
+    [],
+  );
+
+  // 📜 Current LESSON'a scroll — sadece unit'e değil, kalan ders'in tam görünür olacağı konuma
+  // Mantık: scrollToIndex unit'e snap yapar, viewOffset ile unit içindeki lesson konumunu hesaba katar
+  // Formül: viewOffset = 60 - lessonIndexInUnit * 124
+  //   → lesson_0 (ilk ders): viewOffset=60 → unit başlığı görünür + ilk ders 100px aşağıda
+  //   → lesson_2 (3. ders): viewOffset=-188 → unit başlığı kayar, current ders 100px aşağıda
   useEffect(() => {
     if (!hasHydrated) return;
-    if (didInitialScrollRef.current) return;  // ✋ Zaten bir kez scroll edildi, tekrar etme
+    if (currentUnitIndex < 0) return;
     if (!currentLessonId) return;
-    let cumulativeHeight = 0;
-    let targetY = 0;
-    for (const unit of course.units) {
-      const idx = unit.lessons.findIndex((l) => l.id === currentLessonId);
-      if (idx !== -1) {
-        targetY = cumulativeHeight + idx * 124 + 40;
-        break;
-      }
-      cumulativeHeight += unit.lessons.length * 124 + 40 + 80;
-    }
+
+    const currentUnit = course.units[currentUnitIndex];
+    if (!currentUnit) return;
+    const lessonIndexInUnit = currentUnit.lessons.findIndex(
+      (l) => l.id === currentLessonId,
+    );
+    if (lessonIndexInUnit < 0) return;
+
+    // viewOffset: lesson ekranın üstünden ~100px aşağıda görünsün
+    // (40 unit header - 100 padding - lessonIndex * 124)
+    const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
+
     const tt = setTimeout(() => {
-      listRef.current?.scrollToOffset({
-        offset: Math.max(0, targetY - SCREEN_HEIGHT * 0.35),
-        animated: true,
-      });
-      didInitialScrollRef.current = true;  // ✅ Flag set — bir daha scroll yok
-    }, 450);
+      try {
+        listRef.current?.scrollToIndex({
+          index: currentUnitIndex,
+          animated: true,  // ✨ Yumuşak kayma (sert değil)
+          viewPosition: 0,
+          viewOffset: viewOffsetValue,
+        });
+      } catch {
+        // Fallback onScrollToIndexFailed'de
+      }
+    }, 100);
+
     return () => clearTimeout(tt);
-  }, [hasHydrated, currentLessonId, course.units]);
+  }, [hasHydrated, currentUnitIndex, currentLessonId, course.units]);
+
+  // 📜 scrollToIndex fail olursa (index henuz render edilmediyse) retry
+  const onScrollToIndexFailed = useCallback(
+    (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
+      const offset = info.averageItemLength * info.index;
+      listRef.current?.scrollToOffset({ offset, animated: false });
+      setTimeout(() => {
+        try {
+          listRef.current?.scrollToIndex({
+            index: info.index,
+            animated: false,
+            viewPosition: 0.1,
+          });
+        } catch {}
+      }, 100);
+    },
+    [],
+  );
 
   const getLessonInfo = useCallback((lesson: Lesson) => {
     const state: LessonNodeState = completedLessons.has(lesson.id)
@@ -261,6 +308,8 @@ export default function HomeScreen() {
 
         {/* 🚀 PERF: FlatList virtualization — 11 ünite, sadece görünür olanlar render */}
         <FlatList
+          // 🔑 Key — her current LESSON değişiminde FlatList remount eder (timing sorunlarını yok eder)
+          key={`${selectedLevel}-${currentLessonId ?? 'none'}`}
           ref={listRef}
           data={course.units}
           renderItem={renderUnit}
@@ -269,11 +318,14 @@ export default function HomeScreen() {
           ListFooterComponent={ListFooter}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews={true}
-          initialNumToRender={3}
-          maxToRenderPerBatch={2}
-          windowSize={5}
+          removeClippedSubviews={false}
+          initialNumToRender={11}
+          maxToRenderPerBatch={4}
+          windowSize={11}
           updateCellsBatchingPeriod={50}
+          getItemLayout={getItemLayout}
+          initialScrollIndex={Math.max(0, currentUnitIndex)}
+          onScrollToIndexFailed={onScrollToIndexFailed}
         />
       </SafeAreaView>
     </View>

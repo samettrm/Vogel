@@ -21,7 +21,6 @@ import { CorrectFeedback } from '../../src/components/feedback/CorrectFeedback';
 import { WrongFeedback } from '../../src/components/feedback/WrongFeedback';
 import { LessonCompleteScreen } from '../../src/components/lesson/LessonCompleteScreen';
 import { LessonHeader } from '../../src/components/lesson/LessonHeader';
-import { LevelUpScreen } from '../../src/components/lesson/LevelUpScreen';
 import { StreakMilestoneScreen } from '../../src/components/lesson/StreakMilestoneScreen';
 import { GrammarTipCard } from '../../src/components/lesson/GrammarTipCard';
 import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
@@ -250,9 +249,7 @@ export default function LessonScreen() {
   const completedLessons = useUserStore((s) => s.completedLessons);
   const lessonExerciseProgress = useUserStore((s) => s.lessonExerciseProgress);
   const checkAndUnlockAchievements = useUserStore((s) => s.checkAndUnlockAchievements);
-  const checkLevelUp = useUserStore((s) => s.checkLevelUp);
-  const pendingLevelUp = useUserStore((s) => s.pendingLevelUp);
-  const dismissPendingLevelUp = useUserStore((s) => s.dismissPendingLevelUp);
+  // (Level-up sistemi kaldırıldı — amaca yönelik sadeleştirme)
   // 🔥 Streak motivasyonu — günlük çalışma kaydet + milestone tetikle
   const registerStudySession = useUserStore((s) => s.registerStudySession);
   const pendingStreakMilestone = useUserStore((s) => s.pendingStreakMilestone);
@@ -387,13 +384,11 @@ export default function LessonScreen() {
     // 🏆 Achievements kontrolü
     setTimeout(() => {
       checkAndUnlockAchievements({ perfectLesson: isPerfect });
-      // 🌟 Level-up kontrolü (achievements'tan sonra, XP eklenmesi tamamlandıktan sonra)
-      checkLevelUp();
     }, 100);
 
     dispatch({ type: 'FINISH_LESSON', isUnitComplete: unitJustCompleted });
     actionLockRef.current = false;
-  }, [lesson, lessonCourseId, completeLesson, incrementQuestProgress, registerStudySession, checkAndUnlockAchievements, checkLevelUp, state.wrongCount]);
+  }, [lesson, lessonCourseId, completeLesson, incrementQuestProgress, registerStudySession, checkAndUnlockAchievements, state.wrongCount]);
 
   const checkAnswer = useCallback(() => {
     if (!lesson || !currentExercise || !canCheck || isAnswered || actionLockRef.current) return;
@@ -440,13 +435,15 @@ export default function LessonScreen() {
         incrementQuestProgress('earnXp', totalXp);
         incrementQuestProgress('correctAnswers', 1);
 
+        // 📳 Haptic SADECE kombo milestone'larında (3, 5, 10) titreyecek
+        // Normal doğru cevaplarda titreme YOK (kullanıcı her hamlede titreme istemiyor)
         if (bonusXp > 0) {
           celebrateComboMilestone();
           playSound('comboUp').catch(() => {});
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
         } else {
           playSound('correct').catch(() => {});
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+          // Haptic kaldırıldı — sadece kombolarda titresin
         }
       }, 0);
     } else {
@@ -458,7 +455,7 @@ export default function LessonScreen() {
         if (reviewPayload) recordReviewResult(reviewPayload, correct);
         loseHeart();
         playSound('wrong').catch(() => {});
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+        // Haptic kaldırıldı — sadece kombolarda titresin (yanlış cevapta da titreme YOK)
       }, 0);
     }
     actionLockRef.current = false;
@@ -515,17 +512,12 @@ export default function LessonScreen() {
       <SafeAreaView style={styles.safeArea}>
         {/* Öncelik sırası:
             1. 🔥 Streak milestone (3/7/14/30/60/100/180/365 gün)
-            2. 🌟 Level-up (XP/100+1 güçlendi)
-            3. ✅ Normal lesson complete ekranı */}
+            2. ✅ Normal lesson complete ekranı
+            (Level-up sistemi kaldırıldı — derslerde fazla animasyon birikiyordu) */}
         {pendingStreakMilestone !== null ? (
           <StreakMilestoneScreen
             streak={pendingStreakMilestone}
             onContinue={dismissPendingStreakMilestone}
-          />
-        ) : pendingLevelUp !== null ? (
-          <LevelUpScreen
-            level={pendingLevelUp}
-            onContinue={dismissPendingLevelUp}
           />
         ) : (
           <LessonCompleteScreen

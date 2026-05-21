@@ -20,11 +20,16 @@ function MultipleChoiceExerciseImpl({
   const c = useThemeColors();
   const t = useT();
 
-  const shuffledOptions = useMemo(
-    () => [...exercise.options].sort(() => Math.random() - 0.5),
+  // 🎲 Mevcut 4 option'dan correct + 2 random yanlış → toplam 3 şık
+  // (Kullanıcı talebi: ders içinde 3'er şık olsun, 4'er adet değil)
+  const shuffledOptions = useMemo(() => {
+    const correct = exercise.options.find((o) => o.id === exercise.correctOptionId);
+    const wrongs = exercise.options.filter((o) => o.id !== exercise.correctOptionId);
+    const shuffledWrongs = [...wrongs].sort(() => Math.random() - 0.5).slice(0, 2);
+    const pool = correct ? [correct, ...shuffledWrongs] : shuffledWrongs;
+    return pool.sort(() => Math.random() - 0.5);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [exercise.id],
-  );
+  }, [exercise.id]);
 
   const styles = makeStyles(c);
 
@@ -38,7 +43,7 @@ function MultipleChoiceExerciseImpl({
       </View>
 
       <View style={styles.options}>
-        {shuffledOptions.map((option, idx) => {
+        {shuffledOptions.map((option) => {
           const isSelected = selectedOptionId === option.id;
           const isCorrectOption = option.id === exercise.correctOptionId;
           const isWrongSelected = disabled && isSelected && !isCorrectOption;
@@ -84,9 +89,7 @@ function MultipleChoiceExerciseImpl({
                     <Ionicons name="close" size={14} color={c.white} />
                   ) : isSelected ? (
                     <View style={styles.numberDot} />
-                  ) : (
-                    <Text style={styles.numberBadgeText}>{idx + 1}</Text>
-                  )}
+                  ) : null /* Rakam başı kaldırıldı — boş kutu */}
                 </View>
                 <Text style={[styles.optionText, textOverlay]} numberOfLines={2}>
                   {option.text}

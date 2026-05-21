@@ -1,9 +1,15 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
+
+// ✨ EFEKTSİZ VERSİYON
+// Önceki versiyonda FadeInDown.springify() animasyonu + glow shadow'lar vardı.
+// Android'de yavaşlatma yaratıyordu, bu yüzden:
+//   - Animasyon kaldırıldı (artık instant görünür)
+//   - Shadow/glow minimuma indirildi
+//   - Sadece "doğru cevap" görselini gösterir, ek efekt yok
 
 interface CorrectFeedbackProps {
   onContinue: () => void;
@@ -15,11 +21,7 @@ function CorrectFeedbackImpl({ onContinue }: CorrectFeedbackProps) {
   const styles = makeStyles(c);
 
   return (
-    <Animated.View
-      entering={FadeInDown.springify().damping(13).stiffness(220)}
-      style={styles.panel}
-    >
-      <View style={styles.topHighlight} pointerEvents="none" />
+    <View style={styles.panel}>
       <View style={styles.row}>
         <View style={styles.iconCircle}>
           <Ionicons name="checkmark" size={24} color={c.textOnNeon} />
@@ -37,7 +39,7 @@ function CorrectFeedbackImpl({ onContinue }: CorrectFeedbackProps) {
       >
         <Text style={styles.continueButtonText}>{t('common.continue')}</Text>
       </Pressable>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -52,21 +54,12 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       paddingHorizontal: spacing.base,
       paddingTop: spacing.lg, paddingBottom: spacing.lg,
       gap: spacing.base, overflow: 'hidden',
-      shadowColor: c.neon, shadowOffset: { width: 0, height: -4 },
-      shadowOpacity: 0.4, shadowRadius: 16, elevation: 10,
-    },
-    topHighlight: {
-      position: 'absolute', top: 0,
-      left: spacing.md, right: spacing.md,
-      height: 1, backgroundColor: c.glassHighlight,
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     iconCircle: {
       width: 44, height: 44, borderRadius: 22,
       alignItems: 'center', justifyContent: 'center',
       backgroundColor: c.neon,
-      shadowColor: c.neon, shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.7, shadowRadius: 10, elevation: 6,
     },
     textCol: { flex: 1, gap: 2 },
     title: { ...textStyles.subheading, color: c.neonLight },
@@ -75,8 +68,6 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       minHeight: 52, borderRadius: radius.md,
       alignItems: 'center', justifyContent: 'center',
       backgroundColor: c.neon,
-      shadowColor: c.neon, shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.6, shadowRadius: 14, elevation: 8,
     },
     continueButtonText: { ...textStyles.button, color: c.textOnNeon },
     pressed: { opacity: 0.92, transform: [{ translateY: 1 }] },

@@ -259,6 +259,7 @@ export const messages = {
     yourAnswer: { tr: 'Cevabın:', en: 'Your answer:' },
     tapHint: { tr: 'Kelimeleri sırası ile dokun', en: 'Tap words in order' },
     matchPairs: { tr: 'Eşleştir', en: 'Match the pairs' },
+    meaning: { tr: 'Türkçesi', en: 'Meaning' },
   },
 
   // Onboarding (5 step'li kişiselleştirilmiş akış)

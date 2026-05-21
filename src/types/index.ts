@@ -107,6 +107,8 @@ export type ListenExercise = {
   audioUrl?: string;
   correctAnswer: string;
   wordBank: string[];
+  // 🌐 Türkçe çeviri — cevap kontrol edildikten sonra görünür (anlam bütünlüğü için)
+  translation?: string;
 };
 
 export type MatchPair = {

@@ -14,6 +14,10 @@ type Props = {
   onAddWord: (word: string) => void;
   onRemoveWordAt: (index: number) => void;
   labelText?: string;
+  // 📦 Listen exercise'tan gönderildiğinde prompt'ı küçük göster (büyük başlık kartı yerine)
+  compactPrompt?: boolean;
+  // 🌐 Cevap kontrol edildiğinde "Türkçesi: ..." satırını göster (anlam bütünlüğü)
+  translationText?: string;
 };
 
 function normalizeText(value: string): string {
@@ -25,6 +29,7 @@ function normalizeText(value: string): string {
 
 function TranslateExerciseImpl({
   exercise, selectedWords, disabled, onAddWord, onRemoveWordAt, labelText,
+  compactPrompt, translationText,
 }: Props) {
   const c = useThemeColors();
   const t = useT();
@@ -50,10 +55,12 @@ function TranslateExerciseImpl({
     <View style={styles.container}>
       <Text style={styles.label}>{labelText ?? t('exercise.translate')}</Text>
 
-      <View style={styles.promptCard}>
-        <View style={styles.promptHighlight} pointerEvents="none" />
-        <Text style={styles.prompt}>{exercise.prompt}</Text>
-      </View>
+      {compactPrompt ? null : (
+        <View style={styles.promptCard}>
+          <View style={styles.promptHighlight} pointerEvents="none" />
+          <Text style={styles.prompt}>{exercise.prompt}</Text>
+        </View>
+      )}
 
       <View
         style={[
@@ -92,6 +99,14 @@ function TranslateExerciseImpl({
         </View>
         <View style={styles.stripLineBottom} />
       </View>
+
+      {/* 🌐 Türkçe çeviri — sadece cevap kontrol edildikten sonra (disabled) görünür */}
+      {disabled && translationText ? (
+        <View style={styles.translationRow}>
+          <Text style={styles.translationLabel}>{t('exercise.meaning')}:</Text>
+          <Text style={styles.translationText}>{translationText}</Text>
+        </View>
+      ) : null}
 
       <View style={styles.bank}>
         {remainingWords.map((word, index) => (
@@ -165,5 +180,24 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     },
     bankChipPressed: { opacity: 0.7, transform: [{ scale: 0.96 }] },
     bankChipText: { ...textStyles.bodyBold, color: c.textHigh },
+    // 🌐 Türkçe çeviri satırı (Listen exercise için)
+    translationRow: {
+      flexDirection: 'row',
+      gap: spacing.xs,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.sm,
+      flexWrap: 'wrap',
+    },
+    translationLabel: {
+      ...textStyles.label,
+      color: c.textLow,
+      fontSize: 12,
+    },
+    translationText: {
+      ...textStyles.body,
+      color: c.textHigh,
+      fontSize: 14,
+      flex: 1,
+    },
   });
 }
