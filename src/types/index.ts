@@ -46,7 +46,9 @@ export type PersonalizationTag =
   | 'culture'    // Kültür, eğlence, film/dizi/müzik
   | 'formal'     // Resmi/akademik dil
   | 'emotion'    // Duygular, ifadeler
-  | 'tech';      // Teknoloji (ileri seviyeler için)
+  | 'tech'       // Teknoloji (ileri seviyeler için)
+  | 'media'      // Medya, film, dizi, müzik
+  | 'academic';  // Akademik/bilimsel dil
 
 // Onboarding'de seçilen motivasyon türleri
 export type LearningMotivation =

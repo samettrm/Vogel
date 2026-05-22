@@ -222,7 +222,9 @@ export const light = {
 export type LightColorName = keyof typeof light;
 
 // Tema palette tipi (dark + light icin ortak interface)
-export type ThemePalette = typeof dark;
+// Mapped type kullanılıyor — literal string yerine string kabul eder,
+// böylece light paleti de ThemePalette'e atanabilir.
+export type ThemePalette = { [K in keyof typeof dark]: string };
 
 /**
  * Aktif palete erisim — store'daki themeMode'a gore secer.

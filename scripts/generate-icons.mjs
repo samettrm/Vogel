@@ -120,6 +120,37 @@ const androidFgSvg = `<svg xmlns="http://www.w3.org/2000/svg"
   ${birdGroup(0.7, false)}
 </svg>`;
 
+// ─── ANDROID ADAPTIVE ICON BACKGROUND (düz renk) ─────────────────
+// app.json'daki backgroundColor ile eşleşmeli: #E6F4FE (açık mavi)
+const ANDROID_BG_COLOR = '#E6F4FE';
+const androidBgSvg = `<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" fill="${ANDROID_BG_COLOR}"/>
+</svg>`;
+
+// ─── ANDROID MONOCHROME (Android 13+ theming) ────────────────────
+// Sistem kendi rengini uygular — sadece şekil/alfa önemli (beyaz siluet)
+function birdGroupMono(scale = 0.7) {
+  const tx = 512 - 512 * scale;
+  const ty = 512 - 502 * scale;
+  return `<g transform="translate(${tx.toFixed(1)}, ${ty.toFixed(1)}) scale(${scale})">
+    <path d="M 490 488 C 450 468, 355 432, 215 435 C 178 437, 158 452, 163 472
+             C 184 456, 248 453, 372 480 C 428 494, 480 507, 492 518 Z" fill="white"/>
+    <path d="M 534 488 C 574 468, 669 432, 809 435 C 846 437, 866 452, 861 472
+             C 840 456, 776 453, 652 480 C 596 494, 544 507, 532 518 Z" fill="white"/>
+    <ellipse cx="512" cy="515" rx="38" ry="88" fill="white"/>
+    <circle cx="512" cy="400" r="46" fill="white"/>
+    <path d="M 502 358 L 512 330 L 522 358 Z" fill="white"/>
+    <path d="M 493 598 C 477 620, 460 645, 444 668
+             L 476 650 L 512 674 L 548 650 L 580 668
+             C 564 645, 547 620, 531 598 Z" fill="white"/>
+  </g>`;
+}
+const androidMonoSvg = `<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1024 1024" width="1024" height="1024">
+  ${birdGroupMono(0.7)}
+</svg>`;
+
 // ─── ÜRETİM ──────────────────────────────────────────────────────
 async function generate() {
   mkdirSync('assets/images', { recursive: true });
@@ -146,7 +177,22 @@ async function generate() {
     .resize(1024, 1024)
     .png({ compressionLevel: 9 })
     .toFile('assets/images/android-icon-foreground.png');
-  console.log('✓ assets/images/android-icon-foreground.png (Android)');
+  console.log('✓ assets/images/android-icon-foreground.png (Android fg)');
+
+  // 4. Android adaptive background — düz renk (#E6F4FE)
+  await sharp(Buffer.from(androidBgSvg))
+    .resize(1024, 1024)
+    .flatten({ background: ANDROID_BG_COLOR })
+    .png({ compressionLevel: 9 })
+    .toFile('assets/images/android-icon-background.png');
+  console.log('✓ assets/images/android-icon-background.png (Android bg)');
+
+  // 5. Android monochrome — Android 13+ theming için beyaz siluet
+  await sharp(Buffer.from(androidMonoSvg))
+    .resize(1024, 1024)
+    .png({ compressionLevel: 9 })
+    .toFile('assets/images/android-icon-monochrome.png');
+  console.log('✓ assets/images/android-icon-monochrome.png (Android mono)');
 
   console.log('\n✅ Tüm ikonlar güncellendi!');
   console.log('   Uygulamayı yeniden başlatarak değişiklikleri gör.\n');
