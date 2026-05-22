@@ -1,9 +1,67 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { radius, shadows, spacing, textStyles, useThemeColors } from '../../theme';
 import { useUserStore } from '../../store/useUserStore';
+
+// ─── Animasyonlu altın yıldız ─────────────────────────────────────────────────
+function GoldSparkle({
+  color, style, delay, size = 18,
+}: {
+  color: string; style: object; delay: number; size?: number;
+}) {
+  const opacity = useSharedValue(0);
+  const scale = useSharedValue(0.2);
+
+  useEffect(() => {
+    const pause = 1800 + (delay % 700);
+    opacity.value = withDelay(delay, withRepeat(
+      withSequence(
+        withTiming(1,   { duration: 280 }),
+        withTiming(0.4, { duration: 180 }),
+        withTiming(1,   { duration: 220 }),
+        withTiming(0,   { duration: 350 }),
+        withDelay(pause, withTiming(0, { duration: 0 })),
+      ),
+      -1, false,
+    ));
+    scale.value = withDelay(delay, withRepeat(
+      withSequence(
+        withTiming(1.2, { duration: 280 }),
+        withTiming(0.8, { duration: 180 }),
+        withTiming(1.1, { duration: 220 }),
+        withTiming(0.2, { duration: 350 }),
+        withDelay(pause, withTiming(0.2, { duration: 0 })),
+      ),
+      -1, false,
+    ));
+    return () => { cancelAnimation(opacity); cancelAnimation(scale); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const anim = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.Text
+      pointerEvents="none"
+      style={[{ position: 'absolute', fontSize: size, color }, style, anim]}
+    >✦</Animated.Text>
+  );
+}
 
 // ════════════════════════════════════════════════════════════════
 // NO HEARTS SCREEN — Kayıp korkusu + ilerleme kaybı psikolojisi
@@ -35,6 +93,23 @@ function formatRemaining(ms: number): string {
 export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
   const c = useThemeColors();
   const styles = useMemo(() => makeStyles(c), [c]);
+
+  // Altın çerçeve üzerinde süpürülen ışık şeridi
+  const shimmerX = useSharedValue(-80);
+  useEffect(() => {
+    shimmerX.value = withDelay(600, withRepeat(
+      withSequence(
+        withTiming(420, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+        withDelay(3200, withTiming(-80, { duration: 0 })),
+      ),
+      -1, false,
+    ));
+    return () => cancelAnimation(shimmerX);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const shimmerAnim = useAnimatedStyle(() => ({
+    transform: [{ translateX: shimmerX.value }, { rotate: '20deg' }],
+  }));
 
   // Store'dan motivasyon verileri — kayıp korkusu için
   const streak = useUserStore((s) => s.streak);
@@ -107,15 +182,24 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
           <Text style={styles.premiumCtaBadgeText}>✨ EN ÇOK TERCİH EDİLEN</Text>
         </View>
 
+        {/* ── Animasyonlu yıldızlar — kartın çevresinde ── */}
+        <GoldSparkle color={c.gold} style={{ top: 10, left: '18%' }}  delay={0}    />
+        <GoldSparkle color={c.gold} style={{ top: 10, right: '18%' }} delay={700}  />
+        <GoldSparkle color={c.gold} style={{ top: 62, left: -10 }}    delay={350}  />
+        <GoldSparkle color={c.gold} style={{ top: 62, right: -10 }}   delay={1050} />
+        <GoldSparkle color={c.gold} style={{ top: 135, left: -10 }}   delay={900}  />
+        <GoldSparkle color={c.gold} style={{ top: 135, right: -10 }}  delay={200}  />
+        <GoldSparkle color={c.gold} style={{ bottom: -4, left: '25%' }}  delay={550}  />
+        <GoldSparkle color={c.gold} style={{ bottom: -4, right: '25%' }} delay={1250} />
+
         <Pressable
           onPress={() => { router.push('/(tabs)/shop'); }}
           style={({ pressed }) => [styles.premiumCta, pressed && styles.ctaPressed]}
         >
           <View style={styles.premiumCtaGoldBg} pointerEvents="none" />
           <View style={styles.premiumCtaHighlight} pointerEvents="none" />
-          <View style={styles.premiumCtaShimmer} pointerEvents="none" />
-          <Text style={[styles.premiumCtaStar, { top: 12, right: 14 }]}>⭐</Text>
-          <Text style={[styles.premiumCtaStar, { bottom: 16, left: 14 }]}>⭐</Text>
+          {/* Animasyonlu süpürme ışığı */}
+          <Animated.View style={[styles.premiumCtaShimmer, shimmerAnim]} pointerEvents="none" />
 
           {/* Başlık */}
           <View style={styles.premiumCtaHeader}>
@@ -263,16 +347,15 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       backgroundColor: c.gold, opacity: 0.08,
     },
     premiumCtaHighlight: {
-      position: 'absolute', top: 0, left: spacing.md, right: spacing.md,
-      height: 1.5, backgroundColor: c.gold, opacity: 0.55,
+      position: 'absolute', top: 0, left: 0, right: 0,
+      height: 2, backgroundColor: c.gold, opacity: 0.6,
     },
+    // Sweep shimmer — Animated.View ile translateX ile hareket eder
     premiumCtaShimmer: {
-      position: 'absolute', top: -40, left: '20%',
-      width: 60, height: 320,
-      backgroundColor: 'rgba(255,255,255,0.05)',
-      transform: [{ rotate: '22deg' }],
+      position: 'absolute', top: -40,
+      width: 55, height: 320,
+      backgroundColor: 'rgba(255,255,255,0.13)',
     },
-    premiumCtaStar: { position: 'absolute', fontSize: 16 },
     premiumCtaHeader: {
       flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     },
