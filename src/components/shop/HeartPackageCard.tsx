@@ -1,9 +1,8 @@
 import React from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
-import { useT } from '../../i18n';
 
 interface HeartPackageCardProps {
   title: string;
@@ -17,7 +16,6 @@ export function HeartPackageCard({
   title, description, ctaLabel, variant = 'refill', onPurchase,
 }: HeartPackageCardProps) {
   const c = useThemeColors();
-  const t = useT();
   const isDisabled = variant === 'disabled';
   const isPremium = variant === 'premium';
 

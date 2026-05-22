@@ -257,7 +257,8 @@ function getYesterdayKey(): string {
   return yesterday.toISOString().slice(0, 10);
 }
 
-function getNextReviewDelayMs(isCorrect: boolean, nextStrength: number): number {
+// SRS zamanlama yardımcısı — ileri faz (SM-2 entegrasyonu) için hazır
+function _getNextReviewDelayMs(isCorrect: boolean, nextStrength: number): number {
   if (!isCorrect) return 0;
   if (nextStrength <= 1) return 10 * 60 * 1000;
   if (nextStrength === 2) return 60 * 60 * 1000;
@@ -670,13 +671,13 @@ export const useUserStore = create<UserState>()(
         }
 
         // Sabit görev şablonları havuzu. Aynı tip içinden bir tane seçilir.
-        const POOL: Array<{
+        const POOL: {
           type: QuestType;
           target: number;
           rewardXp: number;
           label: string;
           emoji: string;
-        }> = [
+        }[] = [
           { type: 'completeLesson', target: 1, rewardXp: 20, label: '1 ders tamamla', emoji: '📚' },
           { type: 'completeLesson', target: 3, rewardXp: 50, label: '3 ders tamamla', emoji: '📚' },
           { type: 'earnXp', target: 30, rewardXp: 15, label: '30 XP topla', emoji: '⚡' },

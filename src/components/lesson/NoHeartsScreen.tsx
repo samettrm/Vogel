@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import {
   buttonShadowOffset,
   colors,
@@ -74,13 +75,11 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
       </Pressable>
 
       <Pressable
-        onPress={() => {
-          // TODO: premium akışı eklenince burası satın alma sayfasına gidecek.
-        }}
+        onPress={() => router.push('/(tabs)/shop')}
         style={styles.ghostButton}
       >
         <Text style={styles.ghostButtonText}>
-          Sınırsız can için Premium (yakında)
+          Sınırsız can için Premium al →
         </Text>
       </Pressable>
     </View>

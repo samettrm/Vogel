@@ -120,6 +120,19 @@ const androidFgSvg = `<svg xmlns="http://www.w3.org/2000/svg"
   ${birdGroup(0.7, false)}
 </svg>`;
 
+// ─── WEB FAVİCON (32×32, arka plan dahil) ────────────────────────
+const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <radialGradient id="bgGrad2" cx="50%" cy="42%" r="65%" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="${BG_CARD}"/>
+      <stop offset="100%" stop-color="${BG_DARK}"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bgGrad2)"/>
+  ${birdGroup(0.8, false)}
+</svg>`;
+
 // ─── ANDROID ADAPTIVE ICON BACKGROUND (düz renk) ─────────────────
 // app.json'daki backgroundColor ile eşleşmeli: #E6F4FE (açık mavi)
 const ANDROID_BG_COLOR = '#E6F4FE';
@@ -193,6 +206,14 @@ async function generate() {
     .png({ compressionLevel: 9 })
     .toFile('assets/images/android-icon-monochrome.png');
   console.log('✓ assets/images/android-icon-monochrome.png (Android mono)');
+
+  // 6. Web favicon — 32×32 PNG
+  await sharp(Buffer.from(faviconSvg))
+    .resize(32, 32)
+    .flatten({ background: BG_DARK })
+    .png({ compressionLevel: 9 })
+    .toFile('assets/images/favicon.png');
+  console.log('✓ assets/images/favicon.png              (32×32, web)');
 
   console.log('\n✅ Tüm ikonlar güncellendi!');
   console.log('   Uygulamayı yeniden başlatarak değişiklikleri gör.\n');

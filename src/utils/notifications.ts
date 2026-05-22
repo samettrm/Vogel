@@ -21,7 +21,6 @@ export const SMART_REMINDER_PREFIX = 'vogel-smart-';
 // Expo Go tespiti — UI'da kullanıcıya bilgi vermek için
 const isExpoGo = Constants.appOwnership === 'expo';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Notifications: any = null;
 let notificationsLoadAttempted = false;
 let initializationPromise: Promise<void> | null = null;
@@ -34,7 +33,6 @@ let initializationPromise: Promise<void> | null = null;
 // yüklüyoruz (kullanıcı bildirim açmaya çalıştığında).
 // Statik require kağılda dahi olsa _layout.tsx import zincirinden
 // hiç tetiklenmesin diye GET'i function'a çekiyoruz.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getNotifications(): any {
   if (notificationsLoadAttempted) return Notifications;
   notificationsLoadAttempted = true;

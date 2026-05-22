@@ -379,12 +379,13 @@ export default function LessonScreen() {
     dispatch({ type: 'SELECT_OPTION', optionId });
   }, []);
 
-  const selectSpeakAnswer = useCallback(() => {
+  // Speak exercise handlers — henüz UI'a bağlanmadı, ileri faz için hazır
+  const _selectSpeakAnswer = useCallback(() => {
     if (!currentExercise || currentExercise.type !== 'speak') return;
     dispatch({ type: 'SET_SELECTED_WORDS', words: [currentExercise.targetText] });
   }, [currentExercise]);
 
-  const onSpeakTypedTextChange = useCallback((text: string) => {
+  const _onSpeakTypedTextChange = useCallback((text: string) => {
     dispatch({ type: 'SET_SPEAK_TYPED_TEXT', text });
   }, []);
 

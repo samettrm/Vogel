@@ -21,9 +21,8 @@ import {
   getMotivationMeta,
   type MotivationMeta,
 } from '../src/services/personalization';
-import type { LearningMotivation } from '../src/types';
+import type { CEFRLevel, LearningMotivation } from '../src/types';
 import { PlacementTest } from '../src/components/onboarding/PlacementTest';
-import type { CEFRLevel } from '../src/types';
 
 // ════════════════════════════════════════════════════════════════
 // ONBOARDING — 6 ADIMLI KİŞİSELLEŞTİRİLMİŞ AKIŞ
@@ -364,7 +363,7 @@ function WelcomeStep({
 // ─── Step 2: LevelCheck — Sıfırdan mı, yoksa seviye testi mi? ───
 function LevelCheckStep({
   c, t, styles,
-  startingLevel,
+  startingLevel: _startingLevel,
   onChooseScratch,
   onChoosePlacement,
   birdStyle,
@@ -487,7 +486,7 @@ function MotivationStep({
 
 // ─── MotivationCard ile spring animation ───
 function MotivationCard({
-  c, t, styles, opt, isSelected, selectionOrder, onPress,
+  c: _c, t, styles, opt, isSelected, selectionOrder, onPress,
 }: {
   c: ReturnType<typeof useThemeColors>;
   t: ReturnType<typeof useT>;

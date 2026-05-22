@@ -59,7 +59,7 @@ export default function ProfileScreen() {
   const xpInLevel = xp % XP_PER_LEVEL;
 
   const { dailyCurrent, dailyTarget } = useMemo(() => {
-    const list = (dailyQuests ?? []) as Array<{ type?: string; progress?: number; target?: number }>;
+    const list = (dailyQuests ?? []) as { type?: string; progress?: number; target?: number }[];
     const earnXpQuest = list.find((q) => q?.type === 'earnXp');
     if (earnXpQuest && typeof earnXpQuest.target === 'number') {
       return {

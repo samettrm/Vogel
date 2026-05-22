@@ -131,7 +131,7 @@ export function PlacementTest({ onComplete, onCancel }: PlacementTestProps) {
                 pressed && { opacity: 0.7 },
               ]}
             >
-              <Text style={styles.secondaryButtonText}>A1'den (sıfırdan) başlamak istiyorum</Text>
+              <Text style={styles.secondaryButtonText}>{"A1'den (sıfırdan) başlamak istiyorum"}</Text>
             </Pressable>
           </View>
         </ScrollView>

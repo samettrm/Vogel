@@ -84,7 +84,7 @@ export function LevelTabs({ levels, selectedLevel, onSelect }: LevelTabsProps) {
   );
 }
 
-function makeStyles(c: ReturnType<typeof useThemeColors>) {
+function makeStyles(_c: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
     container: { paddingVertical: spacing.xs },
     scroll: { paddingHorizontal: spacing.base, gap: spacing.sm, alignItems: 'center' },

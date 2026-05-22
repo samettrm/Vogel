@@ -121,9 +121,8 @@ function RootLayout() {
     let timer: ReturnType<typeof setInterval> | null = checkAndScheduleRefill();
 
     // Heart durumu değiştiğinde (loseHeart çağrısı sonrası) interval'ı yeniden kur
-    const unsubscribe = useUserStore.subscribe((state, prev) => {
+    const unsubscribe = useUserStore.subscribe((state, _prev) => {
       const needsRefill = !state.isPremium && state.hearts < state.maxHearts && state.nextHeartRefillAt !== null;
-      const hadRefill = !prev.isPremium && prev.hearts < prev.maxHearts && prev.nextHeartRefillAt !== null;
       if (needsRefill && !timer) {
         timer = checkAndScheduleRefill();
       } else if (!needsRefill && timer) {

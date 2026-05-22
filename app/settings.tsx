@@ -340,7 +340,7 @@ interface SelectRowProps {
   toneBg: string;
   label: string;
   description?: string;
-  options: Array<{ value: string; label: string }>;
+  options: { value: string; label: string }[];
   value: string;
   onChange: (value: string) => void;
 }

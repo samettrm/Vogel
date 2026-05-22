@@ -22,6 +22,7 @@ export default function LeaderboardScreen() {
 
   useEffect(() => {
     if (checkLeagueStatus) checkLeagueStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 1. HAFTALIK LİG SAYACI (Store verisine bağlı klasik geri sayım)
@@ -44,6 +45,7 @@ export default function LeaderboardScreen() {
     updateWeeklyTimer();
     const interval = setInterval(updateWeeklyTimer, 60000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leagueEndDate]);
 
   // 2. GÜNLÜK LİG SAYACI (Her gece yarısı 00:00'a göre saniyelik geri sayım)

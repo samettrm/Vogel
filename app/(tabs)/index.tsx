@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Dimensions, Easing, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BirdMascot } from '../../src/components/map/BirdMascot';
@@ -26,9 +26,6 @@ import type { Lesson, Unit } from '../../src/types';
 //   - Per-node FadeInDown KALDIRILDI (66 düğüm staggered spring bloke ediyordu)
 //   - Background glow View'lar KALDIRILDI (Android blur composit pahalı)
 // ════════════════════════════════════════════════════════════════
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-const APPROX_UNIT_HEIGHT = 124 * 6 + 40 + 80 + 16; // 6 ders + header + margin
 
 // (Cache mantığı kaldırıldı — scrollToIndex ile her ders bittiğinde current unit'e snap)
 

@@ -30,7 +30,7 @@ type Props = {
   onPairMatched: (pairId: string) => void;
 };
 
-type SidePick = { id: string; side: 'left' | 'right' };
+type _SidePick = { id: string; side: 'left' | 'right' };
 type WrongFlash = { leftId: string; rightId: string } | null;
 
 function MatchPairsExerciseImpl({

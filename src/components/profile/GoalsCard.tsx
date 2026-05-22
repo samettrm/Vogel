@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { useUserStore } from '../../store/useUserStore';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
-import { MOTIVATIONS_META, getMotivationMeta } from '../../services/personalization';
+import { getMotivationMeta } from '../../services/personalization';
 
 // ════════════════════════════════════════════════════════════════
 // GOALS CARD — Profil'de "Hedeflerin" kartı

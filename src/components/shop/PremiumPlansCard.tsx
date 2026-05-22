@@ -26,7 +26,7 @@ type StaticPlan = {
   fallbackPrice: string;
   perMonthKey?: 'shop.perMonth' | 'shop.perYear';
   badge?: 'popular' | 'best';
-  featureKeys: Array<keyof typeof FEATURE_KEYS>;
+  featureKeys: (keyof typeof FEATURE_KEYS)[];
 };
 
 const FEATURE_KEYS = {

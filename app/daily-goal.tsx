@@ -22,7 +22,7 @@ export default function DailyGoalScreen() {
   const dailyQuests = useUserStore((s) => (s as { dailyQuests?: unknown[] }).dailyQuests);
 
   const { dailyCurrent, dailyTarget } = useMemo(() => {
-    const list = (dailyQuests ?? []) as Array<{ type?: string; progress?: number; target?: number }>;
+    const list = (dailyQuests ?? []) as { type?: string; progress?: number; target?: number }[];
     const earnXpQuest = list.find((q) => q?.type === 'earnXp');
     if (earnXpQuest && typeof earnXpQuest.target === 'number') {
       return {
