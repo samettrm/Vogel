@@ -6,8 +6,8 @@ import { ACHIEVEMENTS } from '../data/achievements';
 import { ALL_COURSES } from '../data/courses';
 
 // ⏱ Kalp yenileme aralığı (dakika)
-// Production: 120dk / kalp. Test için 1 yapabilirsin.
-export const HEART_REFILL_MINUTES = 120;
+// Production: 300dk (5 saat) / kalp. Test için 1 yapabilirsin.
+export const HEART_REFILL_MINUTES = 300;
 export const HEART_REFILL_MS = HEART_REFILL_MINUTES * 60 * 1000;
 
 // 🔥 Streak milestone'ları — bu günlere ulaşınca özel kutlama ekranı gösterilir.
