@@ -19,12 +19,19 @@ import { useUserStore } from '../src/store/useUserStore';
 import { AchievementToast } from '../src/components/achievements/AchievementToast';
 import { preloadAllSounds } from '../src/utils/sounds';
 import { SENTRY_DSN } from '../src/config/sentry';
+import { initPurchases } from '../src/services/purchases';
 
 // ════════════════════════════════════════════════════════════════
 // SENTRY — hata izleme
 // DSN .env'den gelir: EXPO_PUBLIC_SENTRY_DSN=https://...
 // DSN ayarlanmamışsa init atlanır (dev ortamında güvenli).
 // ════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// REVENUECAT — uygulama yüklenmeden önce bir kez başlatılır.
+// API key .env'de yoksa init atlanır, mock mod çalışır.
+// ════════════════════════════════════════════════════════════════
+initPurchases();
+
 if (SENTRY_DSN) {
   Sentry.init({
     dsn: SENTRY_DSN,
@@ -192,6 +199,8 @@ function RootLayout() {
         {/* 🛡 Onboarding guard + smart reminder refresh — Stack altında, mount-safe */}
         <OnboardingGuard />
         <SmartReminderRefresher />
+        {/* 💎 Premium senkronizasyonu — RC entitlement'ı store'a yazar */}
+        <PremiumSyncer />
         {/* 🏆 Global achievement toast — her ekranın üstünde görünür */}
         <AchievementToast />
       </SafeAreaProvider>
@@ -257,6 +266,29 @@ function SmartReminderRefresher() {
     // sadece hydration/enable değişimlerinde çalışsın
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasHydrated, reminderEnabled]);
+
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// PREMIUM SYNCER — App açılışında RC'den premium durumunu çeker.
+// Store'daki isPremium ile RC entitlement'ı arasındaki tutarsızlığı giderir
+// (abonelik iptal, cihaz değişimi, restore vb. durumlar için).
+// Yalnızca RC yapılandırıldığında çalışır; yoksa no-op.
+// ════════════════════════════════════════════════════════════════
+function PremiumSyncer() {
+  const hasHydrated = useUserStore((s) => s.hasHydrated);
+  const setPremium = useUserStore((s) => s.setPremium);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    import('../src/services/purchases')
+      .then((mod) => mod.checkIsPremium())
+      .then((isPremium) => setPremium(isPremium))
+      .catch(() => {});
+    // sadece hydration değişiminde çalışsın
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasHydrated]);
 
   return null;
 }

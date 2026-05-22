@@ -159,6 +159,10 @@ interface UserState {
   resetReviewItems: () => void;
   checkLeagueStatus: () => void;
   makePremium: () => void;
+  // IAP: n adet can ekle (max'ta kesilebilir)
+  addHearts: (n: number) => void;
+  // IAP: RC'den gelen premium durumunu store'a yaz (app açılışı senkronizasyonu)
+  setPremium: (value: boolean) => void;
 
   // ONBOARDING actions
   completeOnboarding: (dailyGoal: number) => void;
@@ -606,6 +610,23 @@ export const useUserStore = create<UserState>()(
           isPremium: true,
           hearts: state.maxHearts,
           nextHeartRefillAt: null,
+        })),
+
+      addHearts: (n) =>
+        set((state) => {
+          const next = Math.min(state.maxHearts, state.hearts + n);
+          return {
+            hearts: next,
+            nextHeartRefillAt: next >= state.maxHearts ? null : state.nextHeartRefillAt,
+          };
+        }),
+
+      setPremium: (value) =>
+        set((state) => ({
+          isPremium: value,
+          ...(value
+            ? { hearts: state.maxHearts, nextHeartRefillAt: null }
+            : {}),
         })),
 
       // ONBOARDING

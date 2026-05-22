@@ -1,5 +1,5 @@
-import React from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -9,6 +9,24 @@ import { XPPackageCard } from '../../src/components/shop/XPPackageCard';
 import { useUserStore } from '../../src/store/useUserStore';
 import { radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import { useT } from '../../src/i18n';
+import { PRODUCT_IDS } from '../../src/config/revenuecat';
+import {
+  isPurchasesConfigured,
+  fetchPremiumPackages,
+  purchasePlan,
+  purchaseProduct,
+  restorePurchases as rcRestorePurchases,
+  type PremiumPackage,
+  type PlanId,
+} from '../../src/services/purchases';
+import type { PurchasesPackage } from 'react-native-purchases';
+
+// ════════════════════════════════════════════════════════════════
+// SHOP SCREEN
+//
+// RC yapılandırılmışsa → gerçek IAP (App Store)
+// RC yapılandırılmamışsa → mock mod (geliştirme / Expo Go)
+// ════════════════════════════════════════════════════════════════
 
 export default function ShopScreen() {
   const c = useThemeColors();
@@ -18,6 +36,7 @@ export default function ShopScreen() {
   const maxHearts = useUserStore((s) => s.maxHearts);
   const buyKupa = useUserStore((s) => s.buyKupaPackage);
   const refill = useUserStore((s) => s.refillHearts);
+  const addHearts = useUserStore((s) => s.addHearts);
   const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
   const makePremium = useUserStore((s) => (s as { makePremium?: () => void }).makePremium);
 
@@ -26,12 +45,114 @@ export default function ShopScreen() {
     ? 'premium'
     : heartsFull ? 'disabled' : 'refill';
 
+  // RC premium paketleri (gerçek fiyatlar)
+  const [premiumPackages, setPremiumPackages] = useState<PremiumPackage[] | null>(null);
+
+  useEffect(() => {
+    if (!isPurchasesConfigured()) return;
+    fetchPremiumPackages().then(setPremiumPackages).catch(() => {});
+  }, []);
+
+  // ────────────────────────────────────────────────────────────────
+  // PREMIUM PLAN SEÇİMİ
+  // ────────────────────────────────────────────────────────────────
+  const handleSelectPlan = useCallback(async (
+    planId: PlanId,
+    rcPackage?: PurchasesPackage,
+  ) => {
+    if (!isPurchasesConfigured() || !rcPackage) {
+      // Mock mod
+      if (typeof makePremium === 'function') makePremium();
+      return;
+    }
+    const result = await purchasePlan(rcPackage);
+    if (result.ok) {
+      if (typeof makePremium === 'function') makePremium();
+    } else if (!result.cancelled && result.message) {
+      Alert.alert(t('shop.purchaseFailed'), result.message);
+    }
+  }, [makePremium, t]);
+
+  // ────────────────────────────────────────────────────────────────
+  // XP PAKETİ SATINALMA
+  // ────────────────────────────────────────────────────────────────
+  const handleBuyXp = useCallback(async (productId: string, amount: number) => {
+    if (!isPurchasesConfigured()) {
+      // Mock mod
+      buyKupa(amount);
+      return;
+    }
+    const result = await purchaseProduct(productId);
+    if (result.ok) {
+      buyKupa(amount);
+    } else if (!result.cancelled && result.message) {
+      Alert.alert(t('shop.purchaseFailed'), result.message);
+    }
+  }, [buyKupa, t]);
+
+  // ────────────────────────────────────────────────────────────────
+  // CAN DOLDURMA (XP ile — ücretsiz)
+  // ────────────────────────────────────────────────────────────────
+  const handleRefillHearts = useCallback(() => {
+    refill();
+    Alert.alert(t('common.ok'), '✓');
+  }, [refill, t]);
+
+  // ────────────────────────────────────────────────────────────────
+  // EKSTRA CAN SATINALMA (₺19.99 → 5 can)
+  // ────────────────────────────────────────────────────────────────
+  const handleBuyExtraHearts = useCallback(async () => {
+    if (!isPurchasesConfigured()) {
+      // Mock mod
+      Alert.alert(t('shop.mockNote'), '', [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.confirm'),
+          onPress: () => {
+            addHearts(5);
+            Alert.alert(t('common.ok'), '✓');
+          },
+        },
+      ]);
+      return;
+    }
+    const result = await purchaseProduct(PRODUCT_IDS.hearts5);
+    if (result.ok) {
+      addHearts(5);
+      Alert.alert(t('common.ok'), '✓');
+    } else if (!result.cancelled && result.message) {
+      Alert.alert(t('shop.purchaseFailed'), result.message);
+    }
+  }, [addHearts, t]);
+
+  // ────────────────────────────────────────────────────────────────
+  // SATIN ALMALARI GERİ YÜKLE
+  // ────────────────────────────────────────────────────────────────
+  const handleRestore = useCallback(async () => {
+    if (!isPurchasesConfigured()) {
+      Alert.alert(t('shop.restoreNone'));
+      return;
+    }
+    const result = await rcRestorePurchases();
+    if (result.ok) {
+      // RC entitlement'ı kontrol et — premium geri yüklenmiş mi?
+      const hasPremium =
+        result.customerInfo.entitlements.active['premium'] !== undefined;
+      if (hasPremium) {
+        if (typeof makePremium === 'function') makePremium();
+        Alert.alert(t('shop.restoreSuccess'));
+      } else {
+        Alert.alert(t('shop.restoreNone'));
+      }
+    } else if (!result.cancelled) {
+      Alert.alert(t('shop.restoreFailed'));
+    }
+  }, [makePremium, t]);
+
   const styles = makeStyles(c);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* 🚀 PERF: Background glow View'ları kaldırıldı — Android blur composite pahalı. */}
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -49,9 +170,6 @@ export default function ShopScreen() {
           </View>
         </View>
 
-        {/* 🚀 PERF: FadeInDown.springify chain'leri kaldırıldı — 3 paralel
-            spring animasyon mount'u kilitliyordu. Şimdi anında görünür. */}
-
         {/* VOGEL PLUS */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -62,13 +180,12 @@ export default function ShopScreen() {
           </View>
           <PremiumPlansCard
             isPremium={isPremium}
-            onUpgrade={() => {
-              if (typeof makePremium === 'function') makePremium();
-            }}
+            packages={premiumPackages}
+            onSelectPlan={handleSelectPlan}
           />
         </View>
 
-        {/* XP PAKETLERI */}
+        {/* XP PAKETLERİ */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIcon, { backgroundColor: c.goldBg, borderColor: c.gold }]}>
@@ -78,13 +195,22 @@ export default function ShopScreen() {
           </View>
 
           <View style={styles.xpRow}>
-            <XPPackageCard title={t('shop.xpSmall')} amount={100} priceLabel="₺19.99" onPurchase={() => buyKupa(100)} />
-            <XPPackageCard title={t('shop.xpMedium')} amount={500} priceLabel="₺49.99" badge="popular" onPurchase={() => buyKupa(500)} />
-            <XPPackageCard title={t('shop.xpLarge')} amount={1500} priceLabel="₺99.99" badge="best" onPurchase={() => buyKupa(1500)} />
+            <XPPackageCard
+              title={t('shop.xpSmall')} amount={100} priceLabel="₺19.99"
+              onPurchase={() => handleBuyXp(PRODUCT_IDS.xp100, 100)}
+            />
+            <XPPackageCard
+              title={t('shop.xpMedium')} amount={500} priceLabel="₺49.99" badge="popular"
+              onPurchase={() => handleBuyXp(PRODUCT_IDS.xp500, 500)}
+            />
+            <XPPackageCard
+              title={t('shop.xpLarge')} amount={1500} priceLabel="₺99.99" badge="best"
+              onPurchase={() => handleBuyXp(PRODUCT_IDS.xp1500, 1500)}
+            />
           </View>
         </View>
 
-        {/* CAN PAKETLERI */}
+        {/* CAN PAKETLERİ */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIcon, { backgroundColor: c.redBg, borderColor: c.red }]}>
@@ -104,35 +230,30 @@ export default function ShopScreen() {
             }
             ctaLabel={isPremium ? t('shop.premium') : heartsFull ? t('shop.full') : '450 XP'}
             variant={heartVariant}
-            onPurchase={() => {
-              refill();
-              Alert.alert(t('common.ok'), '✓');
-            }}
+            onPurchase={handleRefillHearts}
           />
 
           <HeartPackageCard
             title={t('shop.extraHearts')}
             description={t('shop.extraHeartsDesc')}
             ctaLabel="₺19.99"
-            onPurchase={() => {
-              Alert.alert(t('shop.mockNote'), '', [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                  text: t('common.confirm'),
-                  onPress: () => {
-                    refill();
-                    Alert.alert(t('common.ok'), '✓');
-                  },
-                },
-              ]);
-            }}
+            onPurchase={handleBuyExtraHearts}
           />
         </View>
 
-        <View style={styles.noteCard}>
-          <Ionicons name="information-circle" size={16} color={c.textLow} />
-          <Text style={styles.noteText}>{t('shop.mockNote')}</Text>
-        </View>
+        {/* SATIN ALMALARI GERİ YÜKLE */}
+        <TouchableOpacity onPress={handleRestore} style={styles.restoreRow} activeOpacity={0.7}>
+          <Ionicons name="refresh" size={14} color={c.textLow} />
+          <Text style={styles.restoreText}>{t('shop.restorePurchases')}</Text>
+        </TouchableOpacity>
+
+        {/* NOT (mock modda gösterilir, RC yapılandırılınca kaybolur) */}
+        {!isPurchasesConfigured() ? (
+          <View style={styles.noteCard}>
+            <Ionicons name="information-circle" size={16} color={c.textLow} />
+            <Text style={styles.noteText}>{t('shop.mockNote')}</Text>
+          </View>
+        ) : null}
 
         <View style={{ height: spacing.xxl }} />
       </ScrollView>
@@ -143,16 +264,6 @@ export default function ShopScreen() {
 function makeStyles(c: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: c.bg },
-    bgGlowGold: {
-      position: 'absolute', top: -80, left: -120,
-      width: 320, height: 320, borderRadius: 160,
-      backgroundColor: c.gold, opacity: 0.06,
-    },
-    bgGlowPurple: {
-      position: 'absolute', top: 200, right: -100,
-      width: 280, height: 280, borderRadius: 140,
-      backgroundColor: c.purple, opacity: 0.08,
-    },
     scrollContent: {
       paddingHorizontal: spacing.base,
       paddingTop: spacing.sm,
@@ -179,6 +290,11 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     },
     sectionTitle: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 16 },
     xpRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    restoreRow: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      gap: 6, paddingVertical: spacing.sm,
+    },
+    restoreText: { ...textStyles.body, color: c.textLow, fontSize: 12 },
     noteCard: {
       flexDirection: 'row', alignItems: 'center', gap: 6,
       paddingHorizontal: spacing.base, paddingVertical: spacing.sm,

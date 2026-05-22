@@ -4,16 +4,26 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
+import type { PremiumPackage, PlanId } from '../../services/purchases';
+
+// ════════════════════════════════════════════════════════════════
+// PREMIUM PLANS CARD
+//
+// - packages: RevenueCat'tan gelen gerçek paketler (fiyat dahil).
+//   null ise sabit fiyatlar gösterilir (RC yapılandırılmamış / yükleniyor).
+// - onSelectPlan: ebeveyn (shop.tsx) satın alma işlemini yürütür.
+// ════════════════════════════════════════════════════════════════
 
 interface PremiumPlansCardProps {
   isPremium: boolean;
-  onUpgrade: () => void;
+  packages: PremiumPackage[] | null;
+  onSelectPlan: (planId: PlanId, rcPackage?: PremiumPackage['rcPackage']) => void;
 }
 
-type Plan = {
-  id: 'monthly' | 'yearly' | 'lifetime';
+type StaticPlan = {
+  id: PlanId;
   titleKey: 'shop.monthly' | 'shop.yearly' | 'shop.lifetime';
-  price: string;
+  fallbackPrice: string;
   perMonthKey?: 'shop.perMonth' | 'shop.perYear';
   badge?: 'popular' | 'best';
   featureKeys: Array<keyof typeof FEATURE_KEYS>;
@@ -27,35 +37,56 @@ const FEATURE_KEYS = {
   oneTime: 'shop.oneTime',
 } as const;
 
-const PLANS: Plan[] = [
-  { id: 'monthly', titleKey: 'shop.monthly', price: '₺99', perMonthKey: 'shop.perMonth',
-    featureKeys: ['unlimitedHearts', 'noAds'] },
-  { id: 'yearly', titleKey: 'shop.yearly', price: '₺499', perMonthKey: 'shop.perYear', badge: 'popular',
-    featureKeys: ['unlimitedHearts', 'noAds', 'specialLessons'] },
-  { id: 'lifetime', titleKey: 'shop.lifetime', price: '₺1499', badge: 'best',
-    featureKeys: ['allFeatures', 'oneTime'] },
+const STATIC_PLANS: StaticPlan[] = [
+  {
+    id: 'monthly',
+    titleKey: 'shop.monthly',
+    fallbackPrice: '₺99',
+    perMonthKey: 'shop.perMonth',
+    featureKeys: ['unlimitedHearts', 'noAds'],
+  },
+  {
+    id: 'yearly',
+    titleKey: 'shop.yearly',
+    fallbackPrice: '₺499',
+    perMonthKey: 'shop.perYear',
+    badge: 'popular',
+    featureKeys: ['unlimitedHearts', 'noAds', 'specialLessons'],
+  },
+  {
+    id: 'lifetime',
+    titleKey: 'shop.lifetime',
+    fallbackPrice: '₺1499',
+    badge: 'best',
+    featureKeys: ['allFeatures', 'oneTime'],
+  },
 ];
 
-export function PremiumPlansCard({ isPremium, onUpgrade }: PremiumPlansCardProps) {
+export function PremiumPlansCard({ isPremium, packages, onSelectPlan }: PremiumPlansCardProps) {
   const c = useThemeColors();
   const t = useT();
 
-  const handlePurchase = (plan: Plan) => {
+  const handlePress = (plan: StaticPlan) => {
     if (isPremium) {
       Alert.alert(t('shop.vogelPlus'), t('shop.vogelPlusActive'));
       return;
     }
     Haptics.selectionAsync().catch(() => {});
+    const rcPkg = packages?.find((p) => p.id === plan.id);
+    const priceDisplay = rcPkg
+      ? rcPkg.priceString
+      : `${plan.fallbackPrice}${plan.perMonthKey ? t(plan.perMonthKey) : ''}`;
+
     Alert.alert(
-      `${t('shop.vogelPlus')} ${t(plan.titleKey)}`,
-      `${plan.price}${plan.perMonthKey ? t(plan.perMonthKey) : ''}`,
+      `${t('shop.vogelPlus')} — ${t(plan.titleKey)}`,
+      priceDisplay,
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('common.confirm'),
           onPress: () => {
-            onUpgrade();
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+            onSelectPlan(plan.id, rcPkg?.rcPackage);
           },
         },
       ],
@@ -88,9 +119,20 @@ export function PremiumPlansCard({ isPremium, onUpgrade }: PremiumPlansCardProps
 
       {!isPremium ? (
         <View style={styles.plans}>
-          {PLANS.map((plan) => (
-            <PlanCard key={plan.id} c={c} t={t} plan={plan} onPress={() => handlePurchase(plan)} />
-          ))}
+          {STATIC_PLANS.map((plan) => {
+            const rcPkg = packages?.find((p) => p.id === plan.id);
+            const displayPrice = rcPkg ? rcPkg.priceString : plan.fallbackPrice;
+            return (
+              <PlanCard
+                key={plan.id}
+                c={c}
+                t={t}
+                plan={plan}
+                displayPrice={displayPrice}
+                onPress={() => handlePress(plan)}
+              />
+            );
+          })}
         </View>
       ) : null}
     </View>
@@ -98,11 +140,12 @@ export function PremiumPlansCard({ isPremium, onUpgrade }: PremiumPlansCardProps
 }
 
 function PlanCard({
-  c, t, plan, onPress,
+  c, t, plan, displayPrice, onPress,
 }: {
   c: ReturnType<typeof useThemeColors>;
   t: ReturnType<typeof useT>;
-  plan: Plan;
+  plan: StaticPlan;
+  displayPrice: string;
   onPress: () => void;
 }) {
   const isPopular = plan.badge === 'popular';
@@ -136,8 +179,10 @@ function PlanCard({
       <View style={styles.planHeader}>
         <Text style={styles.planTitle}>{t(plan.titleKey)}</Text>
         <View style={styles.priceRow}>
-          <Text style={[styles.planPrice, { color: accentColor }]}>{plan.price}</Text>
-          {plan.perMonthKey ? <Text style={styles.planPerMonth}>{t(plan.perMonthKey)}</Text> : null}
+          <Text style={[styles.planPrice, { color: accentColor }]}>{displayPrice}</Text>
+          {plan.perMonthKey && !displayPrice.includes('/') ? (
+            <Text style={styles.planPerMonth}>{t(plan.perMonthKey)}</Text>
+          ) : null}
         </View>
       </View>
 
