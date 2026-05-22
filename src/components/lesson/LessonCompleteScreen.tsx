@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
+import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 import { Confetti } from '../feedback/Confetti';
 
 type LessonCompleteScreenProps = {
@@ -212,7 +213,7 @@ export function LessonCompleteScreen({
           >
             <View style={styles.lowHeartsHighlight} pointerEvents="none" />
             <View style={styles.lowHeartsLeft}>
-              <Ionicons name="diamond" size={22} color={c.bg} />
+              <SpinningDiamondGem size={22} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.lowHeartsTitle}>Canın bitmeden önce al! ❤️</Text>
                 <Text style={styles.lowHeartsSub}>Vogel Plus → Sınırsız can · Günde ₺3.3</Text>

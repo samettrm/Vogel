@@ -21,6 +21,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
+import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 
 // ════════════════════════════════════════════════════════════════
 // PAYWALL MODAL — Psikolojik dönüşüm optimizasyonu
@@ -147,7 +148,7 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
                 style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaPressed]}
               >
                 <View style={styles.ctaHighlight} pointerEvents="none" />
-                <Ionicons name="diamond" size={20} color={c.bg} />
+                <SpinningDiamondGem size={20} />
                 <View style={styles.ctaTextBlock}>
                   <Text style={styles.ctaTitle}>{t('paywall.cta')}</Text>
                   <Text style={styles.ctaSub}>Günde ₺3.3 · İptal: her zaman</Text>

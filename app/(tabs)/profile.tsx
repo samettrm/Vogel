@@ -13,6 +13,7 @@ import { AchievementsSummary } from '../../src/components/achievements/Achieveme
 import { useUserStore } from '../../src/store/useUserStore';
 import { spacing, textStyles, useThemeColors } from '../../src/theme';
 import { useT } from '../../src/i18n';
+import { SpinningDiamondGem } from '../../src/components/shared/SpinningDiamondGem';
 
 // ════════════════════════════════════════════════════════════════
 // PROFIL — Sadeleştirilmiş yapı
@@ -112,9 +113,9 @@ export default function ProfileScreen() {
           >
             <View style={styles.premiumBannerHighlight} pointerEvents="none" />
             <View style={styles.premiumBannerLeft}>
-              <Ionicons name="diamond" size={22} color={c.bg} />
+              <SpinningDiamondGem size={30} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.premiumBannerTitle}>💎 Vogel Plus'a Geç</Text>
+                <Text style={styles.premiumBannerTitle}>Vogel Plus'a Geç</Text>
                 <Text style={styles.premiumBannerSub}>Sınırsız can · Reklamsız · Günde ₺3.3</Text>
               </View>
             </View>
@@ -162,25 +163,26 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       alignItems: 'center', justifyContent: 'center',
     },
     settingsButtonPressed: { opacity: 0.7, transform: [{ scale: 0.95 }] },
-    // Premium upsell — güçlü mor CTA
+    // Premium upsell — altın yaldızlı CTA
     premiumBanner: {
       width: '100%',
       backgroundColor: c.purple,
       borderRadius: 16,
+      borderWidth: 2, borderColor: c.gold,
       flexDirection: 'row', alignItems: 'center',
       paddingHorizontal: spacing.base, paddingVertical: spacing.md,
       gap: spacing.md, overflow: 'hidden',
-      shadowColor: c.purple,
+      shadowColor: c.gold,
       shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.5, shadowRadius: 12, elevation: 6,
+      shadowOpacity: 0.55, shadowRadius: 16, elevation: 8,
     },
     premiumBannerHighlight: {
       position: 'absolute', top: 0, left: spacing.lg, right: spacing.lg,
-      height: 1, backgroundColor: 'rgba(255,255,255,0.2)',
+      height: 1.5, backgroundColor: 'rgba(255,220,80,0.4)',
     },
-    premiumBannerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-    premiumBannerTitle: { ...textStyles.button, color: c.white, fontSize: 15 },
-    premiumBannerSub: { ...textStyles.body, color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 1 },
+    premiumBannerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    premiumBannerTitle: { ...textStyles.button, color: c.gold, fontSize: 16, letterSpacing: 0.2 },
+    premiumBannerSub: { ...textStyles.body, color: 'rgba(255,255,255,0.72)', fontSize: 12, marginTop: 1 },
     premiumBannerArrow: {
       width: 28, height: 28, borderRadius: 14,
       backgroundColor: 'rgba(255,255,255,0.12)',

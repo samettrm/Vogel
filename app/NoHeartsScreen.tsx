@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUserStore } from '../src/store/useUserStore';
 import { radius, spacing, textStyles, useThemeColors } from '../src/theme';
 import { useT } from '../src/i18n';
+import { SpinningDiamondGem } from '../src/components/shared/SpinningDiamondGem';
 
 export default function NoHeartsScreen() {
   const c = useThemeColors();
@@ -89,7 +90,7 @@ export default function NoHeartsScreen() {
               <View style={styles.premiumShimmer} pointerEvents="none" />
               <Text style={[styles.premiumStar, { top: 8, left: 10 }]}>⭐</Text>
               <Text style={[styles.premiumStar, { bottom: 8, right: 12 }]}>⭐</Text>
-              <Ionicons name="diamond" size={24} color={c.gold} style={{ marginBottom: 2 }} />
+              <SpinningDiamondGem size={28} />
               <Text style={styles.premiumButtonText}>{t('noHearts.getPlus')}</Text>
               <Text style={styles.premiumBenefit}>{t('noHearts.plusBenefit')}</Text>
             </Pressable>

@@ -112,10 +112,7 @@ export function PremiumPlansCard({ isPremium, packages, onSelectPlan }: PremiumP
         <View style={styles.topHighlight} pointerEvents="none" />
         <View style={styles.bannerLeft}>
           <View style={[styles.crownIcon, isPremium && styles.crownActive]}>
-            {isPremium
-              ? <Ionicons name="diamond" size={24} color={c.bg} />
-              : <SpinningDiamondGem size={24} />
-            }
+            <SpinningDiamondGem size={24} />
           </View>
           <View style={styles.bannerText}>
             <Text style={styles.bannerTitle}>{t('shop.vogelPlus')}</Text>
@@ -237,7 +234,7 @@ function YearlyHeroCard({
       {/* CTA butonu */}
       <View style={styles.heroCta}>
         <View style={styles.heroCtaHighlight} pointerEvents="none" />
-        <Ionicons name="diamond" size={16} color={c.purple} />
+        <SpinningDiamondGem size={16} />
         <Text style={styles.heroCtaText}>HEMEN BAŞLA</Text>
         <Ionicons name="chevron-forward" size={14} color={c.purple} />
       </View>
@@ -324,12 +321,9 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     },
     bannerLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 },
     crownIcon: {
-      width: 48, height: 48, borderRadius: 24, backgroundColor: c.gold,
       alignItems: 'center', justifyContent: 'center',
-      shadowColor: c.gold, shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.6, shadowRadius: 8, elevation: 4,
     },
-    crownActive: { backgroundColor: c.gold },
+    crownActive: {},
     bannerText: { flex: 1, gap: 2 },
     bannerTitle: { ...textStyles.subheading, color: c.purpleLight },
     bannerSubtitle: { ...textStyles.body, color: c.textMed, fontSize: 12 },

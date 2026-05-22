@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { dark, radius, spacing, textStyles } from '../../theme';
+import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 
 // ════════════════════════════════════════════════════════════════
 // PREMIUM CARD
@@ -108,8 +109,8 @@ export function PremiumCard({ isPremium, onUpgrade }: PremiumCardProps) {
       ) : null}
 
       <View style={styles.row}>
-        <Animated.View style={[styles.crownCircle, pulseStyle]}>
-          <Ionicons name="diamond" size={28} color={dark.bg} />
+        <Animated.View style={pulseStyle}>
+          <SpinningDiamondGem size={44} />
         </Animated.View>
 
         <View style={styles.info}>
@@ -201,17 +202,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   crownCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: dark.gold,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: dark.gold,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 12,
-    elevation: 8,
   },
   info: {
     flex: 1,
