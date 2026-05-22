@@ -219,9 +219,6 @@ export default function LessonsScreen() {
     <View style={styles.headerWrap}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('lessons.title')}</Text>
-        <Text style={styles.subtitle}>
-          {t('lessons.subtitleCount', { total: stats.total, completed: stats.completed })}
-        </Text>
       </View>
 
       {recommended ? (
