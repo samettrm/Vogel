@@ -1,39 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-// ════════════════════════════════════════════════════════════════
-// KUŞUN MOTİVASYON MESAJLARI — 22 farklı, 9 saniyede bir döner
-// Çok hızlı slayt değil: göz alışsın, içerik okunsun, hız doğal hissettirsin
-// ════════════════════════════════════════════════════════════════
-const MOTIVATIONAL_MESSAGES = [
-  'Devam et, harikasın! 🚀',
-  'Her ders bir adım ileriye ✨',
-  'Almancayı fethediyorsun 💪',
-  'Bir ders daha, bir seviye daha yakın 🎯',
-  'Beynin şu an Almanca düşünüyor 🧠',
-  'Her kelime bir zafer! 🏆',
-  'Serini kırmıyoruz, devam! 🔥',
-  'Bugün öğrendiğin kelime yarın işe yarayacak 🌱',
-  'Küçük adımlar büyük yollar açar 🦅',
-  'Harika gidiyorsun, dur gitme! ✈️',
-  'Almanya seni bekliyor 🇩🇪',
-  'Her gün pratik, her gün gelişim ⚡',
-  'Kafanda Almanca çalıyor mu? 🎵',
-  'Bir ders daha? Neden olmasın! 😄',
-  'Goethe seni izliyor olabilir 😂',
-  'Durmak yok, ilerleme devam 💫',
-  'Her doğru cevap seni uçuruyor 🌟',
-  'Bugün de bir şeyler öğrendik! 🎓',
-  'Yavaş ama emin adımlarla 🌱',
-  'Sen bir Almanca makinesisin! 🤖',
-  'Az kaldı, vazgeçme! 🏁',
-  'Bugün de zirveyiz! ☀️',
-] as const;
 import { Animated, Easing, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BirdMascot } from '../../src/components/map/BirdMascot';
 import type { LessonNodeState } from '../../src/components/map/LessonNode';
 import { LevelTabs } from '../../src/components/map/LevelTabs';
 import { MapPath } from '../../src/components/map/MapPath';
@@ -300,22 +270,6 @@ export default function HomeScreen() {
     router.push(`/lesson/${lesson.id}`);
   }, [router]);
 
-  // 🐦 Dönen motivasyon mesajları — 9 saniyede bir değişir (slayt değil, doğal hız)
-  const [msgIndex, setMsgIndex] = useState(0);
-  useEffect(() => {
-    if (completedLessons.size === 0 || currentLessonId === null) return;
-    const id = setInterval(() => {
-      setMsgIndex((prev) => (prev + 1) % MOTIVATIONAL_MESSAGES.length);
-    }, 600_000); // 10 dakika
-    return () => clearInterval(id);
-  }, [completedLessons.size, currentLessonId]);
-
-  const mascotMessage = useMemo(() => {
-    if (currentLessonId === null) return `${selectedLevel} ${t('map.levelCompleted')}`;
-    if (completedLessons.size === 0) return t('map.welcome');
-    return MOTIVATIONAL_MESSAGES[msgIndex];
-  }, [completedLessons.size, currentLessonId, selectedLevel, msgIndex, t]);
-
   const nextLevel = useMemo(() => {
     if (currentLessonId !== null) return null;
     const idx = AVAILABLE_LEVELS.indexOf(selectedLevel);
@@ -430,28 +384,20 @@ export default function HomeScreen() {
             <Text style={styles.resetButtonText}>{t('map.resetButton')}</Text>
           </Pressable>
 
-          <BirdMascot message={mascotMessage} size="md" />
+          {/* 🎓 Goethe · TELC — sabit, kuşun yerine */}
+          <Pressable
+            onPress={() => router.push('/(tabs)/lessons')}
+            style={({ pressed }) => [styles.examChip, pressed && styles.examChipPressed]}
+          >
+            <View style={styles.examChipHighlight} pointerEvents="none" />
+            <Text style={styles.examChipEmoji}>🎓</Text>
+            <View style={styles.examChipText}>
+              <Text style={styles.examChipTitle}>Goethe · TELC</Text>
+              <Text style={styles.examChipSub}>Sınav hazırlığı</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={13} color={c.gold} />
+          </Pressable>
         </View>
-
-        {/* 🎓 SINAV HAZIRLIĞI — sabit, scroll etmez */}
-        <Pressable
-          onPress={() => router.push('/(tabs)/lessons')}
-          style={({ pressed }) => [styles.examBanner, pressed && styles.examBannerPressed]}
-        >
-          <View style={styles.examBannerHighlight} pointerEvents="none" />
-          <View style={styles.examBannerLeft}>
-            <View style={styles.examBannerIcon}>
-              <Text style={styles.examBannerEmoji}>🎓</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.examBannerTitle}>Goethe · TELC Sınavına Hazırlan</Text>
-              <Text style={styles.examBannerSub}>Sınav hazırlık dersleri · Her seviyeden erişilebilir</Text>
-            </View>
-          </View>
-          <View style={styles.examBannerArrow}>
-            <Ionicons name="arrow-forward" size={16} color={c.gold} />
-          </View>
-        </Pressable>
 
         {/* 🚀 PERF: FlatList virtualization — 11 ünite, sadece görünür olanlar render */}
         <FlatList
@@ -549,39 +495,27 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     levelPillText: { ...textStyles.bodyBold, fontSize: 11, letterSpacing: 1.5 },
     levelTitle: { ...textStyles.heading, fontSize: 22 },
     levelDescription: { ...textStyles.body, color: c.textLow, fontSize: 13, lineHeight: 18 },
-    // 🎓 Sınav hazırlığı — sabit banner (scroll etmez)
-    examBanner: {
-      marginHorizontal: spacing.base,
-      marginBottom: spacing.xs,
+    // 🎓 Goethe · TELC chip — mascotRow içinde, kuşun yerinde
+    examChip: {
       flexDirection: 'row', alignItems: 'center',
       backgroundColor: c.goldBg,
       borderWidth: 1.5, borderColor: c.gold,
       borderRadius: radius.lg,
-      paddingHorizontal: spacing.base, paddingVertical: spacing.sm + 2,
-      gap: spacing.md, overflow: 'hidden',
+      paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 2,
+      gap: spacing.xs, overflow: 'hidden',
       shadowColor: c.gold,
       shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.3, shadowRadius: 10, elevation: 4,
+      shadowOpacity: 0.25, shadowRadius: 8, elevation: 3,
     },
-    examBannerHighlight: {
-      position: 'absolute', top: 0, left: spacing.lg, right: spacing.lg,
-      height: 1, backgroundColor: 'rgba(245,158,11,0.35)',
+    examChipHighlight: {
+      position: 'absolute', top: 0, left: spacing.sm, right: spacing.sm,
+      height: 1, backgroundColor: 'rgba(245,158,11,0.3)',
     },
-    examBannerPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-    examBannerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-    examBannerIcon: {
-      width: 42, height: 42, borderRadius: 21,
-      backgroundColor: c.gold,
-      alignItems: 'center', justifyContent: 'center',
-    },
-    examBannerEmoji: { fontSize: 20 },
-    examBannerTitle: { ...textStyles.subheading, color: c.gold, fontSize: 14 },
-    examBannerSub: { ...textStyles.body, color: c.textMed, fontSize: 11, marginTop: 1 },
-    examBannerArrow: {
-      width: 28, height: 28, borderRadius: 14,
-      backgroundColor: 'rgba(245,158,11,0.15)',
-      alignItems: 'center', justifyContent: 'center',
-    },
+    examChipPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
+    examChipEmoji: { fontSize: 18 },
+    examChipText: { gap: 1 },
+    examChipTitle: { ...textStyles.bodyBold, color: c.gold, fontSize: 13 },
+    examChipSub: { ...textStyles.body, color: c.textMed, fontSize: 10 },
     nextLevelCard: {
       marginHorizontal: spacing.base,
       marginTop: spacing.xl,
