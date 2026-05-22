@@ -100,23 +100,39 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
         </View>
       )}
 
-      {/* ⑤ PRİMARY CTA — PREMIUM (büyük, cazip) */}
-      <Pressable
-        onPress={() => { router.push('/(tabs)/shop'); }}
-        style={({ pressed }) => [styles.premiumCta, pressed && styles.ctaPressed]}
-      >
-        <View style={styles.premiumCtaHighlight} pointerEvents="none" />
-        <View style={styles.premiumCtaLeft}>
-          <Ionicons name="diamond" size={22} color={c.bg} />
-          <View>
-            <Text style={styles.premiumCtaTitle}>Vogel Plus'a Geç</Text>
-            <Text style={styles.premiumCtaSub}>Günde yalnızca ₺3.3 · Sınırsız can</Text>
+      {/* ⑤ PRİMARY CTA — PREMIUM (altın yaldız çerçeve) */}
+      <View style={styles.premiumCtaWrapper}>
+        {/* Altın rozet — butona oturuyor */}
+        <View style={styles.premiumCtaBadge}>
+          <Text style={styles.premiumCtaBadgeText}>✨ EN ÇOK TERCİH EDİLEN</Text>
+        </View>
+
+        <Pressable
+          onPress={() => { router.push('/(tabs)/shop'); }}
+          style={({ pressed }) => [styles.premiumCta, pressed && styles.ctaPressed]}
+        >
+          {/* Altın arka plan parlaklığı */}
+          <View style={styles.premiumCtaGoldBg} pointerEvents="none" />
+          {/* Üst kenar shimmer çizgisi */}
+          <View style={styles.premiumCtaHighlight} pointerEvents="none" />
+          {/* Diyagonal ışık şeridi */}
+          <View style={styles.premiumCtaShimmer} pointerEvents="none" />
+          {/* Köşe yıldızları */}
+          <Text style={[styles.premiumCtaStar, { top: 8, left: 10 }]}>⭐</Text>
+          <Text style={[styles.premiumCtaStar, { bottom: 8, right: 46 }]}>⭐</Text>
+
+          <View style={styles.premiumCtaLeft}>
+            <Ionicons name="diamond" size={26} color={c.gold} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.premiumCtaTitle}>Vogel Plus'a Geç</Text>
+              <Text style={styles.premiumCtaSub}>Günde yalnızca ₺3.3 · Sınırsız can</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.premiumCtaArrow}>
-          <Ionicons name="chevron-forward" size={18} color={c.purpleLight} />
-        </View>
-      </Pressable>
+          <View style={styles.premiumCtaArrow}>
+            <Ionicons name="chevron-forward" size={18} color={c.gold} />
+          </View>
+        </Pressable>
+      </View>
 
       {/* ⑥ FAYDA ÖZETİ */}
       <View style={styles.benefitRow}>
@@ -206,28 +222,67 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     timerLabel: { ...textStyles.body, color: c.textLow, fontSize: 12, flex: 1 },
     timerValue: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 16, fontVariant: ['tabular-nums'] },
 
-    // Premium CTA — birincil buton, altın/mor, büyük
+    // Premium CTA — altın yaldız çerçeveli büyük buton
+    premiumCtaWrapper: {
+      width: '100%',
+      alignItems: 'center',
+    },
+    premiumCtaBadge: {
+      backgroundColor: c.gold,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 4,
+      borderRadius: 20,
+      marginBottom: -14,
+      zIndex: 10,
+      shadowColor: c.gold,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 1, shadowRadius: 12, elevation: 12,
+    },
+    premiumCtaBadgeText: {
+      ...textStyles.label,
+      color: '#1a1a1a',
+      fontSize: 9,
+      letterSpacing: 1,
+    },
     premiumCta: {
       width: '100%',
       backgroundColor: c.purple,
       borderRadius: radius.lg,
+      borderWidth: 2, borderColor: c.gold,
       flexDirection: 'row', alignItems: 'center',
-      paddingHorizontal: spacing.base, paddingVertical: spacing.md,
+      paddingHorizontal: spacing.base,
+      paddingTop: spacing.md + 10,
+      paddingBottom: spacing.md,
       gap: spacing.sm, overflow: 'hidden',
-      shadowColor: c.purple,
+      shadowColor: c.gold,
       shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.55, shadowRadius: 14, elevation: 8,
+      shadowOpacity: 0.75, shadowRadius: 20, elevation: 14,
+    },
+    premiumCtaGoldBg: {
+      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: c.gold, opacity: 0.07,
     },
     premiumCtaHighlight: {
-      position: 'absolute', top: 0, left: spacing.lg, right: spacing.lg,
-      height: 1, backgroundColor: 'rgba(255,255,255,0.25)',
+      position: 'absolute', top: 0, left: spacing.md, right: spacing.md,
+      height: 1.5, backgroundColor: c.gold, opacity: 0.5,
+    },
+    premiumCtaShimmer: {
+      position: 'absolute',
+      top: -40, left: '25%',
+      width: 45, height: 180,
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      transform: [{ rotate: '22deg' }],
+    },
+    premiumCtaStar: {
+      position: 'absolute', fontSize: 13,
     },
     premiumCtaLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     premiumCtaTitle: { ...textStyles.button, color: c.white, fontSize: 15 },
-    premiumCtaSub: { ...textStyles.body, color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 1 },
+    premiumCtaSub: { ...textStyles.body, color: 'rgba(255,255,255,0.75)', fontSize: 11, marginTop: 1 },
     premiumCtaArrow: {
-      width: 28, height: 28, borderRadius: 14,
-      backgroundColor: 'rgba(255,255,255,0.12)',
+      width: 30, height: 30, borderRadius: 15,
+      backgroundColor: c.goldBg,
+      borderWidth: 1.5, borderColor: c.gold,
       alignItems: 'center', justifyContent: 'center',
     },
     ctaPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },

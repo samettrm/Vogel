@@ -75,14 +75,25 @@ export default function NoHeartsScreen() {
         </View>
 
         <View style={styles.buttonContainer}>
-          {/* 💎 PREMIUM CTA — en büyük monetizasyon noktası */}
-          <Pressable
-            onPress={() => router.replace('/(tabs)/shop')}
-            style={({ pressed }) => [styles.premiumButton, pressed && styles.pressed]}
-          >
-            <Text style={styles.premiumButtonText}>{t('noHearts.getPlus')}</Text>
-            <Text style={styles.premiumBenefit}>{t('noHearts.plusBenefit')}</Text>
-          </Pressable>
+          {/* 💎 PREMIUM CTA — altın yaldız çerçeve */}
+          <View style={styles.premiumWrapper}>
+            <View style={styles.premiumBadge}>
+              <Text style={styles.premiumBadgeText}>✨ EN ÇOK TERCİH EDİLEN</Text>
+            </View>
+            <Pressable
+              onPress={() => router.replace('/(tabs)/shop')}
+              style={({ pressed }) => [styles.premiumButton, pressed && styles.pressed]}
+            >
+              <View style={styles.premiumGoldBg} pointerEvents="none" />
+              <View style={styles.premiumHighlight} pointerEvents="none" />
+              <View style={styles.premiumShimmer} pointerEvents="none" />
+              <Text style={[styles.premiumStar, { top: 8, left: 10 }]}>⭐</Text>
+              <Text style={[styles.premiumStar, { bottom: 8, right: 12 }]}>⭐</Text>
+              <Ionicons name="diamond" size={24} color={c.gold} style={{ marginBottom: 2 }} />
+              <Text style={styles.premiumButtonText}>{t('noHearts.getPlus')}</Text>
+              <Text style={styles.premiumBenefit}>{t('noHearts.plusBenefit')}</Text>
+            </Pressable>
+          </View>
 
           <Pressable
             onPress={handleHeartRefillPress}
@@ -150,17 +161,48 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     },
     timerText: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 14 },
     buttonContainer: { width: '100%', gap: spacing.sm, marginBottom: spacing.md },
-    premiumButton: {
-      backgroundColor: c.purpleBg,
-      borderWidth: 1.5, borderColor: c.purple,
-      paddingVertical: spacing.md + 2, paddingHorizontal: spacing.base,
-      borderRadius: radius.md,
-      alignItems: 'center', gap: 4,
-      shadowColor: c.purple, shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
+    // Altın yaldız premium wrapper
+    premiumWrapper: { width: '100%', alignItems: 'center' },
+    premiumBadge: {
+      backgroundColor: c.gold,
+      paddingHorizontal: spacing.md, paddingVertical: 4,
+      borderRadius: 20,
+      marginBottom: -14, zIndex: 10,
+      shadowColor: c.gold, shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 1, shadowRadius: 12, elevation: 12,
     },
-    premiumButtonText: { ...textStyles.button, color: c.purpleLight, fontSize: 15 },
-    premiumBenefit: { ...textStyles.body, color: c.textLow, fontSize: 11 },
+    premiumBadgeText: {
+      ...textStyles.label, color: '#1a1a1a', fontSize: 9, letterSpacing: 1,
+    },
+    premiumButton: {
+      width: '100%',
+      backgroundColor: c.purple,
+      borderWidth: 2, borderColor: c.gold,
+      paddingTop: spacing.md + 10,
+      paddingBottom: spacing.md + 2,
+      paddingHorizontal: spacing.base,
+      borderRadius: radius.lg,
+      alignItems: 'center', gap: 4, overflow: 'hidden',
+      shadowColor: c.gold, shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.75, shadowRadius: 20, elevation: 14,
+    },
+    premiumGoldBg: {
+      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: c.gold, opacity: 0.07,
+    },
+    premiumHighlight: {
+      position: 'absolute', top: 0, left: spacing.md, right: spacing.md,
+      height: 1.5, backgroundColor: c.gold, opacity: 0.5,
+    },
+    premiumShimmer: {
+      position: 'absolute', top: -40, left: '35%',
+      width: 45, height: 180,
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      transform: [{ rotate: '22deg' }],
+    },
+    premiumStar: { position: 'absolute', fontSize: 13 },
+    premiumButtonText: { ...textStyles.button, color: c.white, fontSize: 15 },
+    premiumBenefit: { ...textStyles.body, color: 'rgba(255,255,255,0.7)', fontSize: 11 },
     primaryButton: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
       backgroundColor: c.neon,
