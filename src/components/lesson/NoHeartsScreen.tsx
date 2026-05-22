@@ -134,16 +134,16 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
         </Pressable>
       </View>
 
-      {/* ⑥ FAYDA ÖZETİ */}
+      {/* ⑥ FAYDA ÖZETİ — renkli kartlar */}
       <View style={styles.benefitRow}>
-        {[
-          { icon: 'infinite-outline', label: 'Sınırsız can' },
-          { icon: 'ban-outline', label: 'Reklamsız' },
-          { icon: 'trophy-outline', label: 'Tüm üniteler' },
-        ].map((b) => (
-          <View key={b.label} style={styles.benefitItem}>
-            <Ionicons name={b.icon as 'infinite-outline'} size={16} color={c.purple} />
-            <Text style={styles.benefitLabel}>{b.label}</Text>
+        {([
+          { icon: 'infinite-outline', label: 'Sınırsız can',   color: c.neon,   bg: c.neonBg   },
+          { icon: 'ban-outline',      label: 'Reklamsız',       color: c.purple, bg: c.purpleBg },
+          { icon: 'trophy-outline',   label: 'Tüm üniteler',   color: c.gold,   bg: c.goldBg   },
+        ] as const).map((b) => (
+          <View key={b.label} style={[styles.benefitItem, { backgroundColor: b.bg, borderColor: b.color }]}>
+            <Ionicons name={b.icon} size={24} color={b.color} />
+            <Text style={[styles.benefitLabel, { color: b.color }]}>{b.label}</Text>
           </View>
         ))}
       </View>
@@ -248,7 +248,7 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       width: '100%',
       backgroundColor: c.purple,
       borderRadius: radius.lg,
-      borderWidth: 2, borderColor: c.gold,
+      borderWidth: 3.5, borderColor: c.gold,
       flexDirection: 'row', alignItems: 'center',
       paddingHorizontal: spacing.base,
       paddingTop: spacing.md + 10,
@@ -256,7 +256,7 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       gap: spacing.sm, overflow: 'hidden',
       shadowColor: c.gold,
       shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.75, shadowRadius: 20, elevation: 14,
+      shadowOpacity: 1, shadowRadius: 28, elevation: 18,
     },
     premiumCtaGoldBg: {
       position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -287,13 +287,18 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     },
     ctaPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
 
-    // Fayda özeti — 3 madde yatay
+    // Fayda özeti — renkli kartlar
     benefitRow: {
-      flexDirection: 'row', gap: spacing.md,
-      paddingHorizontal: spacing.sm,
+      flexDirection: 'row', gap: spacing.sm,
+      width: '100%',
     },
-    benefitItem: { flex: 1, alignItems: 'center', gap: 3 },
-    benefitLabel: { ...textStyles.caption, color: c.textLow, fontSize: 10, textAlign: 'center' },
+    benefitItem: {
+      flex: 1, alignItems: 'center', gap: spacing.xs,
+      paddingVertical: spacing.sm + 4,
+      borderRadius: radius.md,
+      borderWidth: 1.5,
+    },
+    benefitLabel: { ...textStyles.bodyBold, fontSize: 11, textAlign: 'center' },
 
     // İkincil buton — kasıtlı soluk (kullanıcıyı premium'a yönlendir)
     ghostBtn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.base },
