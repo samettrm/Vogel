@@ -50,6 +50,13 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "@sentry/react-native",
+        {
+          "organization": "SENTRY_ORG_SLUG",
+          "project": "SENTRY_PROJECT_SLUG"
+        }
       ]
     ],
     "experiments": {

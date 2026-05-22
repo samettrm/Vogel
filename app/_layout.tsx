@@ -14,9 +14,29 @@ import { useEffect } from 'react';
 import { LogBox } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as Sentry from '@sentry/react-native';
 import { useUserStore } from '../src/store/useUserStore';
 import { AchievementToast } from '../src/components/achievements/AchievementToast';
 import { preloadAllSounds } from '../src/utils/sounds';
+import { SENTRY_DSN } from '../src/config/sentry';
+
+// ════════════════════════════════════════════════════════════════
+// SENTRY — hata izleme
+// DSN .env'den gelir: EXPO_PUBLIC_SENTRY_DSN=https://...
+// DSN ayarlanmamışsa init atlanır (dev ortamında güvenli).
+// ════════════════════════════════════════════════════════════════
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    // Dev'de logları görmek için true yapılabilir; production'da false olsun.
+    debug: false,
+    environment: __DEV__ ? 'development' : 'production',
+    // Performance traces: her 100 işlemden 15'ini örnek al (production yükünü azaltır).
+    tracesSampleRate: __DEV__ ? 1.0 : 0.15,
+    // Breadcrumb'ları sınırla — bellek tasarrufu.
+    maxBreadcrumbs: 50,
+  });
+}
 
 // ═════════════════════════════════════════════════════════════════
 // SUPPRESS DEV LOGS
@@ -51,7 +71,7 @@ LogBox.ignoreLogs([
 //     Stack mount edildikten sonra çalışır → güvenli yönlendirme.
 // ════════════════════════════════════════════════════════════════
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,
@@ -178,6 +198,10 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+// Sentry.wrap → tüm uygulamayı hata sınırıyla sarar.
+// DSN ayarlı değilse wrap çalışır ama Sentry'ye hiçbir şey göndermez.
+export default Sentry.wrap(RootLayout);
 
 // ════════════════════════════════════════════════════════════════
 // ONBOARDING GUARD — Stack mount edildikten SONRA yönlendirme
