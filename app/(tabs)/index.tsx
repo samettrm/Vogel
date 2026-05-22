@@ -271,47 +271,6 @@ export default function HomeScreen() {
     router.push(`/lesson/${lesson.id}`);
   }, [router]);
 
-  // 🐦 Dönen motivasyon mesajları — 10 dakikada bir değişir
-  const MOTIVATIONAL_MESSAGES = useMemo(() => [
-    'Devam et, harikasın! 🚀',
-    'Her ders bir adım ileriye ✨',
-    'Almancayı fethediyorsun 💪',
-    'Bir ders daha, bir seviye daha yakın 🎯',
-    'Beynin şu an Almanca düşünüyor 🧠',
-    'Her kelime bir zafer! 🏆',
-    'Serini kırmıyoruz, devam! 🔥',
-    'Bugün öğrendiğin kelime yarın işe yarayacak 🌱',
-    'Küçük adımlar büyük yollar açar 🦅',
-    'Harika gidiyorsun, dur gitme! ✈️',
-    'Almanya seni bekliyor 🇩🇪',
-    'Her gün pratik, her gün gelişim ⚡',
-    'Bir ders daha? Neden olmasın! 😄',
-    'Durmak yok, ilerleme devam 💫',
-    'Her doğru cevap seni uçuruyor 🌟',
-    'Bugün de bir şeyler öğrendik! 🎓',
-    'Yavaş ama emin adımlarla 🌱',
-    'Sen bir Almanca makinesisin! 🤖',
-    'Az kaldı, vazgeçme! 🏁',
-    'Bugün de zirveyiz! ☀️',
-    'Kafanda Almanca çalıyor mu? 🎵',
-    'Her gün biraz daha iyi! 💪',
-  ], []);
-
-  const [msgIndex, setMsgIndex] = useState(0);
-  useEffect(() => {
-    if (completedLessons.size === 0 || currentLessonId === null) return;
-    const id = setInterval(() => {
-      setMsgIndex((prev) => (prev + 1) % MOTIVATIONAL_MESSAGES.length);
-    }, 600_000);
-    return () => clearInterval(id);
-  }, [completedLessons.size, currentLessonId, MOTIVATIONAL_MESSAGES.length]);
-
-  const mascotMessage = useMemo(() => {
-    if (currentLessonId === null) return `${selectedLevel} ${t('map.levelCompleted')}`;
-    if (completedLessons.size === 0) return t('map.welcome');
-    return MOTIVATIONAL_MESSAGES[msgIndex];
-  }, [completedLessons.size, currentLessonId, selectedLevel, msgIndex, t, MOTIVATIONAL_MESSAGES]);
-
   const nextLevel = useMemo(() => {
     if (currentLessonId !== null) return null;
     const idx = AVAILABLE_LEVELS.indexOf(selectedLevel);
@@ -426,11 +385,7 @@ export default function HomeScreen() {
             <Text style={styles.resetButtonText}>{t('map.resetButton')}</Text>
           </Pressable>
 
-          <BirdMascot message={mascotMessage} size="md" />
-        </View>
-
-        {/* 🎓 Goethe · TELC — sabit, scroll etmez, sola yaslanmış */}
-        <View style={styles.examChipRow}>
+          {/* 🎓 Goethe · TELC — mesaj balonunun olduğu boşluğa */}
           <Pressable
             onPress={() => router.push('/(tabs)/lessons')}
             style={({ pressed }) => [styles.examChip, pressed && styles.examChipPressed]}
@@ -443,6 +398,8 @@ export default function HomeScreen() {
             </View>
             <Ionicons name="chevron-forward" size={13} color={c.gold} />
           </Pressable>
+
+          <BirdMascot size="md" />
         </View>
 
         {/* 🚀 PERF: FlatList virtualization — 11 ünite, sadece görünür olanlar render */}
@@ -541,12 +498,7 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     levelPillText: { ...textStyles.bodyBold, fontSize: 11, letterSpacing: 1.5 },
     levelTitle: { ...textStyles.heading, fontSize: 22 },
     levelDescription: { ...textStyles.body, color: c.textLow, fontSize: 13, lineHeight: 18 },
-    // 🎓 Goethe · TELC satırı — sola yaslı, ortalı
-    examChipRow: {
-      paddingHorizontal: spacing.base,
-      paddingBottom: spacing.xs,
-      alignItems: 'flex-start',
-    },
+    // 🎓 Goethe · TELC chip — mascotRow içinde, mesaj balonunun yerine
     examChip: {
       flexDirection: 'row', alignItems: 'center',
       backgroundColor: c.goldBg,
