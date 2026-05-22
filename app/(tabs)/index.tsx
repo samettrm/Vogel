@@ -363,8 +363,28 @@ export default function HomeScreen() {
         <Text style={[styles.levelTitle, { color: lc.light }]}>{course.title}</Text>
         <Text style={styles.levelDescription}>{course.description}</Text>
       </View>
+
+      {/* 🎓 SINAV HAZIRLIĞI — haritada görünür yönlendirici banner */}
+      <Pressable
+        onPress={() => router.push('/(tabs)/lessons')}
+        style={({ pressed }) => [styles.examBanner, pressed && styles.examBannerPressed]}
+      >
+        <View style={styles.examBannerHighlight} pointerEvents="none" />
+        <View style={styles.examBannerLeft}>
+          <View style={styles.examBannerIcon}>
+            <Text style={styles.examBannerEmoji}>🎓</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.examBannerTitle}>Goethe · TELC Sınavına Hazırlan</Text>
+            <Text style={styles.examBannerSub}>Sınav hazırlık dersleri · Her seviyeden erişilebilir</Text>
+          </View>
+        </View>
+        <View style={styles.examBannerArrow}>
+          <Ionicons name="arrow-forward" size={16} color={c.gold} />
+        </View>
+      </Pressable>
     </View>
-  ), [styles, lc, selectedLevel, course.title, course.description]);
+  ), [styles, lc, selectedLevel, course.title, course.description, router, c.gold]);
 
   const ListFooter = useMemo(() => (
     <>
@@ -528,6 +548,39 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     levelPillText: { ...textStyles.bodyBold, fontSize: 11, letterSpacing: 1.5 },
     levelTitle: { ...textStyles.heading, fontSize: 22 },
     levelDescription: { ...textStyles.body, color: c.textLow, fontSize: 13, lineHeight: 18 },
+    // 🎓 Sınav hazırlığı yönlendirici banner
+    examBanner: {
+      marginHorizontal: spacing.base,
+      marginBottom: spacing.md,
+      flexDirection: 'row', alignItems: 'center',
+      backgroundColor: c.goldBg,
+      borderWidth: 1.5, borderColor: c.gold,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.base, paddingVertical: spacing.md,
+      gap: spacing.md, overflow: 'hidden',
+      shadowColor: c.gold,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.3, shadowRadius: 10, elevation: 4,
+    },
+    examBannerHighlight: {
+      position: 'absolute', top: 0, left: spacing.lg, right: spacing.lg,
+      height: 1, backgroundColor: 'rgba(245,158,11,0.35)',
+    },
+    examBannerPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
+    examBannerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    examBannerIcon: {
+      width: 42, height: 42, borderRadius: 21,
+      backgroundColor: c.gold,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    examBannerEmoji: { fontSize: 20 },
+    examBannerTitle: { ...textStyles.subheading, color: c.gold, fontSize: 14 },
+    examBannerSub: { ...textStyles.body, color: c.textMed, fontSize: 11, marginTop: 1 },
+    examBannerArrow: {
+      width: 28, height: 28, borderRadius: 14,
+      backgroundColor: 'rgba(245,158,11,0.15)',
+      alignItems: 'center', justifyContent: 'center',
+    },
     nextLevelCard: {
       marginHorizontal: spacing.base,
       marginTop: spacing.xl,
