@@ -1,7 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import {
+  Animated,
   FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -41,7 +44,7 @@ type LessonItem = {
   total: number;
 };
 
-type StatusFilter = 'all' | 'completed' | 'in-progress' | 'untouched';
+type StatusFilter = 'all' | 'completed' | 'in-progress' | 'untouched' | 'exam';
 
 // 🚀 PERF: Module-level lazy cache — sadece bir kere hesaplanır
 type StaticItem = Omit<LessonItem, 'status' | 'correctCount'>;
@@ -81,6 +84,28 @@ export default function LessonsScreen() {
   const [levelFilter, setLevelFilter] = useState<CEFRLevel | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
+  // 📜 Yukarı çık butonu
+  const listRef = useRef<FlatList<LessonItem>>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const scrollTopOpacity = useRef(new Animated.Value(0)).current;
+
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const shouldShow = y > 500;
+    if (shouldShow !== showScrollTop) {
+      setShowScrollTop(shouldShow);
+      Animated.timing(scrollTopOpacity, {
+        toValue: shouldShow ? 1 : 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showScrollTop, scrollTopOpacity]);
+
+  const handleScrollToTop = useCallback(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, []);
+
   const allItems = useMemo<LessonItem[]>(() => {
     const statics = getStaticItems();
     const result: LessonItem[] = new Array(statics.length);
@@ -107,7 +132,9 @@ export default function LessonsScreen() {
     const lowerSearch = search.toLocaleLowerCase('tr-TR').trim();
     return allItems.filter((item) => {
       if (levelFilter !== 'all' && item.level !== levelFilter) return false;
-      if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+      if (statusFilter === 'exam') {
+        if (!(item.unit.tags?.includes('exam') ?? false)) return false;
+      } else if (statusFilter !== 'all' && item.status !== statusFilter) return false;
       if (lowerSearch.length > 0) {
         const haystack = (
           item.lesson.title + ' ' + item.unitTitle + ' ' + item.courseTitle
@@ -177,7 +204,7 @@ export default function LessonsScreen() {
   }, []);
 
   const hasFilters = search.length > 0 || levelFilter !== 'all' || statusFilter !== 'all';
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   // 🚀 PERF: renderItem'i useCallback ile stabilize et
   const renderItem = useCallback(
@@ -298,6 +325,7 @@ export default function LessonsScreen() {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
         <FilterChip c={c} label={t('lessons.all')} active={statusFilter === 'all'} onPress={() => setStatusFilter('all')} />
+        <FilterChip c={c} label="🎓 Sınav" active={statusFilter === 'exam'} onPress={() => setStatusFilter('exam')} color={c.gold} colorBg={c.goldBg} />
         <FilterChip c={c} label={t('lessons.completed')} active={statusFilter === 'completed'} onPress={() => setStatusFilter('completed')} color={c.neon} colorBg={c.neonBg} />
         <FilterChip c={c} label={t('lessons.inProgress')} active={statusFilter === 'in-progress'} onPress={() => setStatusFilter('in-progress')} color={c.cyan} colorBg={'rgba(34, 211, 238, 0.15)'} />
         <FilterChip c={c} label={t('lessons.notStarted')} active={statusFilter === 'untouched'} onPress={() => setStatusFilter('untouched')} color={c.textLow} />
@@ -330,6 +358,7 @@ export default function LessonsScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       {/* 🚀 PERF: FlatList virtualization — sadece görünür kartlar render */}
       <FlatList
+        ref={listRef}
         data={filteredItems}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
@@ -344,7 +373,22 @@ export default function LessonsScreen() {
         windowSize={7}
         removeClippedSubviews={true}
         updateCellsBatchingPeriod={50}
+        onScroll={handleScroll}
+        scrollEventThrottle={100}
       />
+
+      {/* 📜 Yukarı çık butonu — 500px+ scroll edilince görünür */}
+      <Animated.View
+        style={[styles.scrollTopButton, { opacity: scrollTopOpacity }]}
+        pointerEvents={showScrollTop ? 'auto' : 'none'}
+      >
+        <Pressable
+          onPress={handleScrollToTop}
+          style={({ pressed }) => [styles.scrollTopInner, pressed && styles.scrollTopPressed]}
+        >
+          <Ionicons name="arrow-up" size={20} color={c.textOnNeon} />
+        </Pressable>
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -576,5 +620,20 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       borderRadius: radius.md, backgroundColor: c.neon,
     },
     clearButtonText: { ...textStyles.button, color: c.textOnNeon, fontSize: 12 },
+    // 📜 Yukarı çık floating button
+    scrollTopButton: {
+      position: 'absolute',
+      bottom: spacing.xl,
+      right: spacing.base,
+      borderRadius: 24,
+    },
+    scrollTopInner: {
+      width: 48, height: 48, borderRadius: 24,
+      backgroundColor: c.neon,
+      alignItems: 'center', justifyContent: 'center',
+      shadowColor: c.neon, shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.6, shadowRadius: 10, elevation: 8,
+    },
+    scrollTopPressed: { opacity: 0.8, transform: [{ scale: 0.95 }] },
   });
 }

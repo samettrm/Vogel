@@ -23,6 +23,7 @@ import { LessonCompleteScreen } from '../../src/components/lesson/LessonComplete
 import { LessonHeader } from '../../src/components/lesson/LessonHeader';
 import { StreakMilestoneScreen } from '../../src/components/lesson/StreakMilestoneScreen';
 import { GrammarTipCard } from '../../src/components/lesson/GrammarTipCard';
+import { NoHeartsScreen } from '../../src/components/lesson/NoHeartsScreen';
 import { PaywallModal } from '../../src/components/paywall/PaywallModal';
 import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
 import { ALL_COURSES, getCourseById } from '../../src/data/courses';
@@ -300,6 +301,7 @@ export default function LessonScreen() {
   const activeCourse = useUserStore((s) => s.activeCourse) as CourseRef;
   const hearts = useUserStore((s) => s.hearts);
   const maxHearts = useUserStore((s) => s.maxHearts);
+  const nextHeartRefillAt = useUserStore((s) => s.nextHeartRefillAt);
   const addXp = useUserStore((s) => s.addXp);
   const loseHeart = useUserStore((s) => s.loseHeart);
   const completeLesson = useUserStore((s) => s.completeLesson);
@@ -556,6 +558,15 @@ export default function LessonScreen() {
   const styles = makeStyles(c);
 
   // ─── Early returns ────────────────────────────────────────────────
+
+  // Kalp kontrolü — sıfır can + free kullanıcı → ders açılamaz
+  if (hearts === 0 && !isPremium) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <NoHeartsScreen nextHeartAt={nextHeartRefillAt} onGoHome={goHome} />
+      </SafeAreaView>
+    );
+  }
 
   if (!lesson) {
     return (

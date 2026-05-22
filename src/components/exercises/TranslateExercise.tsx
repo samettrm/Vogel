@@ -101,11 +101,15 @@ function TranslateExerciseImpl({
         <View style={styles.stripLineBottom} />
       </View>
 
-      {/* 🌐 Türkçe çeviri — sadece cevap kontrol edildikten sonra (disabled) görünür */}
-      {disabled && translationText ? (
-        <View style={styles.translationRow}>
-          <Text style={styles.translationLabel}>{t('exercise.meaning')}:</Text>
-          <Text style={styles.translationText}>{translationText}</Text>
+      {/* 🌐 Türkçe çeviri — her zaman görünür (cevap öncesi soluk, sonrası vurgulu) */}
+      {translationText ? (
+        <View style={[styles.translationRow, !disabled && styles.translationRowHint]}>
+          <Text style={[styles.translationLabel, !disabled && styles.translationLabelHint]}>
+            {t('exercise.meaning')}:
+          </Text>
+          <Text style={[styles.translationText, !disabled && styles.translationTextHint]}>
+            {translationText}
+          </Text>
         </View>
       ) : null}
 
@@ -200,5 +204,9 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       fontSize: 14,
       flex: 1,
     },
+    // Cevap verilmeden önce: soluk görünür (ipucu gibi)
+    translationRowHint: { opacity: 0.45 },
+    translationLabelHint: {},
+    translationTextHint: {},
   });
 }
