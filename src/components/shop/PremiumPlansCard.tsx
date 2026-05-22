@@ -1,10 +1,92 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
 import type { PremiumPackage, PlanId } from '../../services/purchases';
+
+// ─── Dönen + Parlayan Elmas ────────────────────────────────────────────────────
+// Hem banner'daki büyük elmas hem heroCard rozeti için kullanılır
+function SpinningDiamond({ size = 26 }: { size?: number }) {
+  const spinY = useSharedValue(0);
+  const flash = useSharedValue(0);
+  const glow  = useSharedValue(0.1);
+
+  useEffect(() => {
+    const MS = 2200;
+    spinY.value = withRepeat(
+      withTiming(360, { duration: MS, easing: Easing.linear }),
+      -1, false,
+    );
+    // Ön yüze gelince beyaz flash
+    flash.value = withRepeat(
+      withSequence(
+        withDelay(MS * 0.44, withTiming(0.85, { duration: 75 })),
+        withTiming(0, { duration: 210 }),
+        withDelay(MS * 0.44, withTiming(0, { duration: 0 })),
+      ),
+      -1, false,
+    );
+    // Glow halkası nabzı
+    glow.value = withRepeat(
+      withSequence(
+        withTiming(0.65, { duration: 1100, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0.08, { duration: 1100, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1, false,
+    );
+    return () => {
+      cancelAnimation(spinY);
+      cancelAnimation(flash);
+      cancelAnimation(glow);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const spinStyle  = useAnimatedStyle(() => ({
+    transform: [{ perspective: 600 }, { rotateY: `${spinY.value}deg` }],
+  }));
+  const flashStyle = useAnimatedStyle(() => ({ opacity: flash.value }));
+  const glowStyle  = useAnimatedStyle(() => ({
+    opacity: glow.value,
+    transform: [{ scale: 0.55 + glow.value * 0.9 }],
+  }));
+
+  const wrap = size + 10;
+  const half = wrap / 2;
+
+  return (
+    <View style={{ width: wrap, height: wrap, alignItems: 'center', justifyContent: 'center' }}>
+      {/* Buz mavisi glow halkası */}
+      <Animated.View style={[{
+        position: 'absolute',
+        width: wrap, height: wrap, borderRadius: half,
+        backgroundColor: '#B8E8FF',
+      }, glowStyle]} pointerEvents="none" />
+      {/* Dönen elmas */}
+      <Animated.View style={spinStyle}>
+        <Ionicons name="diamond" size={size} color="#D6F0FF" />
+      </Animated.View>
+      {/* Ön yüz flash */}
+      <Animated.View style={[{
+        position: 'absolute',
+        width: wrap, height: wrap, borderRadius: half,
+        backgroundColor: '#FFFFFF',
+      }, flashStyle]} pointerEvents="none" />
+    </View>
+  );
+}
 
 // ════════════════════════════════════════════════════════════════
 // PREMIUM PLANS CARD — Psikolojik fiyat optimizasyonu
@@ -111,7 +193,10 @@ export function PremiumPlansCard({ isPremium, packages, onSelectPlan }: PremiumP
         <View style={styles.topHighlight} pointerEvents="none" />
         <View style={styles.bannerLeft}>
           <View style={[styles.crownIcon, isPremium && styles.crownActive]}>
-            <Ionicons name={isPremium ? 'diamond' : 'star'} size={24} color={c.bg} />
+            {isPremium
+              ? <Ionicons name="diamond" size={24} color={c.bg} />
+              : <SpinningDiamond size={24} />
+            }
           </View>
           <View style={styles.bannerText}>
             <Text style={styles.bannerTitle}>{t('shop.vogelPlus')}</Text>
@@ -183,9 +268,10 @@ function YearlyHeroCard({
     >
       <View style={styles.heroHighlight} pointerEvents="none" />
 
-      {/* "EN ÇOK TERCİH EDİLEN" rozeti */}
+      {/* "EN ÇOK TERCİH EDİLEN" rozeti — dönen elmas + yazı */}
       <View style={styles.heroBadge}>
-        <Text style={styles.heroBadgeText}>⭐  EN ÇOK TERCİH EDİLEN</Text>
+        <SpinningDiamond size={12} />
+        <Text style={styles.heroBadgeText}>EN ÇOK TERCİH EDİLEN</Text>
       </View>
 
       <View style={styles.heroBody}>
@@ -359,8 +445,9 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     heroBadge: {
       position: 'absolute', top: -1, alignSelf: 'center',
       backgroundColor: c.gold,
-      paddingHorizontal: spacing.base, paddingVertical: 4,
+      paddingHorizontal: spacing.sm, paddingVertical: 4,
       borderBottomLeftRadius: radius.md, borderBottomRightRadius: radius.md,
+      flexDirection: 'row', alignItems: 'center', gap: 4,
     },
     heroBadgeText: { ...textStyles.label, color: c.bg, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
 
