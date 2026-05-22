@@ -56,7 +56,8 @@ function MultipleChoiceExerciseImpl({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>

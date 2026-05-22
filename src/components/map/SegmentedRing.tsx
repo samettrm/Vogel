@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -63,8 +64,13 @@ function SegmentedRingImpl({
   const scale = useSharedValue(1);
 
   // Aktif derste: yavaş dönüş + nefes alma
+  // 🚀 PERF: isCurrent false olunca animasyonları iptal et — worklet arka planda CPU yakmaya devam etmesin
   useEffect(() => {
-    if (!isCurrent) return;
+    if (!isCurrent) {
+      cancelAnimation(rotation);
+      cancelAnimation(scale);
+      return;
+    }
 
     rotation.value = withRepeat(
       withTiming(360, { duration: 9000, easing: Easing.linear }),
@@ -76,6 +82,11 @@ function SegmentedRingImpl({
       -1,
       true,
     );
+
+    return () => {
+      cancelAnimation(rotation);
+      cancelAnimation(scale);
+    };
   }, [isCurrent, rotation, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({

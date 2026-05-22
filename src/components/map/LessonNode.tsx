@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -58,12 +59,18 @@ const LessonNodeImpl = React.memo(function LessonNodeInner({
   const isCompleted = state === 'completed';
 
   const pulse = useSharedValue(1);
+  // 🚀 PERF: isCurrent false → pulse iptal. Aksi takdirde arka planda worklet çalışmaya devam eder.
   useEffect(() => {
-    if (!isCurrent) return;
+    if (!isCurrent) {
+      cancelAnimation(pulse);
+      pulse.value = 1;
+      return;
+    }
     pulse.value = withRepeat(
       withTiming(1.08, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
       -1, true,
     );
+    return () => { cancelAnimation(pulse); };
   }, [isCurrent, pulse]);
 
   const pulseStyle = useAnimatedStyle(() => ({
@@ -85,7 +92,8 @@ const LessonNodeImpl = React.memo(function LessonNodeInner({
     : isCompleted ? 'checkmark' : 'play';
   const iconColor = isLocked ? c.lockedIcon : c.textOnNeon;
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.wrapper}>
@@ -131,12 +139,15 @@ function StartBubble({ c }: { c: ReturnType<typeof useThemeColors> }) {
       withTiming(-4, { duration: 900, easing: Easing.inOut(Easing.ease) }),
       -1, true,
     );
+    // 🚀 PERF: unmount'ta animasyonu iptal et
+    return () => { cancelAnimation(bob); };
   }, [bob]);
 
   const bobStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: bob.value }],
   }));
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <Animated.View style={[styles.bubbleContainer, bobStyle]}>

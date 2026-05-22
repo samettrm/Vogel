@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -37,13 +38,19 @@ export function AvatarCard({ level, username, joinedLabel }: AvatarCardProps) {
       ),
       -1, false,
     );
+    // 🚀 PERF: unmount'ta animasyonları iptal et — arka planda CPU yakmaya devam etmesin
+    return () => {
+      cancelAnimation(bob);
+      cancelAnimation(tilt);
+    };
   }, [bob, tilt]);
 
   const birdStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: bob.value }, { rotate: `${tilt.value}deg` }],
   }));
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
   const defaultUsername = username ?? 'Vogel';
   const defaultJoinedLabel = joinedLabel ?? 'Almanca';
 

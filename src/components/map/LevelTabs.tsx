@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import type { CEFRLevel } from '../../types';
@@ -17,7 +17,8 @@ export function LevelTabs({ levels, selectedLevel, onSelect }: LevelTabsProps) {
     Haptics.selectionAsync().catch(() => {});
     onSelect(level);
   };
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -36,7 +36,8 @@ export function TopStatusBar() {
   const totalAchievements = ACHIEVEMENTS.length;
 
   const targetFlag = FLAG_BY_LANG[activeCourse.target] ?? '🌐';
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const goToProfile = () => {
     Haptics.selectionAsync().catch(() => {});
@@ -113,7 +114,8 @@ function Counter({
   dimmed?: boolean;
   onPress?: () => void;
 }) {
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — Counter 4 kez render oluyor, her seferinde StyleSheet.create önlenir
+  const styles = useMemo(() => makeStyles(c), [c]);
   const isPressable = !!onPress;
 
   const content = (

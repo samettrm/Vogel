@@ -37,9 +37,10 @@ export function ReviewBanner() {
     return count;
   }, [reviewItems]);
 
-  if (dueCount < MIN_DUE_FOR_BANNER) return null;
+  // 🚀 PERF: useMemo — early return'den önce çağrılmalı (hooks rules)
+  const styles = useMemo(() => makeStyles(c), [c]);
 
-  const styles = makeStyles(c);
+  if (dueCount < MIN_DUE_FOR_BANNER) return null;
 
   return (
     <Pressable

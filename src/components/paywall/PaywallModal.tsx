@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   Modal,
   Pressable,
@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import Animated, {
+  cancelAnimation,
   FadeIn,
   FadeInDown,
   useSharedValue,
@@ -46,9 +47,14 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
   const t = useT();
 
   // Hafif nabız animasyonu — CTA butonu
+  // 🚀 PERF: modal kapanınca animasyonu iptal et; aksi takdirde arka planda worklet çalışmaya devam eder
   const glow = useSharedValue(0.5);
   useEffect(() => {
-    if (!visible) return;
+    if (!visible) {
+      cancelAnimation(glow);
+      glow.value = 0.5;
+      return;
+    }
     glow.value = withRepeat(
       withSequence(
         withTiming(1, { duration: 900 }),
@@ -57,6 +63,7 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
       -1,
       true,
     );
+    return () => { cancelAnimation(glow); };
   }, [visible, glow]);
 
   const glowStyle = useAnimatedStyle(() => ({
@@ -74,7 +81,8 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
     onDismiss();
   };
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <Modal

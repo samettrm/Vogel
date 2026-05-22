@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedProps,
   useAnimatedStyle,
@@ -100,6 +101,7 @@ export function LessonHeader({
   }, [progress, fill]);
 
   // Efektler her zaman aktif — bar dolarken efektler de görünür
+  // 🚀 PERF: unmount'ta cycle animasyonu iptal et — ders biterken CPU yakmaya devam etmesin
   useEffect(() => {
     cycle.value = 0;
     cycle.value = withRepeat(
@@ -107,6 +109,7 @@ export function LessonHeader({
       -1,
       false,
     );
+    return () => { cancelAnimation(cycle); };
   }, [cycle]);
 
   const fillStyle = useAnimatedStyle(() => ({
@@ -141,7 +144,8 @@ export function LessonHeader({
     };
   });
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
   const shimmerWidth = Math.max(40, barWidthState * SHIMMER_RATIO);
 
   return (

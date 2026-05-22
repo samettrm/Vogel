@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -69,15 +69,15 @@ function AchievementToastInner({ achievementId }: { achievementId: string }) {
   }));
 
   const ach = getAchievementById(achievementId);
-  if (!ach) return null;
-
+  // 🚀 PERF: accentColor + styles → hooks rules gereği early return'den ÖNCE çağrılmalı
   const accentColor =
-    ach.color === 'gold' ? c.gold
-    : ach.color === 'purple' ? c.purple
-    : ach.color === 'cyan' ? c.cyan
+    ach?.color === 'gold' ? c.gold
+    : ach?.color === 'purple' ? c.purple
+    : ach?.color === 'cyan' ? c.cyan
     : c.neon;
+  const styles = useMemo(() => makeStyles(c, accentColor), [c, accentColor]);
 
-  const styles = makeStyles(c, accentColor);
+  if (!ach) return null;
 
   return (
     <Animated.View

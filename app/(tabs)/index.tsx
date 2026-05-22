@@ -282,7 +282,8 @@ export default function HomeScreen() {
     [nextLevel, c],
   );
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   // 🚀 PERF: FlatList renderItem ve keyExtractor stable callback'lar
   const renderUnit = useCallback(
@@ -392,9 +393,9 @@ export default function HomeScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={false}
-          initialNumToRender={11}
-          maxToRenderPerBatch={4}
-          windowSize={11}
+          initialNumToRender={4}
+          maxToRenderPerBatch={3}
+          windowSize={5}
           updateCellsBatchingPeriod={50}
           getItemLayout={getItemLayout}
           initialScrollIndex={Math.max(0, currentUnitIndex)}

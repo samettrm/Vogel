@@ -49,7 +49,8 @@ function TranslateExerciseImpl({
   const isWrong = disabled && selectedWords.length > 0 &&
     normalizeText(selectedSentence) !== normalizeText(exercise.correctAnswer);
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>

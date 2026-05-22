@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -83,7 +84,13 @@ function SpeakExerciseImpl({
         recordingRef.current.stopAndUnloadAsync().catch(() => {});
         recordingRef.current = null;
       }
+      // 🚀 PERF: unmount'ta tüm Reanimated animasyonlarını iptal et
+      cancelAnimation(pulseScale);
+      cancelAnimation(wave1);
+      cancelAnimation(wave2);
+      cancelAnimation(wave3);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startRecording = async () => {
@@ -188,7 +195,8 @@ function SpeakExerciseImpl({
 
   const showCursor = recordState === 'transcribing';
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { Layout } from 'react-native-reanimated';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
@@ -20,7 +20,8 @@ function FillBlankExerciseImpl({
 }: Props) {
   const c = useThemeColors();
   const t = useT();
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>

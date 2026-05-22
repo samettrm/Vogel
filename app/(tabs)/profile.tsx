@@ -70,7 +70,8 @@ export default function ProfileScreen() {
     return { dailyCurrent: 0, dailyTarget: DAILY_XP_GOAL_FALLBACK };
   }, [dailyQuests]);
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>

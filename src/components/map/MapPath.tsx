@@ -63,7 +63,8 @@ function MapPathInner({ unit, unitOrder, getLessonInfo, onLessonPress }: MapPath
     return d;
   }, [lessons, centerX]);
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>

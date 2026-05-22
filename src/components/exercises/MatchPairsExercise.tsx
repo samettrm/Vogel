@@ -90,7 +90,8 @@ function MatchPairsExerciseImpl({
     setSelectedRight((prev) => (prev === id ? null : id));
   };
 
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
   const totalMatched = matchedIds.length;
   const totalPairs = exercise.pairs.length;
   const allDone = totalMatched >= totalPairs;

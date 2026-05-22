@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
@@ -31,7 +31,8 @@ export function StatRow({
 }: StatRowProps) {
   const c = useThemeColors();
   const t = useT();
-  const styles = makeStyles(c);
+  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.row}>
