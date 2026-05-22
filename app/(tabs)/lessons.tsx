@@ -221,6 +221,26 @@ export default function LessonsScreen() {
         <Text style={styles.title}>{t('lessons.title')}</Text>
       </View>
 
+      {/* 🎓 SINAV HAZIRLIĞI — Goethe · TELC */}
+      <Pressable
+        onPress={() => { setStatusFilter('exam'); setLevelFilter('all'); }}
+        style={({ pressed }) => [styles.examCard, pressed && styles.examCardPressed]}
+      >
+        <View style={styles.examCardHighlight} pointerEvents="none" />
+        <View style={styles.examCardLeft}>
+          <View style={styles.examIconBox}>
+            <Text style={styles.examIconEmoji}>🎓</Text>
+          </View>
+          <View style={styles.examTextCol}>
+            <Text style={styles.examCardTitle}>Goethe · TELC Sınavı</Text>
+            <Text style={styles.examCardSub}>Sınav hazırlık dersleri · Her seviyeden erişilebilir</Text>
+          </View>
+        </View>
+        <View style={styles.examCardArrow}>
+          <Ionicons name="chevron-forward" size={16} color={c.gold} />
+        </View>
+      </Pressable>
+
       {recommended ? (
         <Pressable
           onPress={() => router.push(`/lesson/${recommended.lesson.id}`)}
@@ -303,7 +323,7 @@ export default function LessonsScreen() {
         <FilterChip c={c} label={t('lessons.notStarted')} active={statusFilter === 'untouched'} onPress={() => setStatusFilter('untouched')} color={c.textLow} />
       </ScrollView>
     </View>
-  ), [c, t, styles, stats, recommended, search, levelFilter, statusFilter]);
+  ), [c, t, styles, stats, recommended, search, levelFilter, statusFilter, setStatusFilter, setLevelFilter]);
 
   const ListEmpty = useMemo(() => (
     <View style={styles.empty}>
@@ -541,6 +561,38 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     header: { paddingVertical: spacing.sm },
     title: { ...textStyles.display, color: c.textHigh },
     subtitle: { ...textStyles.body, color: c.textLow, fontSize: 13, marginTop: 2 },
+    // Goethe · TELC sınav kartı
+    examCard: {
+      flexDirection: 'row', alignItems: 'center',
+      backgroundColor: c.goldBg,
+      borderWidth: 1.5, borderColor: c.gold,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.base, paddingVertical: spacing.md,
+      gap: spacing.md, overflow: 'hidden',
+      shadowColor: c.gold,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.3, shadowRadius: 10, elevation: 4,
+    },
+    examCardHighlight: {
+      position: 'absolute', top: 0, left: spacing.lg, right: spacing.lg,
+      height: 1, backgroundColor: 'rgba(245,158,11,0.3)',
+    },
+    examCardPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
+    examCardLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    examIconBox: {
+      width: 44, height: 44, borderRadius: 22,
+      backgroundColor: c.gold,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    examIconEmoji: { fontSize: 22 },
+    examTextCol: { flex: 1, gap: 2 },
+    examCardTitle: { ...textStyles.subheading, color: c.gold, fontSize: 15 },
+    examCardSub: { ...textStyles.body, color: c.textMed, fontSize: 12 },
+    examCardArrow: {
+      width: 28, height: 28, borderRadius: 14,
+      backgroundColor: 'rgba(245,158,11,0.15)',
+      alignItems: 'center', justifyContent: 'center',
+    },
     recommendedCard: {
       backgroundColor: c.neonBg,
       borderWidth: 1.5, borderColor: c.neon,
