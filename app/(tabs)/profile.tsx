@@ -42,7 +42,6 @@ import { useT } from '../../src/i18n';
 // ════════════════════════════════════════════════════════════════
 
 const XP_PER_LEVEL = 100;
-const DAILY_XP_GOAL_FALLBACK = 30;
 
 export default function ProfileScreen() {
   const c = useThemeColors();
@@ -52,23 +51,10 @@ export default function ProfileScreen() {
   const maxHearts = useUserStore((s) => s.maxHearts);
   const streak = useUserStore((s) => s.streak);
   const completedLessons = useUserStore((s) => s.completedLessons);
-  const dailyQuests = useUserStore((s) => (s as { dailyQuests?: unknown[] }).dailyQuests);
   const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
 
   const level = Math.floor(xp / XP_PER_LEVEL) + 1;
   const xpInLevel = xp % XP_PER_LEVEL;
-
-  const { dailyCurrent, dailyTarget } = useMemo(() => {
-    const list = (dailyQuests ?? []) as { type?: string; progress?: number; target?: number }[];
-    const earnXpQuest = list.find((q) => q?.type === 'earnXp');
-    if (earnXpQuest && typeof earnXpQuest.target === 'number') {
-      return {
-        dailyCurrent: earnXpQuest.progress ?? 0,
-        dailyTarget: earnXpQuest.target,
-      };
-    }
-    return { dailyCurrent: 0, dailyTarget: DAILY_XP_GOAL_FALLBACK };
-  }, [dailyQuests]);
 
   // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -108,8 +94,6 @@ export default function ProfileScreen() {
           xpInLevel={xpInLevel}
           xpForNext={XP_PER_LEVEL}
           totalXp={xp}
-          dailyCurrent={dailyCurrent}
-          dailyTarget={dailyTarget}
         />
 
         <StatRow

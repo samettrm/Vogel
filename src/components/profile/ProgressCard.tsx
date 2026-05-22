@@ -6,13 +6,7 @@ import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
 
 // ════════════════════════════════════════════════════════════════
-// PROGRESS CARD — XP seviyesi + günlük hedef tek karta birleşti
-//
-// Eskiden XPBar + DailyGoalCard ayrı kartlar → karmaşa.
-// Şimdi tek bir sade kart: üstte seviye barı, altta günlük hedef barı.
-// Renk hiyerarşisi:
-//   - XP/Seviye → neon yeşil (ana renk)
-//   - Günlük hedef → altın (tamamsa) / cyan (devam)
+// PROGRESS CARD — XP seviyesi kartı
 // ════════════════════════════════════════════════════════════════
 
 interface ProgressCardProps {
@@ -20,8 +14,6 @@ interface ProgressCardProps {
   xpInLevel: number;
   xpForNext: number;
   totalXp: number;
-  dailyCurrent: number;
-  dailyTarget: number;
 }
 
 export function ProgressCard({
@@ -29,31 +21,20 @@ export function ProgressCard({
   xpInLevel,
   xpForNext,
   totalXp,
-  dailyCurrent,
-  dailyTarget,
 }: ProgressCardProps) {
   const c = useThemeColors();
   const t = useT();
 
   const xpRatio = Math.min(1, Math.max(0, xpInLevel / Math.max(1, xpForNext)));
-  const dailyRatio = Math.min(1, Math.max(0, dailyCurrent / Math.max(1, dailyTarget)));
-  const dailyComplete = dailyCurrent >= dailyTarget;
 
   const xpFill = useSharedValue(0);
-  const dailyFill = useSharedValue(0);
 
   useEffect(() => {
     xpFill.value = withTiming(xpRatio, { duration: 600, easing: Easing.out(Easing.cubic) });
   }, [xpRatio, xpFill]);
 
-  useEffect(() => {
-    dailyFill.value = withTiming(dailyRatio, { duration: 600, easing: Easing.out(Easing.cubic) });
-  }, [dailyRatio, dailyFill]);
-
   const xpFillStyle = useAnimatedStyle(() => ({ width: `${xpFill.value * 100}%` }));
-  const dailyFillStyle = useAnimatedStyle(() => ({ width: `${dailyFill.value * 100}%` }));
 
-  const dailyColor = dailyComplete ? c.gold : c.cyan;
   // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -61,7 +42,6 @@ export function ProgressCard({
     <View style={styles.card}>
       <View style={styles.topHighlight} pointerEvents="none" />
 
-      {/* ─── Üst: Seviye + XP barı ─── */}
       <View style={styles.section}>
         <View style={styles.row}>
           <View style={styles.titleGroup}>
@@ -81,32 +61,6 @@ export function ProgressCard({
         <Text style={styles.subText}>
           {t('profile.xpProgress')}: {totalXp} XP · {t('profile.nextLevel')}: {level + 1}
         </Text>
-      </View>
-
-      {/* Ayraç */}
-      <View style={styles.divider} />
-
-      {/* ─── Alt: Günlük hedef barı ─── */}
-      <View style={styles.section}>
-        <View style={styles.row}>
-          <View style={styles.titleGroup}>
-            <Ionicons
-              name={dailyComplete ? 'trophy' : 'flag'}
-              size={16}
-              color={dailyColor}
-            />
-            <Text style={styles.title}>{t('profile.dailyGoal')}</Text>
-            {dailyComplete ? <Text style={styles.checkmark}>✓</Text> : null}
-          </View>
-          <Text style={styles.metaText}>
-            <Text style={[styles.metaValue, { color: dailyColor }]}>{dailyCurrent}</Text>
-            <Text style={styles.metaSeparator}> / {dailyTarget} XP</Text>
-          </Text>
-        </View>
-
-        <View style={styles.barTrack}>
-          <Animated.View style={[styles.barFill, { backgroundColor: dailyColor }, dailyFillStyle]} />
-        </View>
       </View>
     </View>
   );
@@ -137,7 +91,6 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     },
     titleGroup: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     title: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 14 },
-    checkmark: { color: c.gold, fontSize: 14, fontWeight: '700' },
     metaText: { flexDirection: 'row', alignItems: 'baseline' },
     metaValue: { ...textStyles.bodyBold, fontSize: 14 },
     metaSeparator: { ...textStyles.body, color: c.textLow, fontSize: 12 },
@@ -152,10 +105,5 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       borderRadius: BAR_HEIGHT / 2,
     },
     subText: { ...textStyles.label, color: c.textMuted, fontSize: 10 },
-    divider: {
-      height: 1,
-      backgroundColor: c.divider,
-      marginHorizontal: -spacing.base,
-    },
   });
 }
