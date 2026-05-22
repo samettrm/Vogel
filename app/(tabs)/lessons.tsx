@@ -377,16 +377,30 @@ export default function LessonsScreen() {
         scrollEventThrottle={100}
       />
 
-      {/* 📜 Yukarı çık butonu — 500px+ scroll edilince görünür */}
+      {/* ⬆️ Yukarı çık butonu — harita ekranıyla aynı görünüm */}
       <Animated.View
-        style={[styles.scrollTopButton, { opacity: scrollTopOpacity }]}
+        style={[
+          styles.scrollTopButton,
+          {
+            opacity: scrollTopOpacity,
+            transform: [
+              {
+                scale: scrollTopOpacity.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.6, 1],
+                }),
+              },
+            ],
+          },
+        ]}
         pointerEvents={showScrollTop ? 'auto' : 'none'}
       >
         <Pressable
           onPress={handleScrollToTop}
           style={({ pressed }) => [styles.scrollTopInner, pressed && styles.scrollTopPressed]}
+          hitSlop={8}
         >
-          <Ionicons name="arrow-up" size={20} color={c.textOnNeon} />
+          <Ionicons name="arrow-up" size={26} color={c.neon} />
         </Pressable>
       </Animated.View>
     </SafeAreaView>
@@ -620,20 +634,25 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       borderRadius: radius.md, backgroundColor: c.neon,
     },
     clearButtonText: { ...textStyles.button, color: c.textOnNeon, fontSize: 12 },
-    // 📜 Yukarı çık floating button
+    // ⬆️ Yukarı çık floating button — harita ekranıyla aynı
     scrollTopButton: {
       position: 'absolute',
-      bottom: spacing.xl,
       right: spacing.base,
-      borderRadius: 24,
+      bottom: spacing.lg,
+      zIndex: 100,
     },
     scrollTopInner: {
-      width: 48, height: 48, borderRadius: 24,
-      backgroundColor: c.neon,
+      width: 52, height: 52,
+      borderRadius: radius.lg,
+      borderWidth: 1.5, borderColor: c.neon,
+      backgroundColor: c.neonBg,
       alignItems: 'center', justifyContent: 'center',
-      shadowColor: c.neon, shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.6, shadowRadius: 10, elevation: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.35,
+      shadowRadius: 10,
+      elevation: 8,
     },
-    scrollTopPressed: { opacity: 0.8, transform: [{ scale: 0.95 }] },
+    scrollTopPressed: { opacity: 0.7, transform: [{ scale: 0.9 }] },
   });
 }
