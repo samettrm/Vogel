@@ -14,7 +14,7 @@ import { radius, shadows, spacing, textStyles, useThemeColors } from '../../them
 import { useT } from '../../i18n';
 import { SegmentedRing } from './SegmentedRing';
 
-export type LessonNodeState = 'completed' | 'current' | 'locked';
+export type LessonNodeState = 'completed' | 'current' | 'locked' | 'available';
 
 interface LessonNodeProps {
   state: LessonNodeState;
@@ -57,6 +57,7 @@ const LessonNodeImpl = React.memo(function LessonNodeInner({
   const isLocked = state === 'locked';
   const isCurrent = state === 'current';
   const isCompleted = state === 'completed';
+  const isAvailable = state === 'available';
 
   const pulse = useSharedValue(1);
   // 🚀 PERF: isCurrent false → pulse iptal. Aksi takdirde arka planda worklet çalışmaya devam eder.
@@ -86,11 +87,13 @@ const LessonNodeImpl = React.memo(function LessonNodeInner({
     onPress();
   }, [isLocked, onPress]);
 
-  const surfaceColor = isLocked ? c.locked : c.neon;
+  const surfaceColor = isLocked ? c.locked : isAvailable ? c.gold : c.neon;
   const iconName: keyof typeof Ionicons.glyphMap = isLocked
     ? 'lock-closed'
-    : isCompleted ? 'checkmark' : 'play';
-  const iconColor = isLocked ? c.lockedIcon : c.textOnNeon;
+    : isCompleted ? 'checkmark'
+    : isAvailable ? 'school'
+    : 'play';
+  const iconColor = isLocked ? c.lockedIcon : isAvailable ? c.bg : c.textOnNeon;
 
   // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -118,6 +121,7 @@ const LessonNodeImpl = React.memo(function LessonNodeInner({
             { backgroundColor: surfaceColor },
             isCurrent && shadows.glowPrimary,
             isCompleted && shadows.glowPrimarySoft,
+            isAvailable && styles.nodeAvailable,
             isLocked && styles.nodeLocked,
             pressed && !isLocked && styles.nodePressed,
           ]}
@@ -168,6 +172,11 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       justifyContent: 'center', alignItems: 'center',
     },
     nodeLocked: { borderWidth: 1, borderColor: c.lockedBorder },
+    nodeAvailable: {
+      borderWidth: 2, borderColor: c.gold,
+      shadowColor: c.gold, shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.55, shadowRadius: 10, elevation: 6,
+    },
     nodePressed: { opacity: 0.85, transform: [{ scale: 0.95 }] },
     bubbleContainer: { position: 'absolute', top: -52, alignItems: 'center', zIndex: 10 },
     bubble: {

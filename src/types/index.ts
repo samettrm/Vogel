@@ -48,7 +48,10 @@ export type PersonalizationTag =
   | 'emotion'    // Duygular, ifadeler
   | 'tech'       // Teknoloji (ileri seviyeler için)
   | 'media'      // Medya, film, dizi, müzik
-  | 'academic';  // Akademik/bilimsel dil
+  | 'academic'   // Akademik/bilimsel dil
+  | 'exam'       // Sınav hazırlığı (Goethe, TELC vb.)
+  | 'goethe'     // Goethe-Zertifikat serisi
+  | 'telc';      // TELC sınavı serisi
 
 // Onboarding'de seçilen motivasyon türleri
 export type LearningMotivation =

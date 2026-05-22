@@ -39,6 +39,7 @@ function MapPathInner({ unit, unitOrder, getLessonInfo, onLessonPress }: MapPath
   const c = useThemeColors();
   const t = useT();
   const lessons = unit.lessons;
+  const isExamUnit = unit.tags?.includes('exam') ?? false;
   const totalHeight = lessons.length * NODE_SPACING_Y + FIRST_NODE_OFFSET_Y;
 
   const getXOffset = (i: number) => ZIG_PATTERN[i % ZIG_PATTERN.length];
@@ -68,14 +69,21 @@ function MapPathInner({ unit, unitOrder, getLessonInfo, onLessonPress }: MapPath
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerWrap}>
+      <View style={[styles.headerWrap, isExamUnit && styles.headerWrapExam]}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerOrder}>{t('lessons.unit')} {unitOrder}</Text>
-            <Text style={styles.headerTitle}>{unit.title}</Text>
+            <Text style={[styles.headerOrder, isExamUnit && styles.headerOrderExam]}>
+              {isExamUnit ? '🎓 SINAV HAZIRLIĞI' : `${t('lessons.unit')} ${unitOrder}`}
+            </Text>
+            <Text style={[styles.headerTitle, isExamUnit && styles.headerTitleExam]}>{unit.title}</Text>
+            {isExamUnit && (
+              <Text style={styles.examSubtitle}>Goethe · TELC · Her seviyeden erişilebilir</Text>
+            )}
           </View>
-          <View style={styles.headerBadge}>
-            <Text style={styles.headerBadgeText}>{lessons.length}</Text>
+          <View style={[styles.headerBadge, isExamUnit && styles.headerBadgeExam]}>
+            <Text style={[styles.headerBadgeText, isExamUnit && styles.headerBadgeTextExam]}>
+              {isExamUnit ? '📝' : lessons.length}
+            </Text>
           </View>
         </View>
         <View style={styles.headerHighlight} pointerEvents="none" />
@@ -144,19 +152,32 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       borderWidth: 1, borderColor: c.glassBorder,
       overflow: 'hidden',
     },
+    headerWrapExam: {
+      backgroundColor: c.goldBg,
+      borderWidth: 2, borderColor: c.gold,
+    },
     header: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
       paddingHorizontal: spacing.base, paddingVertical: spacing.md,
     },
     headerLeft: { flex: 1 },
     headerOrder: { ...textStyles.label, color: c.neon, marginBottom: 2 },
+    headerOrderExam: { color: c.gold },
     headerTitle: { ...textStyles.subheading, color: c.textHigh },
+    headerTitleExam: { color: c.gold },
+    examSubtitle: { ...textStyles.caption, color: c.textMed, marginTop: 2 },
     headerBadge: {
       minWidth: 36, height: 36, paddingHorizontal: spacing.sm, borderRadius: 18,
       backgroundColor: c.neonBg, borderWidth: 1, borderColor: c.neon,
       justifyContent: 'center', alignItems: 'center',
     },
+    headerBadgeExam: {
+      backgroundColor: c.goldBg,
+      borderColor: c.gold,
+      minWidth: 40, height: 40, borderRadius: 20,
+    },
     headerBadgeText: { ...textStyles.bodyBold, color: c.neon },
+    headerBadgeTextExam: { color: c.gold, fontSize: 20 },
     headerHighlight: {
       position: 'absolute', top: 0,
       left: spacing.md, right: spacing.md,

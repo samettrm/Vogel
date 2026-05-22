@@ -233,10 +233,24 @@ export default function HomeScreen() {
     [],
   );
 
+  // Exam ünitelerinin ders ID'leri — bunlar her zaman erişilebilir (kilitli değil)
+  const examLessonIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const unit of course.units) {
+      if (unit.tags?.includes('exam')) {
+        for (const lesson of unit.lessons) ids.add(lesson.id);
+      }
+    }
+    return ids;
+  }, [course.units]);
+
   const getLessonInfo = useCallback((lesson: Lesson) => {
+    const isExam = examLessonIds.has(lesson.id);
     const state: LessonNodeState = completedLessons.has(lesson.id)
       ? 'completed'
-      : lesson.id === currentLessonId ? 'current' : 'locked';
+      : lesson.id === currentLessonId ? 'current'
+      : isExam ? 'available'
+      : 'locked';
     const total = Math.max(1, lesson.exercises?.length ?? 0);
     const progress = lessonExerciseProgress[lesson.id] ?? {};
     let correctSaved = 0;
@@ -251,7 +265,7 @@ export default function HomeScreen() {
     const hasAnyResult = correctSaved + wrong > 0;
     const correct = state === 'completed' && !hasAnyResult ? total : correctSaved;
     return { state, total, correct, wrong };
-  }, [completedLessons, currentLessonId, lessonExerciseProgress]);
+  }, [completedLessons, currentLessonId, lessonExerciseProgress, examLessonIds]);
 
   const handleLessonPress = useCallback((lesson: Lesson) => {
     router.push(`/lesson/${lesson.id}`);
