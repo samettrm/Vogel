@@ -387,7 +387,7 @@ export default function HomeScreen() {
 
           {/* 🎓 Goethe · TELC — mesaj balonunun olduğu boşluğa */}
           <Pressable
-            onPress={() => router.push('/(tabs)/lessons')}
+            onPress={() => router.push('/exam-map')}
             style={({ pressed }) => [styles.examChip, pressed && styles.examChipPressed]}
           >
             <View style={styles.examChipHighlight} pointerEvents="none" />

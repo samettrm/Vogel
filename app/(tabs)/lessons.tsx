@@ -223,7 +223,7 @@ export default function LessonsScreen() {
 
       {/* 🎓 SINAV HAZIRLIĞI — Goethe · TELC */}
       <Pressable
-        onPress={() => { setStatusFilter('exam'); setLevelFilter('all'); }}
+        onPress={() => router.push('/exam-map')}
         style={({ pressed }) => [styles.examCard, pressed && styles.examCardPressed]}
       >
         <View style={styles.examCardHighlight} pointerEvents="none" />
