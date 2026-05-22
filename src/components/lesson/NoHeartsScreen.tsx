@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { radius, shadows, spacing, textStyles, useThemeColors } from '../../theme';
 import { useUserStore } from '../../store/useUserStore';
+import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 
 // ─── Animasyonlu altın yıldız ─────────────────────────────────────────────────
 function GoldSparkle({
@@ -96,20 +97,12 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
 
   // Süpürme ışığı
   const shimmerX    = useSharedValue(-80);
-  // Elmas dikey spin (Y ekseni — coin flip)
-  const diamondSpinY = useSharedValue(0);
-  // Elmas ön yüze gelince parlama (0→180→360 döngüsünde 2 kez)
-  const diamondFlash = useSharedValue(0);
-  // Elmas arkası glow halkası
-  const diamondGlowV = useSharedValue(0.1);
   // Kart dış glow nabzı
   const outerGlowV   = useSharedValue(0.06);
   // Kart hafif nefes skalası
   const cardScale    = useSharedValue(1);
 
   useEffect(() => {
-    const SPIN_MS = 2200; // bir tam tur
-
     shimmerX.value = withDelay(600, withRepeat(
       withSequence(
         withTiming(420, { duration: 900, easing: Easing.inOut(Easing.quad) }),
@@ -118,31 +111,6 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
       -1, false,
     ));
 
-    // Dikey spin — 0→360 linear, sürekli
-    diamondSpinY.value = withRepeat(
-      withTiming(360, { duration: SPIN_MS, easing: Easing.linear }),
-      -1, false,
-    );
-
-    // Ön yüze gelince (0°≈180°) beyaz flash — SPIN_MS / 2 = 1100ms'de bir kez
-    diamondFlash.value = withRepeat(
-      withSequence(
-        withTiming(0,    { duration: 0 }),
-        withDelay(SPIN_MS * 0.45, withTiming(0,    { duration: 0 })),
-        withTiming(0.85, { duration: 80 }),
-        withTiming(0,    { duration: 200 }),
-        withDelay(SPIN_MS * 0.45, withTiming(0,    { duration: 0 })),
-      ),
-      -1, false,
-    );
-
-    diamondGlowV.value = withRepeat(
-      withSequence(
-        withTiming(0.6,  { duration: SPIN_MS * 0.5, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0.08, { duration: SPIN_MS * 0.5, easing: Easing.inOut(Easing.sin) }),
-      ),
-      -1, false,
-    );
     outerGlowV.value = withRepeat(
       withSequence(
         withTiming(0.28, { duration: 1400, easing: Easing.inOut(Easing.sin) }),
@@ -159,9 +127,6 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
     );
     return () => {
       cancelAnimation(shimmerX);
-      cancelAnimation(diamondSpinY);
-      cancelAnimation(diamondFlash);
-      cancelAnimation(diamondGlowV);
       cancelAnimation(outerGlowV);
       cancelAnimation(cardScale);
     };
@@ -170,20 +135,6 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
 
   const shimmerAnim = useAnimatedStyle(() => ({
     transform: [{ translateX: shimmerX.value }, { rotate: '20deg' }],
-  }));
-  // rotateY + perspective → coin-flip efekti
-  const diamondRotStyle = useAnimatedStyle(() => ({
-    transform: [
-      { perspective: 600 },
-      { rotateY: `${diamondSpinY.value}deg` },
-    ],
-  }));
-  const diamondFlashStyle = useAnimatedStyle(() => ({
-    opacity: diamondFlash.value,
-  }));
-  const diamondGlowStyle = useAnimatedStyle(() => ({
-    opacity: diamondGlowV.value,
-    transform: [{ scale: 0.5 + diamondGlowV.value }],
   }));
   const outerGlowStyle = useAnimatedStyle(() => ({
     opacity: outerGlowV.value,
@@ -288,21 +239,8 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
 
             {/* Başlık */}
             <View style={styles.premiumCtaHeader}>
-              {/* Dikey spin + gerçek elmas rengi + beyaz flash */}
-              <View style={styles.diamondWrap}>
-                {/* Arka planda glow halkası */}
-                <Animated.View style={[styles.diamondGlowRing, diamondGlowStyle]} pointerEvents="none" />
-                {/* Köşe parıltıları */}
-                <GoldSparkle color="#ffffff" style={{ top: -6, right: -4 }} delay={0}   size={10} />
-                <GoldSparkle color="#A8E6FF" style={{ bottom: -6, left: -4 }} delay={1100} size={10} />
-                <GoldSparkle color={c.gold}  style={{ top: -6, left: -4 }}  delay={550} size={9}  />
-                {/* Dönen elmas */}
-                <Animated.View style={diamondRotStyle}>
-                  <Ionicons name="diamond" size={36} color="#D6F0FF" />
-                </Animated.View>
-                {/* Ön yüze gelince beyaz flash */}
-                <Animated.View style={[styles.diamondFlashOverlay, diamondFlashStyle]} pointerEvents="none" />
-              </View>
+              {/* 3D dönen SVG elmas */}
+              <SpinningDiamondGem size={50} />
               <Text style={styles.premiumCtaTitle}>Vogel Plus'a Geç</Text>
             </View>
 
@@ -416,23 +354,6 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     timerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     timerLabel: { ...textStyles.body, color: c.textLow, fontSize: 12, flex: 1 },
     timerValue: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 16, fontVariant: ['tabular-nums'] },
-
-    // Elmas animasyonu
-    diamondWrap: {
-      width: 58, height: 58,
-      alignItems: 'center', justifyContent: 'center',
-    },
-    diamondGlowRing: {
-      position: 'absolute',
-      width: 58, height: 58, borderRadius: 29,
-      // Gerçek elmas glow — buz mavisi/beyaz
-      backgroundColor: '#C8EEFF',
-    },
-    diamondFlashOverlay: {
-      position: 'absolute',
-      width: 58, height: 58, borderRadius: 29,
-      backgroundColor: '#FFFFFF',
-    },
 
     // Premium CTA — hero kart
     premiumCtaWrapper: { width: '100%', alignItems: 'center' },
