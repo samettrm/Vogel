@@ -96,6 +96,15 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
 
   // Altın çerçeve üzerinde süpürülen ışık şeridi
   const shimmerX = useSharedValue(-80);
+  // Elmas dönüşü
+  const diamondRot   = useSharedValue(0);
+  // Elmas arkası parlaklık halkası
+  const diamondGlowV = useSharedValue(0.15);
+  // Kart dış glow nabzı
+  const outerGlowV   = useSharedValue(0.06);
+  // Kart hafif nefes skalası
+  const cardScale    = useSharedValue(1);
+
   useEffect(() => {
     shimmerX.value = withDelay(600, withRepeat(
       withSequence(
@@ -104,13 +113,57 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
       ),
       -1, false,
     ));
-    return () => cancelAnimation(shimmerX);
+    diamondRot.value = withRepeat(
+      withTiming(360, { duration: 3600, easing: Easing.linear }),
+      -1, false,
+    );
+    diamondGlowV.value = withRepeat(
+      withSequence(
+        withTiming(0.55, { duration: 900,  easing: Easing.inOut(Easing.sin) }),
+        withTiming(0.12, { duration: 1000, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1, false,
+    );
+    outerGlowV.value = withRepeat(
+      withSequence(
+        withTiming(0.25, { duration: 1400, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0.06, { duration: 1400, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1, false,
+    );
+    cardScale.value = withRepeat(
+      withSequence(
+        withTiming(1.018, { duration: 1600, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1.000, { duration: 1600, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1, false,
+    );
+    return () => {
+      cancelAnimation(shimmerX);
+      cancelAnimation(diamondRot);
+      cancelAnimation(diamondGlowV);
+      cancelAnimation(outerGlowV);
+      cancelAnimation(cardScale);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const shimmerAnim = useAnimatedStyle(() => ({
+
+  const shimmerAnim    = useAnimatedStyle(() => ({
     transform: [{ translateX: shimmerX.value }, { rotate: '20deg' }],
   }));
-
+  const diamondRotStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${diamondRot.value}deg` }],
+  }));
+  const diamondGlowStyle = useAnimatedStyle(() => ({
+    opacity: diamondGlowV.value,
+    transform: [{ scale: 0.6 + diamondGlowV.value * 0.9 }],
+  }));
+  const outerGlowStyle = useAnimatedStyle(() => ({
+    opacity: outerGlowV.value,
+  }));
+  const cardScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: cardScale.value }],
+  }));
   // Store'dan motivasyon verileri — kayıp korkusu için
   const streak = useUserStore((s) => s.streak);
   const completedCount = useUserStore((s) => s.completedLessons.size);
@@ -182,51 +235,63 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
           <Text style={styles.premiumCtaBadgeText}>✨ EN ÇOK TERCİH EDİLEN</Text>
         </View>
 
+        {/* Dış nabız glow — kart arkasında pulse */}
+        <Animated.View style={[styles.premiumCtaOuterGlow, outerGlowStyle]} pointerEvents="none" />
+
         {/* ── Animasyonlu yıldızlar — kartın çevresinde ── */}
-        <GoldSparkle color={c.gold} style={{ top: 10, left: '18%' }}  delay={0}    />
-        <GoldSparkle color={c.gold} style={{ top: 10, right: '18%' }} delay={700}  />
-        <GoldSparkle color={c.gold} style={{ top: 62, left: -10 }}    delay={350}  />
-        <GoldSparkle color={c.gold} style={{ top: 62, right: -10 }}   delay={1050} />
-        <GoldSparkle color={c.gold} style={{ top: 135, left: -10 }}   delay={900}  />
-        <GoldSparkle color={c.gold} style={{ top: 135, right: -10 }}  delay={200}  />
+        <GoldSparkle color={c.gold} style={{ top: 10, left: '18%' }}     delay={0}    />
+        <GoldSparkle color={c.gold} style={{ top: 10, right: '18%' }}    delay={700}  />
+        <GoldSparkle color={c.gold} style={{ top: 62, left: -10 }}       delay={350}  />
+        <GoldSparkle color={c.gold} style={{ top: 62, right: -10 }}      delay={1050} />
+        <GoldSparkle color={c.gold} style={{ top: 135, left: -10 }}      delay={900}  />
+        <GoldSparkle color={c.gold} style={{ top: 135, right: -10 }}     delay={200}  />
         <GoldSparkle color={c.gold} style={{ bottom: -4, left: '25%' }}  delay={550}  />
         <GoldSparkle color={c.gold} style={{ bottom: -4, right: '25%' }} delay={1250} />
 
-        <Pressable
-          onPress={() => { router.push('/(tabs)/shop'); }}
-          style={({ pressed }) => [styles.premiumCta, pressed && styles.ctaPressed]}
-        >
-          <View style={styles.premiumCtaGoldBg} pointerEvents="none" />
-          <View style={styles.premiumCtaHighlight} pointerEvents="none" />
-          {/* Animasyonlu süpürme ışığı */}
-          <Animated.View style={[styles.premiumCtaShimmer, shimmerAnim]} pointerEvents="none" />
+        {/* Kartın kendisi — hafif nefes animasyonu */}
+        <Animated.View style={[{ width: '100%' }, cardScaleStyle]}>
+          <Pressable
+            onPress={() => { router.push('/(tabs)/shop'); }}
+            style={({ pressed }) => [styles.premiumCta, pressed && styles.ctaPressed]}
+          >
+            <View style={styles.premiumCtaGoldBg} pointerEvents="none" />
+            <View style={styles.premiumCtaHighlight} pointerEvents="none" />
+            {/* Animasyonlu süpürme ışığı */}
+            <Animated.View style={[styles.premiumCtaShimmer, shimmerAnim]} pointerEvents="none" />
 
-          {/* Başlık */}
-          <View style={styles.premiumCtaHeader}>
-            <Ionicons name="diamond" size={30} color={c.gold} />
-            <Text style={styles.premiumCtaTitle}>Vogel Plus'a Geç</Text>
-          </View>
-
-          {/* Tagline */}
-          <Text style={styles.premiumCtaTagline}>
-            Öğrenmeni hiçbir şey durduramaz 🚀
-          </Text>
-
-          {/* Fiyat */}
-          <View style={styles.premiumCtaPriceRow}>
-            <Text style={styles.premiumCtaPriceBig}>₺3.3</Text>
-            <View style={styles.premiumCtaPriceRight}>
-              <Text style={styles.premiumCtaPriceUnit}>/gün</Text>
-              <Text style={styles.premiumCtaPriceSub}>aylık ₺99'dan</Text>
+            {/* Başlık */}
+            <View style={styles.premiumCtaHeader}>
+              {/* Dönen + parlayan elmas */}
+              <View style={styles.diamondWrap}>
+                <Animated.View style={[styles.diamondGlowRing, diamondGlowStyle]} pointerEvents="none" />
+                <Animated.View style={diamondRotStyle}>
+                  <Ionicons name="diamond" size={32} color={c.gold} />
+                </Animated.View>
+              </View>
+              <Text style={styles.premiumCtaTitle}>Vogel Plus'a Geç</Text>
             </View>
-          </View>
 
-          {/* İç buton */}
-          <View style={styles.premiumCtaInnerBtn}>
-            <Text style={styles.premiumCtaInnerBtnText}>HEMEN BAŞLA</Text>
-            <Ionicons name="arrow-forward" size={18} color={c.purple} />
-          </View>
-        </Pressable>
+            {/* Tagline */}
+            <Text style={styles.premiumCtaTagline}>
+              Öğrenmeni hiçbir şey durduramaz 🚀
+            </Text>
+
+            {/* Fiyat */}
+            <View style={styles.premiumCtaPriceRow}>
+              <Text style={styles.premiumCtaPriceBig}>₺3.3</Text>
+              <View style={styles.premiumCtaPriceRight}>
+                <Text style={styles.premiumCtaPriceUnit}>/gün</Text>
+                <Text style={styles.premiumCtaPriceSub}>aylık ₺99'dan</Text>
+              </View>
+            </View>
+
+            {/* İç buton */}
+            <View style={styles.premiumCtaInnerBtn}>
+              <Text style={styles.premiumCtaInnerBtnText}>HEMEN BAŞLA</Text>
+              <Ionicons name="arrow-forward" size={18} color={c.purple} />
+            </View>
+          </Pressable>
+        </Animated.View>
       </View>
 
       {/* ⑥ FAYDA ÖZETİ — renkli kartlar */}
@@ -317,8 +382,25 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     timerLabel: { ...textStyles.body, color: c.textLow, fontSize: 12, flex: 1 },
     timerValue: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 16, fontVariant: ['tabular-nums'] },
 
+    // Elmas animasyonu
+    diamondWrap: {
+      width: 52, height: 52,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    diamondGlowRing: {
+      position: 'absolute',
+      width: 52, height: 52, borderRadius: 26,
+      backgroundColor: c.gold,
+    },
+
     // Premium CTA — hero kart
     premiumCtaWrapper: { width: '100%', alignItems: 'center' },
+    premiumCtaOuterGlow: {
+      position: 'absolute',
+      top: 12, left: -14, right: -14, bottom: -10,
+      borderRadius: radius.lg + 14,
+      backgroundColor: c.gold,
+    },
     premiumCtaBadge: {
       backgroundColor: c.gold,
       paddingHorizontal: spacing.md, paddingVertical: 5,
