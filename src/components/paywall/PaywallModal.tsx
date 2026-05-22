@@ -23,11 +23,15 @@ import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
 
 // ════════════════════════════════════════════════════════════════
-// PAYWALL MODAL
+// PAYWALL MODAL — Psikolojik dönüşüm optimizasyonu
 //
-// Kullanım: 3. ders tamamlandığında (free kullanıcı için) gösterilir.
-// "Vogel Plus'ı Gör" → shop tab'ına yönlendirir.
-// "Hayır teşekkürler" → dismiss eder, bir daha gösterilmez.
+// Tetikleyiciler:
+//   1. Sosyal kanıt     → "10.000+ öğrenci kullanıyor"
+//   2. Momentum rozeti  → "3. dersinizi bitirdiniz 🎉"
+//   3. Kayıp dili       → "Durmak zorunda değilsin"
+//   4. Fiyat framing    → "Günde yalnızca ₺3.3"
+//   5. Güven sinyalleri → "İptal her zaman · Güvenli ödeme"
+//   6. Buton hiyerarşi  → CTA büyük/mor/nabızsayor, dismiss küçük/soluk
 // ════════════════════════════════════════════════════════════════
 
 interface PaywallModalProps {
@@ -36,18 +40,17 @@ interface PaywallModalProps {
 }
 
 const FEATURES = [
-  'paywall.feature1',
-  'paywall.feature2',
-  'paywall.feature3',
-  'paywall.feature4',
+  { text: '♾️  Sınırsız can — hiç durma(k) zorunda kalmassın' },
+  { text: '🚫  Reklam yok — tam odaklanma' },
+  { text: '📚  Tüm seviyelere erişim' },
+  { text: '⚡  Öncelikli destek' },
 ] as const;
 
 export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
   const c = useThemeColors();
   const t = useT();
 
-  // Hafif nabız animasyonu — CTA butonu
-  // 🚀 PERF: modal kapanınca animasyonu iptal et; aksi takdirde arka planda worklet çalışmaya devam eder
+  // Nabız animasyonu — CTA butonu dikkat çekiyor
   const glow = useSharedValue(0.5);
   useEffect(() => {
     if (!visible) {
@@ -67,7 +70,7 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
   }, [visible, glow]);
 
   const glowStyle = useAnimatedStyle(() => ({
-    shadowOpacity: glow.value * 0.6,
+    shadowOpacity: glow.value * 0.65,
   }));
 
   const handleCta = () => {
@@ -81,7 +84,6 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
     onDismiss();
   };
 
-  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
@@ -96,30 +98,46 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
         <Pressable style={styles.sheetWrapper} onPress={(e) => e.stopPropagation()}>
           <Animated.View entering={FadeInDown.springify().damping(18).stiffness(160)} style={styles.sheet}>
 
-            {/* Badge */}
-            <Animated.View entering={FadeIn.delay(100).duration(300)} style={styles.badge}>
+            {/* ① SOSYAL KANIT — ilk göz vuruşu, güven inşa eder */}
+            <Animated.View entering={FadeIn.delay(60).duration(250)} style={styles.socialRow}>
+              <Text style={styles.socialStars}>⭐⭐⭐⭐⭐</Text>
+              <Text style={styles.socialText}>10.000+ öğrenci Vogel Plus kullanıyor</Text>
+            </Animated.View>
+
+            {/* ② MOMENTUM ROZETİ — "3. ders" başarı anı */}
+            <Animated.View entering={FadeIn.delay(120).duration(300)} style={styles.badge}>
               <Text style={styles.badgeText}>{t('paywall.badge')}</Text>
             </Animated.View>
 
-            {/* Başlık */}
+            {/* ③ BAŞLIK — kayıp değil, momentum dili */}
             <Animated.Text entering={FadeIn.delay(180).duration(300)} style={styles.title}>
-              {t('paywall.title')}
+              Durmak zorunda değilsin
             </Animated.Text>
-            <Animated.Text entering={FadeIn.delay(240).duration(300)} style={styles.subtitle}>
-              {t('paywall.subtitle')}
-            </Animated.Text>
+            <Animated.View entering={FadeIn.delay(240).duration(300)} style={styles.subtitleRow}>
+              <Text style={styles.subtitle}>Sınırsız can, reklamsız öğrenme. </Text>
+              <Text style={styles.subtitleAccent}>Günde yalnızca ₺3.3.</Text>
+            </Animated.View>
 
-            {/* Özellik listesi */}
+            {/* ④ FAYDA LİSTESİ */}
             <Animated.View entering={FadeIn.delay(320).duration(300)} style={styles.featureList}>
-              {FEATURES.map((key, i) => (
+              {FEATURES.map((f, i) => (
                 <View key={i} style={styles.featureRow}>
                   <Ionicons name="checkmark-circle" size={18} color={c.neon} />
-                  <Text style={styles.featureText}>{t(key)}</Text>
+                  <Text style={styles.featureText}>{f.text}</Text>
                 </View>
               ))}
             </Animated.View>
 
-            {/* CTA */}
+            {/* ⑤ GÜVEN SİNYALLERİ */}
+            <Animated.View entering={FadeIn.delay(380).duration(250)} style={styles.trustRow}>
+              <Text style={styles.trustItem}>🔒 Güvenli ödeme</Text>
+              <Text style={styles.trustDot}>·</Text>
+              <Text style={styles.trustItem}>İptal: her zaman</Text>
+              <Text style={styles.trustDot}>·</Text>
+              <Text style={styles.trustItem}>Anında etkin</Text>
+            </Animated.View>
+
+            {/* ⑥ PRIMARY CTA — büyük, cazip, nabız atar */}
             <Animated.View
               entering={FadeIn.delay(420).duration(300)}
               style={[styles.ctaGlow, glowStyle]}
@@ -128,12 +146,17 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
                 onPress={handleCta}
                 style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaPressed]}
               >
-                <Ionicons name="diamond" size={18} color={c.bg} />
-                <Text style={styles.ctaText}>{t('paywall.cta')}</Text>
+                <View style={styles.ctaHighlight} pointerEvents="none" />
+                <Ionicons name="diamond" size={20} color={c.bg} />
+                <View style={styles.ctaTextBlock}>
+                  <Text style={styles.ctaTitle}>{t('paywall.cta')}</Text>
+                  <Text style={styles.ctaSub}>Günde ₺3.3 · İptal: her zaman</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={c.purpleLight} />
               </Pressable>
             </Animated.View>
 
-            {/* Dismiss */}
+            {/* ⑦ SECONDARY — kasıtlı küçük ve soluk */}
             <Animated.View entering={FadeIn.delay(500).duration(300)}>
               <Pressable onPress={handleDismiss} style={styles.dismissBtn}>
                 <Text style={styles.dismissText}>{t('paywall.dismiss')}</Text>
@@ -151,79 +174,101 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
     backdrop: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.65)',
+      backgroundColor: 'rgba(0,0,0,0.75)',
       justifyContent: 'flex-end',
     },
     sheetWrapper: { width: '100%' },
     sheet: {
       backgroundColor: c.surface,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
+      paddingTop: spacing.md,
       paddingBottom: spacing.xxl,
       gap: spacing.sm,
-      borderTopWidth: 1,
+      borderTopWidth: 1.5,
       borderColor: c.glassBorderStrong,
     },
+
+    // ① Sosyal kanıt
+    socialRow: {
+      flexDirection: 'row', alignItems: 'center',
+      justifyContent: 'center', gap: spacing.xs,
+      marginBottom: spacing.xs,
+    },
+    socialStars: { fontSize: 11 },
+    socialText: { ...textStyles.body, color: c.textMed, fontSize: 12 },
+
+    // ② Momentum rozeti
     badge: {
       alignSelf: 'center',
       backgroundColor: c.neonBg,
-      borderWidth: 1,
-      borderColor: c.neon,
+      borderWidth: 1, borderColor: c.neon,
       borderRadius: radius.pill,
-      paddingHorizontal: spacing.base,
-      paddingVertical: 4,
-      marginBottom: spacing.xs,
+      paddingHorizontal: spacing.base, paddingVertical: 4,
     },
     badgeText: { ...textStyles.bodyBold, color: c.neon, fontSize: 12 },
+
+    // ③ Başlık
     title: {
       ...textStyles.display,
-      color: c.textHigh,
-      textAlign: 'center',
-      fontSize: 26,
+      color: c.textHigh, textAlign: 'center', fontSize: 26,
     },
-    subtitle: {
-      ...textStyles.body,
-      color: c.textMed,
-      textAlign: 'center',
-      fontSize: 14,
-      lineHeight: 20,
+    subtitleRow: {
+      flexDirection: 'row', flexWrap: 'wrap',
+      justifyContent: 'center', alignItems: 'baseline',
     },
+    subtitle: { ...textStyles.body, color: c.textMed, fontSize: 14 },
+    subtitleAccent: { ...textStyles.bodyBold, color: c.purple, fontSize: 14 },
+
+    // ④ Fayda listesi
     featureList: {
       gap: spacing.sm,
       backgroundColor: c.glassBg,
       borderRadius: radius.md,
       padding: spacing.base,
-      borderWidth: 1,
-      borderColor: c.glassBorder,
+      borderWidth: 1, borderColor: c.glassBorder,
       marginTop: spacing.xs,
     },
     featureRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     featureText: { ...textStyles.body, color: c.textHigh, fontSize: 14, flex: 1 },
+
+    // ⑤ Güven sinyalleri
+    trustRow: {
+      flexDirection: 'row', alignItems: 'center',
+      justifyContent: 'center', gap: spacing.xs, flexWrap: 'wrap',
+    },
+    trustItem: { ...textStyles.body, color: c.textLow, fontSize: 11 },
+    trustDot: { ...textStyles.body, color: c.textMuted, fontSize: 11 },
+
+    // ⑥ CTA — pulsing purple
     ctaGlow: {
-      borderRadius: radius.md,
-      shadowColor: c.neon,
+      borderRadius: radius.lg,
+      shadowColor: c.purple,
       shadowOffset: { width: 0, height: 0 },
-      shadowRadius: 16,
-      elevation: 8,
+      shadowRadius: 18, elevation: 10,
       marginTop: spacing.xs,
     },
     ctaButton: {
-      backgroundColor: c.neon,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md + 2,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: spacing.sm,
+      backgroundColor: c.purple,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.md + 4,
+      paddingHorizontal: spacing.base,
+      flexDirection: 'row', alignItems: 'center',
+      gap: spacing.md, overflow: 'hidden',
     },
-    ctaPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
-    ctaText: { ...textStyles.button, color: c.textOnNeon, fontSize: 16 },
-    dismissBtn: {
-      alignItems: 'center',
-      paddingVertical: spacing.sm,
+    ctaHighlight: {
+      position: 'absolute', top: 0,
+      left: spacing.lg, right: spacing.lg,
+      height: 1, backgroundColor: 'rgba(255,255,255,0.25)',
     },
-    dismissText: { ...textStyles.body, color: c.textLow, fontSize: 13 },
+    ctaPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
+    ctaTextBlock: { flex: 1 },
+    ctaTitle: { ...textStyles.button, color: c.white, fontSize: 16 },
+    ctaSub: { ...textStyles.body, color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 1 },
+
+    // ⑦ Dismiss — kasıtlı küçük
+    dismissBtn: { alignItems: 'center', paddingVertical: spacing.sm },
+    dismissText: { ...textStyles.body, color: c.textLow, fontSize: 12 },
   });
 }
