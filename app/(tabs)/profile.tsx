@@ -104,14 +104,23 @@ export default function ProfileScreen() {
           completedCount={completedLessons.size}
         />
 
-        {/* 💎 PREMIUM UPSELL — sadece free kullanıcılara gösterilir */}
+        {/* 💎 PREMIUM UPSELL — sadece free kullanıcılara, güçlü CTA */}
         {!isPremium ? (
           <Pressable
             onPress={() => router.push('/(tabs)/shop')}
             style={({ pressed }) => [styles.premiumBanner, pressed && styles.premiumBannerPressed]}
           >
-            <Text style={styles.premiumBannerText}>{t('profile.upgradeBanner')}</Text>
-            <Text style={styles.premiumBannerCta}>{t('profile.upgradeCta')}</Text>
+            <View style={styles.premiumBannerHighlight} pointerEvents="none" />
+            <View style={styles.premiumBannerLeft}>
+              <Ionicons name="diamond" size={22} color={c.bg} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.premiumBannerTitle}>💎 Vogel Plus'a Geç</Text>
+                <Text style={styles.premiumBannerSub}>Sınırsız can · Reklamsız · Günde ₺3.3</Text>
+              </View>
+            </View>
+            <View style={styles.premiumBannerArrow}>
+              <Ionicons name="chevron-forward" size={16} color={c.purpleLight} />
+            </View>
           </Pressable>
         ) : null}
 
@@ -153,21 +162,30 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       alignItems: 'center', justifyContent: 'center',
     },
     settingsButtonPressed: { opacity: 0.7, transform: [{ scale: 0.95 }] },
+    // Premium upsell — güçlü mor CTA
     premiumBanner: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      backgroundColor: c.purpleBg,
-      borderWidth: 1, borderColor: c.purple,
-      borderRadius: 12,
+      width: '100%',
+      backgroundColor: c.purple,
+      borderRadius: 16,
+      flexDirection: 'row', alignItems: 'center',
       paddingHorizontal: spacing.base, paddingVertical: spacing.md,
+      gap: spacing.md, overflow: 'hidden',
+      shadowColor: c.purple,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.5, shadowRadius: 12, elevation: 6,
     },
-    premiumBannerPressed: { opacity: 0.8 },
-    premiumBannerText: { ...textStyles.body, color: c.purpleLight, fontSize: 13, flex: 1 },
-    premiumBannerCta: {
-      ...textStyles.button, color: c.purpleLight,
-      fontSize: 12, marginLeft: spacing.sm,
-      borderWidth: 1, borderColor: c.purple,
-      paddingHorizontal: spacing.sm, paddingVertical: 3,
-      borderRadius: 6,
+    premiumBannerHighlight: {
+      position: 'absolute', top: 0, left: spacing.lg, right: spacing.lg,
+      height: 1, backgroundColor: 'rgba(255,255,255,0.2)',
     },
+    premiumBannerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    premiumBannerTitle: { ...textStyles.button, color: c.white, fontSize: 15 },
+    premiumBannerSub: { ...textStyles.body, color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 1 },
+    premiumBannerArrow: {
+      width: 28, height: 28, borderRadius: 14,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    premiumBannerPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
   });
 }

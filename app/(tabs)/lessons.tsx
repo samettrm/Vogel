@@ -187,15 +187,6 @@ export default function LessonsScreen() {
     return untouched[0];
   }, [allItems, learningMotivations]);
 
-  const handleQuickPractice = useCallback(() => {
-    const eligible = allItems.filter((i) => i.status === 'completed' || i.status === 'in-progress');
-    if (eligible.length === 0) {
-      router.push(`/lesson/${allItems[0]?.lesson.id ?? ''}`);
-      return;
-    }
-    const random = eligible[Math.floor(Math.random() * eligible.length)];
-    router.push(`/lesson/${random.lesson.id}`);
-  }, [allItems]);
 
   const clearFilters = useCallback(() => {
     setSearch('');
@@ -232,22 +223,6 @@ export default function LessonsScreen() {
           {t('lessons.subtitleCount', { total: stats.total, completed: stats.completed })}
         </Text>
       </View>
-
-      <Pressable
-        onPress={handleQuickPractice}
-        style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
-      >
-        <View style={styles.quickLeft}>
-          <View style={styles.quickIconBox}>
-            <Ionicons name="flash" size={22} color={c.bg} />
-          </View>
-          <View style={styles.quickTextCol}>
-            <Text style={styles.quickTitle}>{t('lessons.quickPractice')}</Text>
-            <Text style={styles.quickSubtitle}>{t('lessons.quickPracticeDesc')}</Text>
-          </View>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={c.textLow} />
-      </Pressable>
 
       {recommended ? (
         <Pressable
@@ -331,7 +306,7 @@ export default function LessonsScreen() {
         <FilterChip c={c} label={t('lessons.notStarted')} active={statusFilter === 'untouched'} onPress={() => setStatusFilter('untouched')} color={c.textLow} />
       </ScrollView>
     </View>
-  ), [c, t, styles, stats, recommended, handleQuickPractice, search, levelFilter, statusFilter]);
+  ), [c, t, styles, stats, recommended, search, levelFilter, statusFilter]);
 
   const ListEmpty = useMemo(() => (
     <View style={styles.empty}>
@@ -569,20 +544,6 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     header: { paddingVertical: spacing.sm },
     title: { ...textStyles.display, color: c.textHigh },
     subtitle: { ...textStyles.body, color: c.textLow, fontSize: 13, marginTop: 2 },
-    quickCard: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      backgroundColor: c.goldBg, borderWidth: 1.5, borderColor: c.gold,
-      borderRadius: radius.lg, padding: spacing.base,
-    },
-    quickCardPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-    quickLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 },
-    quickIconBox: {
-      width: 44, height: 44, borderRadius: 22,
-      backgroundColor: c.gold, alignItems: 'center', justifyContent: 'center',
-    },
-    quickTextCol: { flex: 1, gap: 2 },
-    quickTitle: { ...textStyles.subheading, color: c.gold, fontSize: 15 },
-    quickSubtitle: { ...textStyles.body, color: c.textMed, fontSize: 12 },
     recommendedCard: {
       backgroundColor: c.neonBg,
       borderWidth: 1.5, borderColor: c.neon,

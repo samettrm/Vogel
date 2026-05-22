@@ -203,14 +203,24 @@ export function LessonCompleteScreen({
           label={t('lessonComplete.heartsLabel')} value={`${heartsRemaining}/${maxHearts}`} />
       </Animated.View>
 
-      {/* ❤️ Düşük can uyarısı — premium upsell */}
+      {/* ❤️ Düşük can uyarısı — güçlü premium upsell CTA */}
       {showLowHeartsBanner ? (
         <Animated.View entering={FadeIn.delay(380).duration(300)}>
           <Pressable
             onPress={() => { onContinue(); router.push('/(tabs)/shop'); }}
-            style={({ pressed }) => [styles.lowHeartsBanner, pressed && { opacity: 0.8 }]}
+            style={({ pressed }) => [styles.lowHeartsCard, pressed && styles.lowHeartsCardPressed]}
           >
-            <Text style={styles.lowHeartsText}>{t('lessonComplete.lowHeartsBanner')}</Text>
+            <View style={styles.lowHeartsHighlight} pointerEvents="none" />
+            <View style={styles.lowHeartsLeft}>
+              <Ionicons name="diamond" size={22} color={c.bg} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.lowHeartsTitle}>Canın bitmeden önce al! ❤️</Text>
+                <Text style={styles.lowHeartsSub}>Vogel Plus → Sınırsız can · Günde ₺3.3</Text>
+              </View>
+            </View>
+            <View style={styles.lowHeartsArrow}>
+              <Ionicons name="chevron-forward" size={16} color={c.purpleLight} />
+            </View>
           </Pressable>
         </Animated.View>
       ) : null}
@@ -293,14 +303,31 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     statHeaderText: { ...textStyles.label, fontSize: 10 },
     statBody: { paddingVertical: spacing.md, alignItems: 'center', gap: spacing.xs },
     statValue: { ...textStyles.subheading, fontSize: 20 },
-    lowHeartsBanner: {
-      backgroundColor: c.redBg,
-      borderWidth: 1, borderColor: c.red,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.base, paddingVertical: spacing.sm,
-      marginHorizontal: spacing.xs,
+    // Premium upsell — güçlü mor CTA (NoHeartsScreen ile aynı dil)
+    lowHeartsCard: {
+      width: '100%',
+      backgroundColor: c.purple,
+      borderRadius: radius.lg,
+      flexDirection: 'row', alignItems: 'center',
+      paddingHorizontal: spacing.base, paddingVertical: spacing.md,
+      gap: spacing.md, overflow: 'hidden',
+      shadowColor: c.purple,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.5, shadowRadius: 12, elevation: 6,
     },
-    lowHeartsText: { ...textStyles.bodyBold, color: c.red, fontSize: 13, textAlign: 'center' },
+    lowHeartsCardPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
+    lowHeartsHighlight: {
+      position: 'absolute', top: 0, left: spacing.lg, right: spacing.lg,
+      height: 1, backgroundColor: 'rgba(255,255,255,0.2)',
+    },
+    lowHeartsLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    lowHeartsTitle: { ...textStyles.button, color: c.white, fontSize: 14 },
+    lowHeartsSub: { ...textStyles.body, color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 1 },
+    lowHeartsArrow: {
+      width: 28, height: 28, borderRadius: 14,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      alignItems: 'center', justifyContent: 'center',
+    },
     buttonWrap: { paddingHorizontal: spacing.xs },
     continueButton: {
       minHeight: 56, borderRadius: radius.md,

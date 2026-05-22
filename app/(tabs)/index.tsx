@@ -1,6 +1,35 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+// ════════════════════════════════════════════════════════════════
+// KUŞUN MOTİVASYON MESAJLARI — 22 farklı, 9 saniyede bir döner
+// Çok hızlı slayt değil: göz alışsın, içerik okunsun, hız doğal hissettirsin
+// ════════════════════════════════════════════════════════════════
+const MOTIVATIONAL_MESSAGES = [
+  'Devam et, harikasın! 🚀',
+  'Her ders bir adım ileriye ✨',
+  'Almancayı fethediyorsun 💪',
+  'Bir ders daha, bir seviye daha yakın 🎯',
+  'Beynin şu an Almanca düşünüyor 🧠',
+  'Her kelime bir zafer! 🏆',
+  'Serini kırmıyoruz, devam! 🔥',
+  'Bugün öğrendiğin kelime yarın işe yarayacak 🌱',
+  'Küçük adımlar büyük yollar açar 🦅',
+  'Harika gidiyorsun, dur gitme! ✈️',
+  'Almanya seni bekliyor 🇩🇪',
+  'Her gün pratik, her gün gelişim ⚡',
+  'Kafanda Almanca çalıyor mu? 🎵',
+  'Bir ders daha? Neden olmasın! 😄',
+  'Goethe seni izliyor olabilir 😂',
+  'Durmak yok, ilerleme devam 💫',
+  'Her doğru cevap seni uçuruyor 🌟',
+  'Bugün de bir şeyler öğrendik! 🎓',
+  'Yavaş ama emin adımlarla 🌱',
+  'Sen bir Almanca makinesisin! 🤖',
+  'Az kaldı, vazgeçme! 🏁',
+  'Bugün de zirveyiz! ☀️',
+] as const;
 import { Animated, Easing, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -271,12 +300,21 @@ export default function HomeScreen() {
     router.push(`/lesson/${lesson.id}`);
   }, [router]);
 
+  // 🐦 Dönen motivasyon mesajları — 9 saniyede bir değişir (slayt değil, doğal hız)
+  const [msgIndex, setMsgIndex] = useState(0);
+  useEffect(() => {
+    if (completedLessons.size === 0 || currentLessonId === null) return;
+    const id = setInterval(() => {
+      setMsgIndex((prev) => (prev + 1) % MOTIVATIONAL_MESSAGES.length);
+    }, 9000);
+    return () => clearInterval(id);
+  }, [completedLessons.size, currentLessonId]);
+
   const mascotMessage = useMemo(() => {
     if (currentLessonId === null) return `${selectedLevel} ${t('map.levelCompleted')}`;
     if (completedLessons.size === 0) return t('map.welcome');
-    return t('map.keepGoing');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [completedLessons.size, currentLessonId, selectedLevel]);
+    return MOTIVATIONAL_MESSAGES[msgIndex];
+  }, [completedLessons.size, currentLessonId, selectedLevel, msgIndex, t]);
 
   const nextLevel = useMemo(() => {
     if (currentLessonId !== null) return null;
