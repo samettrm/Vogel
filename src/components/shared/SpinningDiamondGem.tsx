@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import Animated, {
   Easing,
@@ -17,6 +17,11 @@ import Svg, {
   Polygon,
   Line,
 } from 'react-native-svg';
+
+// Her bileşen örneği için benzersiz gradient ID prefix'i üretir.
+// react-native-svg bazı platformlarda global ID alanı kullanır — çakışmayı önler.
+let _uid = 0;
+function nextUid() { return `sdg${++_uid}`; }
 
 // ─── Titreyen ✦ sparkle yıldızı ──────────────────────────────────────────────
 function DiamondSparkle({
@@ -71,50 +76,56 @@ function DiamondSparkle({
 //   Canlı neon teal/aqua + beyaz ışık + mor/pembe prizma yansıması
 //   Işık sağ-üstten → sağ yüzeyler parlak aqua, sol yüzeyler derin lacivert
 // ════════════════════════════════════════════════════════════════
-function DiamondSvg({ size }: { size: number }) {
+function DiamondSvg({ size, uid }: { size: number; uid: string }) {
+  // Her instance için benzersiz gradient ID'leri
+  const T  = `${uid}_t`;   // table
+  const UR = `${uid}_ur`;  // crown upper-right
+  const LR = `${uid}_lr`;  // crown lower-right
+  const PR = `${uid}_pr`;  // pavilion right
+
   return (
     <Svg width={size} height={size * (88 / 80)} viewBox="0 0 80 88">
       <Defs>
         {/* Table — beyazdan canlı aqua'ya */}
-        <LinearGradient id="aqTable" x1="0.2" y1="0" x2="1" y2="1">
+        <LinearGradient id={T} x1="0.2" y1="0" x2="1" y2="1">
           <Stop offset="0%"   stopColor="#FFFFFF"  stopOpacity="1"    />
           <Stop offset="35%"  stopColor="#BFFFF6"  stopOpacity="0.98" />
           <Stop offset="100%" stopColor="#00DDB8"  stopOpacity="0.95" />
         </LinearGradient>
         {/* Crown sağ-üst — neon teal */}
-        <LinearGradient id="aqCrownUR" x1="0" y1="0" x2="1" y2="1">
+        <LinearGradient id={UR} x1="0" y1="0" x2="1" y2="1">
           <Stop offset="0%"   stopColor="#3DFFE0" />
           <Stop offset="100%" stopColor="#009FC0" />
         </LinearGradient>
         {/* Crown sağ-alt — electric blue-teal */}
-        <LinearGradient id="aqCrownLR" x1="0" y1="0" x2="0.6" y2="1">
+        <LinearGradient id={LR} x1="0" y1="0" x2="0.6" y2="1">
           <Stop offset="0%"   stopColor="#00C4DC" />
           <Stop offset="100%" stopColor="#005A90" />
         </LinearGradient>
         {/* Pavilion sağ — derin electric */}
-        <LinearGradient id="aqPavR" x1="0" y1="0" x2="0.35" y2="1">
+        <LinearGradient id={PR} x1="0" y1="0" x2="0.35" y2="1">
           <Stop offset="0%"   stopColor="#0082C0" />
           <Stop offset="100%" stopColor="#001E3C" />
         </LinearGradient>
       </Defs>
 
       {/* ── CROWN (taç) ── */}
-      <Polygon points="40,4 2,34 13,31 23,20"   fill="#0D2448"          />  {/* UL gölge    */}
-      <Polygon points="40,4 78,34 67,31 57,20"   fill="url(#aqCrownUR)" />  {/* UR canlı    */}
-      <Polygon points="2,34 2,52 40,46 13,31"    fill="#060F1C"          />  {/* LL derin    */}
-      <Polygon points="78,34 78,52 40,46 67,31"  fill="url(#aqCrownLR)" />  {/* LR orta     */}
+      <Polygon points="40,4 2,34 13,31 23,20"   fill="#0D2448"         />
+      <Polygon points="40,4 78,34 67,31 57,20"   fill={`url(#${UR})`}  />
+      <Polygon points="2,34 2,52 40,46 13,31"    fill="#060F1C"         />
+      <Polygon points="78,34 78,52 40,46 67,31"  fill={`url(#${LR})`}  />
 
-      {/* ── TABLE (en parlak yüzey) ── */}
-      <Polygon points="23,20 57,20 67,31 40,46 13,31" fill="url(#aqTable)" />
+      {/* ── TABLE ── */}
+      <Polygon points="23,20 57,20 67,31 40,46 13,31" fill={`url(#${T})`} />
 
-      {/* ── PAVILION (alt kesim) ── */}
-      <Polygon points="2,52 40,86 40,46"   fill="#03070D"         />  {/* L karanlık */}
-      <Polygon points="78,52 40,86 40,46"  fill="url(#aqPavR)"   />  {/* R electric */}
+      {/* ── PAVILION ── */}
+      <Polygon points="2,52 40,86 40,46"   fill="#03070D"        />
+      <Polygon points="78,52 40,86 40,46"  fill={`url(#${PR})`} />
 
       {/* ── PRİZMA AKSANI — mor/pembe ışık kırılması ── */}
       <Polygon points="50,20 62,27 55,35 44,28" fill="rgba(195,95,255,0.40)" />
 
-      {/* ── FACET KENAR ÇİZGİLERİ ── */}
+      {/* ── FACET EDGES ── */}
       <Line x1="40" y1="4"  x2="23" y2="20" stroke="rgba(255,255,255,0.44)" strokeWidth="0.8"/>
       <Line x1="40" y1="4"  x2="57" y2="20" stroke="rgba(255,255,255,0.44)" strokeWidth="0.8"/>
       <Line x1="23" y1="20" x2="13" y2="31" stroke="rgba(255,255,255,0.30)" strokeWidth="0.7"/>
@@ -128,30 +139,28 @@ function DiamondSvg({ size }: { size: number }) {
       <Line x1="40" y1="46" x2="40" y2="86" stroke="rgba(0,180,190,0.20)"   strokeWidth="0.6"/>
       <Line x1="40" y1="4"  x2="78" y2="34" stroke="rgba(0,255,210,0.24)"   strokeWidth="1.0"/>
 
-      {/* ── IŞIK PARLAMA — table üzerinde güçlü beyaz highlight ── */}
+      {/* ── IŞIK PARLAMA ── */}
       <Polygon points="27,21 46,12 54,22 37,30" fill="rgba(255,255,255,0.70)" />
-      {/* İkincil parlama — sağ üst köşe */}
       <Polygon points="49,14 57,19 53,25"        fill="rgba(255,255,255,0.54)" />
     </Svg>
   );
 }
 
 // ─── SpinningDiamondGem ────────────────────────────────────────────────────────
-// Paylaşılan bileşen — tüm premium diamond noktalarında kullanılır.
-// size: elmasın px genişliği. Yükseklik otomatik orantılanır (88/80).
 export function SpinningDiamondGem({ size = 44 }: { size?: number }) {
+  // Her render'da sabit kalacak benzersiz ID
+  const uid = useRef<string>(nextUid()).current;
+
   const spinY = useSharedValue(0);
   const flash = useSharedValue(0);
   const glowV = useSharedValue(0.06);
 
   useEffect(() => {
-    const MS = 2400; // bir tam tur (ms)
-
+    const MS = 2400;
     spinY.value = withRepeat(
       withTiming(360, { duration: MS, easing: Easing.linear }),
       -1, false,
     );
-    // Ön yüze gelince (≈0° ve 180°) beyaz flaş
     flash.value = withRepeat(
       withSequence(
         withDelay(MS * 0.43, withTiming(0.88, { duration: 65 })),
@@ -159,7 +168,6 @@ export function SpinningDiamondGem({ size = 44 }: { size?: number }) {
         withDelay(MS * 0.43, withTiming(0, { duration: 0 })),
       ), -1, false,
     );
-    // Neon glow halkası nabzı
     glowV.value = withRepeat(
       withSequence(
         withTiming(0.68, { duration: MS * 0.5, easing: Easing.inOut(Easing.sin) }),
@@ -183,12 +191,14 @@ export function SpinningDiamondGem({ size = 44 }: { size?: number }) {
     transform: [{ scale: 0.5 + glowV.value * 0.9 }],
   }));
 
-  const svgH  = size * (88 / 80);
-  const glowR = (Math.max(size, svgH) / 2) + 10;
-  const wrap  = size + 20;
-  const wrapH = svgH + 20;
+  const svgH = size * (88 / 80);
+  // Küçük boyutlarda orantılı padding — büyük boyutlarda sabit 10px
+  const pad  = Math.min(10, Math.round(size * 0.22));
+  const wrap  = size + pad * 2;
+  const wrapH = svgH + pad * 2;
+  const glowR = (Math.max(size, svgH) / 2) + pad + 2;
 
-  // Sparkle boyutları — her size için uyumlu minimum değer
+  // Sparkle boyutları — her size için minimum değer garantisi
   const spBig = Math.max(Math.round(size * 0.32), 7);
   const spMid = Math.max(Math.round(size * 0.24), 5);
   const spSml = Math.max(Math.round(size * 0.17), 4);
@@ -196,7 +206,7 @@ export function SpinningDiamondGem({ size = 44 }: { size?: number }) {
   return (
     <View style={{ width: wrap, height: wrapH, alignItems: 'center', justifyContent: 'center' }}>
 
-      {/* ── Neon aqua glow halkası ── */}
+      {/* Neon aqua glow halkası */}
       <Animated.View
         pointerEvents="none"
         style={[{
@@ -206,12 +216,12 @@ export function SpinningDiamondGem({ size = 44 }: { size?: number }) {
         }, glowStyle]}
       />
 
-      {/* ── 3D dönen elmas ── */}
+      {/* 3D dönen elmas */}
       <Animated.View style={spinStyle}>
-        <DiamondSvg size={size} />
+        <DiamondSvg size={size} uid={uid} />
       </Animated.View>
 
-      {/* ── Ön yüze gelince beyaz flash ── */}
+      {/* Ön yüze gelince beyaz flash */}
       <Animated.View
         pointerEvents="none"
         style={[{
@@ -221,11 +231,11 @@ export function SpinningDiamondGem({ size = 44 }: { size?: number }) {
         }, flashStyle]}
       />
 
-      {/* ── Sparkle yıldızları — 4 köşede, farklı zamanlarda titreşir ── */}
-      <DiamondSparkle size={spBig} color="#FFFFFF"  delay={0}    style={{ top: 0,    left: 0 }}    />
-      <DiamondSparkle size={spMid} color="#00FFDC"  delay={750}  style={{ top: 0,    right: 0 }}   />
-      <DiamondSparkle size={spMid} color="#FF88EE"  delay={1300} style={{ bottom: 0, right: 0 }}   />
-      <DiamondSparkle size={spSml} color="#FFFFFF"  delay={450}  style={{ bottom: 0, left: 0 }}    />
+      {/* Sparkle yıldızları — 4 köşede */}
+      <DiamondSparkle size={spBig} color="#FFFFFF"  delay={0}    style={{ top: 0,    left: 0 }}  />
+      <DiamondSparkle size={spMid} color="#00FFDC"  delay={750}  style={{ top: 0,    right: 0 }} />
+      <DiamondSparkle size={spMid} color="#FF88EE"  delay={1300} style={{ bottom: 0, right: 0 }} />
+      <DiamondSparkle size={spSml} color="#FFFFFF"  delay={450}  style={{ bottom: 0, left: 0 }}  />
     </View>
   );
 }

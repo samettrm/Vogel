@@ -201,10 +201,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
-  crownCircle: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   info: {
     flex: 1,
     gap: 4,
