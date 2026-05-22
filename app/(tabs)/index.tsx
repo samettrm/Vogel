@@ -306,7 +306,7 @@ export default function HomeScreen() {
     if (completedLessons.size === 0 || currentLessonId === null) return;
     const id = setInterval(() => {
       setMsgIndex((prev) => (prev + 1) % MOTIVATIONAL_MESSAGES.length);
-    }, 9000);
+    }, 600_000); // 10 dakika
     return () => clearInterval(id);
   }, [completedLessons.size, currentLessonId]);
 
