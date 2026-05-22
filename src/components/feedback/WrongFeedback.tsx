@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -33,7 +33,7 @@ function WrongFeedbackImpl({ correctAnswer, onContinue }: WrongFeedbackProps) {
   const panelStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: panelX.value }],
   }));
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <Animated.View

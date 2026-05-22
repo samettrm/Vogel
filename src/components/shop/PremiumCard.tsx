@@ -3,6 +3,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -43,7 +44,16 @@ export function PremiumCard({ isPremium, onUpgrade }: PremiumCardProps) {
         -1,
         true,
       );
+    } else {
+      cancelAnimation(pulse);
+      cancelAnimation(shimmer);
+      pulse.value = 1;
+      shimmer.value = 0;
     }
+    return () => {
+      cancelAnimation(pulse);
+      cancelAnimation(shimmer);
+    };
   }, [isPremium, pulse, shimmer]);
 
   const pulseStyle = useAnimatedStyle(() => ({

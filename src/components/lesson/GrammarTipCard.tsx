@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
@@ -23,7 +23,7 @@ export function GrammarTipCard({ grammarNote, onContinue }: Props) {
   const lang = useUserStore((s) => s.language);
 
   const text = lang === 'en' ? grammarNote.en : grammarNote.tr;
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <Animated.View entering={FadeIn.duration(220)} style={styles.overlay}>

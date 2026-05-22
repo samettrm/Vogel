@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
@@ -18,7 +18,7 @@ interface CorrectFeedbackProps {
 function CorrectFeedbackImpl({ onContinue }: CorrectFeedbackProps) {
   const c = useThemeColors();
   const t = useT();
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.panel}>

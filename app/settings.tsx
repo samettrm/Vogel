@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import {
   Pressable,
@@ -76,7 +76,7 @@ export default function SettingsScreen() {
   };
 
   // Tema-aware styles - render ediyorum component icinde
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -231,7 +231,7 @@ function Section({
   children: React.ReactNode;
   c: ReturnType<typeof useThemeColors>;
 }) {
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <Animated.View
       entering={FadeInDown.delay(index * 60).duration(380).springify().damping(14)}
@@ -270,7 +270,7 @@ function ToggleRow({
   value,
   onValueChange,
 }: ToggleRowProps) {
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={styles.row}>
       <View
@@ -311,7 +311,7 @@ interface LinkRowProps {
 function LinkRow({
   c, icon, tone, toneBg, label, description, onPress,
 }: LinkRowProps) {
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <Pressable
       onPress={onPress}
@@ -356,7 +356,7 @@ function SelectRow({
   value,
   onChange,
 }: SelectRowProps) {
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={styles.selectRow}>
       <View style={styles.row}>
@@ -429,7 +429,7 @@ function MotivationsPicker({
   selected: string[];
   onToggle: (id: string) => void;
 }) {
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
   const ps = motivationPickerStyles(c);
 
   return (

@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, {
+  cancelAnimation,
   Easing, FadeIn, FadeInDown, FadeInRight, FadeOutLeft,
   useAnimatedStyle, useSharedValue,
   withRepeat, withSequence, withSpring, withTiming,
@@ -89,6 +90,7 @@ export default function OnboardingScreen() {
       withTiming(-8, { duration: 1100, easing: Easing.inOut(Easing.ease) }),
       -1, true,
     );
+    return () => { cancelAnimation(bob); };
   }, [bob]);
   const birdStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: bob.value }],

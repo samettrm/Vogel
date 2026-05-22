@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -43,7 +43,7 @@ export function PlacementTest({ onComplete, onCancel }: PlacementTestProps) {
   const currentQuestion: PlacementQuestion | undefined = PLACEMENT_QUESTIONS[currentIndex];
   const progress = ((currentIndex + (selectedOption !== null ? 1 : 0)) / totalQuestions) * 100;
 
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const handleSelect = (idx: number) => {
     if (selectedOption !== null) return;

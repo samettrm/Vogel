@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
@@ -15,7 +15,7 @@ interface Props {
 export function StreakBanner({ streak }: Props) {
   const c = useThemeColors();
   const t = useT();
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.banner}>

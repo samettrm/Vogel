@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -27,7 +27,7 @@ export function DailyGoalCard({ current, target, streakDays = 0, onPress }: Dail
 
   const accent = isComplete ? c.gold : c.neon;
   const accentGlow = isComplete ? c.goldGlow : c.neonGlow;
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <Pressable

@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -38,6 +39,10 @@ export function BirdMascot({ message, size = 'md' }: BirdMascotProps) {
       ),
       -1, false,
     );
+    return () => {
+      cancelAnimation(bob);
+      cancelAnimation(tilt);
+    };
   }, [bob, tilt]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -45,7 +50,7 @@ export function BirdMascot({ message, size = 'md' }: BirdMascotProps) {
   }));
 
   const px = SIZE_PX[size];
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>

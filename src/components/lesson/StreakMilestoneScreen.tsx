@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
@@ -125,7 +125,7 @@ export function StreakMilestoneScreen({ streak, onContinue }: StreakMilestoneScr
     transform: [{ scale: haloScale.value }],
   }));
 
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.overlay}>

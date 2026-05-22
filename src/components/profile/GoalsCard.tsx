@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -23,7 +23,7 @@ export function GoalsCard() {
   const t = useT();
   const learningMotivations = useUserStore((s) => s.learningMotivations);
 
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const hasGoals = learningMotivations && learningMotivations.length > 0;
 

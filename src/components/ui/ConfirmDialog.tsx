@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
@@ -38,7 +38,7 @@ export function ConfirmDialog({
   icon,
 }: ConfirmDialogProps) {
   const c = useThemeColors();
-  const styles = makeStyles(c);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const accentColor = destructive ? c.red : c.neon;
   const iconName: keyof typeof Ionicons.glyphMap =
