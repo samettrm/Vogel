@@ -21,11 +21,15 @@ export default function NoHeartsScreen() {
       const now = Date.now();
       const diff = nextHeartRefillAt - now;
       if (diff <= 0) { setCountdown('00:00'); return; }
-      const minutes = Math.floor(diff / 60000);
-      const seconds = Math.floor((diff % 60000) / 1000);
-      const dm = minutes < 10 ? `0${minutes}` : minutes;
-      const ds = seconds < 10 ? `0${seconds}` : seconds;
-      setCountdown(`${dm}:${ds}`);
+      const totalSeconds = Math.ceil(diff / 1000);
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      if (h > 0) {
+        setCountdown(`${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
+      } else {
+        setCountdown(`${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
+      }
     };
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
