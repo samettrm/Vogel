@@ -183,9 +183,22 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        {/* YASAL */}
+        <Section title={t('settings.sectionLegal')} index={5} c={c}>
+          <LinkRow
+            c={c}
+            icon="shield-checkmark"
+            tone={c.cyan}
+            toneBg={c.cyanBg}
+            label={t('settings.privacyPolicy')}
+            description={t('settings.privacyPolicyDesc')}
+            onPress={() => router.push('/privacy-policy')}
+          />
+        </Section>
+
         {/* HAKKINDA */}
         <Animated.View
-          entering={FadeInDown.delay(280).duration(380).springify().damping(14)}
+          entering={FadeInDown.delay(340).duration(380).springify().damping(14)}
           style={styles.aboutCard}
         >
           <View style={styles.topHighlight} pointerEvents="none" />
@@ -279,6 +292,41 @@ function ToggleRow({
         ios_backgroundColor={c.surface}
       />
     </View>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────
+// LinkRow — chevron'lu tıklanabilir satır (navigasyon linkleri için)
+// ──────────────────────────────────────────────────────────────────
+interface LinkRowProps {
+  c: ReturnType<typeof useThemeColors>;
+  icon: keyof typeof Ionicons.glyphMap;
+  tone: string;
+  toneBg: string;
+  label: string;
+  description?: string;
+  onPress: () => void;
+}
+
+function LinkRow({
+  c, icon, tone, toneBg, label, description, onPress,
+}: LinkRowProps) {
+  const styles = makeStyles(c);
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      accessibilityRole="button"
+    >
+      <View style={[styles.rowIcon, { backgroundColor: toneBg, borderColor: tone }]}>
+        <Ionicons name={icon} size={18} color={tone} />
+      </View>
+      <View style={styles.rowText}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        {description ? <Text style={styles.rowDescription}>{description}</Text> : null}
+      </View>
+      <Ionicons name="chevron-forward" size={16} color={c.textLow} />
+    </Pressable>
   );
 }
 
@@ -555,6 +603,7 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       paddingHorizontal: spacing.base,
       paddingVertical: spacing.md,
     },
+    rowPressed: { opacity: 0.7 },
     rowIcon: {
       width: 36,
       height: 36,

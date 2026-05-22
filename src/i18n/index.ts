@@ -71,9 +71,21 @@ export const messages = {
     motivationsEmpty: { tr: 'Henüz hedef seçmedin', en: 'No goals selected yet' },
     aboutTitle: { tr: 'Vogel', en: 'Vogel' },
     aboutDesc: {
-      tr: 'Türkçe konuşanlar için Almanca öğrenme. Sürüm 0.1 (geliştirme)',
-      en: 'German learning for Turkish speakers. Version 0.1 (development)',
+      tr: 'Türkçe konuşanlar için Almanca öğrenme. Sürüm 1.0',
+      en: 'German learning for Turkish speakers. Version 1.0',
     },
+    // Yasal bölüm
+    sectionLegal: { tr: 'Yasal', en: 'Legal' },
+    privacyPolicy: { tr: 'Gizlilik Politikası', en: 'Privacy Policy' },
+    privacyPolicyDesc: {
+      tr: 'Verilerinin nasıl korunduğunu öğren',
+      en: 'Learn how your data is protected',
+    },
+  },
+
+  // Privacy Policy ekranı
+  privacyPolicy: {
+    title: { tr: 'Gizlilik Politikası', en: 'Privacy Policy' },
   },
 
   // Map
