@@ -27,6 +27,7 @@ export function TopStatusBar() {
 
   const xp = useUserStore((s) => s.xp);
   const hearts = useUserStore((s) => s.hearts);
+  const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
   const streak = useUserStore((s) => s.streak);
   const activeCourse = useUserStore((s) => s.activeCourse);
   const achievementsUnlocked = useUserStore((s) => s.achievementsUnlocked);
@@ -47,6 +48,15 @@ export function TopStatusBar() {
     router.push('/achievements');
   };
 
+  const goToHearts = () => {
+    Haptics.selectionAsync().catch(() => {});
+    if (!isPremium && hearts <= 0) {
+      router.push('/NoHeartsScreen');
+    } else if (!isPremium) {
+      router.push('/(tabs)/shop');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Pressable style={styles.flagButton}>
@@ -64,9 +74,11 @@ export function TopStatusBar() {
         <Counter
           c={c}
           icon="heart"
-          color={hearts > 0 ? c.red : c.textMuted}
+          color={isPremium ? c.neon : hearts > 0 ? c.red : c.textMuted}
           value={hearts}
-          dimmed={hearts === 0}
+          label={isPremium ? '∞' : undefined}
+          dimmed={!isPremium && hearts === 0}
+          onPress={!isPremium ? goToHearts : undefined}
         />
         <Counter
           c={c}
@@ -87,6 +99,7 @@ function Counter({
   icon,
   color,
   value,
+  label,
   suffix,
   dimmed,
   onPress,
@@ -95,6 +108,7 @@ function Counter({
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
   value: number;
+  label?: string;
   suffix?: string;
   dimmed?: boolean;
   onPress?: () => void;
@@ -106,7 +120,7 @@ function Counter({
     <>
       <Ionicons name={icon} size={18} color={color} />
       <Text style={[styles.counterText, dimmed && styles.counterTextDim]}>
-        {value}
+        {label ?? value}
         {suffix ? <Text style={styles.counterSuffix}>{suffix}</Text> : null}
       </Text>
     </>

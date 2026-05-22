@@ -135,6 +135,8 @@ export const messages = {
   // Profile
   profile: {
     title: { tr: 'Profil', en: 'Profile' },
+    upgradeBanner: { tr: '💎 Vogel Plus\'a geç — sınırsız can, reklamsız öğrenme', en: '💎 Upgrade to Vogel Plus — unlimited hearts, ad-free' },
+    upgradeCta: { tr: 'İNCELE', en: 'VIEW' },
     level: { tr: 'SEVİYE', en: 'LEVEL' },
     xp: { tr: 'XP', en: 'XP' },
     streak: { tr: 'GÜNLÜK SERİ', en: 'STREAK' },

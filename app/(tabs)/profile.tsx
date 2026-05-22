@@ -119,6 +119,17 @@ export default function ProfileScreen() {
           completedCount={completedLessons.size}
         />
 
+        {/* 💎 PREMIUM UPSELL — sadece free kullanıcılara gösterilir */}
+        {!isPremium ? (
+          <Pressable
+            onPress={() => router.push('/(tabs)/shop')}
+            style={({ pressed }) => [styles.premiumBanner, pressed && styles.premiumBannerPressed]}
+          >
+            <Text style={styles.premiumBannerText}>{t('profile.upgradeBanner')}</Text>
+            <Text style={styles.premiumBannerCta}>{t('profile.upgradeCta')}</Text>
+          </Pressable>
+        ) : null}
+
         {/* 🎯 Hedeflerin — onboarding'de seçilen motivasyonlar */}
         <GoalsCard />
 
@@ -157,5 +168,21 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       alignItems: 'center', justifyContent: 'center',
     },
     settingsButtonPressed: { opacity: 0.7, transform: [{ scale: 0.95 }] },
+    premiumBanner: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: c.purpleBg,
+      borderWidth: 1, borderColor: c.purple,
+      borderRadius: 12,
+      paddingHorizontal: spacing.base, paddingVertical: spacing.md,
+    },
+    premiumBannerPressed: { opacity: 0.8 },
+    premiumBannerText: { ...textStyles.body, color: c.purpleLight, fontSize: 13, flex: 1 },
+    premiumBannerCta: {
+      ...textStyles.button, color: c.purpleLight,
+      fontSize: 12, marginLeft: spacing.sm,
+      borderWidth: 1, borderColor: c.purple,
+      paddingHorizontal: spacing.sm, paddingVertical: 3,
+      borderRadius: 6,
+    },
   });
 }
