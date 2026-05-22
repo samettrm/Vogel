@@ -71,6 +71,15 @@ export default function NoHeartsScreen() {
         </View>
 
         <View style={styles.buttonContainer}>
+          {/* 💎 PREMIUM CTA — en büyük monetizasyon noktası */}
+          <Pressable
+            onPress={() => router.replace('/(tabs)/shop')}
+            style={({ pressed }) => [styles.premiumButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.premiumButtonText}>{t('noHearts.getPlus')}</Text>
+            <Text style={styles.premiumBenefit}>{t('noHearts.plusBenefit')}</Text>
+          </Pressable>
+
           <Pressable
             onPress={handleHeartRefillPress}
             style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
@@ -137,6 +146,17 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     },
     timerText: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 14 },
     buttonContainer: { width: '100%', gap: spacing.sm, marginBottom: spacing.md },
+    premiumButton: {
+      backgroundColor: c.purpleBg,
+      borderWidth: 1.5, borderColor: c.purple,
+      paddingVertical: spacing.md + 2, paddingHorizontal: spacing.base,
+      borderRadius: radius.md,
+      alignItems: 'center', gap: 4,
+      shadowColor: c.purple, shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
+    },
+    premiumButtonText: { ...textStyles.button, color: c.purpleLight, fontSize: 15 },
+    premiumBenefit: { ...textStyles.body, color: c.textLow, fontSize: 11 },
     primaryButton: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
       backgroundColor: c.neon,

@@ -23,6 +23,7 @@ import { LessonCompleteScreen } from '../../src/components/lesson/LessonComplete
 import { LessonHeader } from '../../src/components/lesson/LessonHeader';
 import { StreakMilestoneScreen } from '../../src/components/lesson/StreakMilestoneScreen';
 import { GrammarTipCard } from '../../src/components/lesson/GrammarTipCard';
+import { PaywallModal } from '../../src/components/paywall/PaywallModal';
 import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
 import { ALL_COURSES, getCourseById } from '../../src/data/courses';
 import { useUserStore } from '../../src/store/useUserStore';
@@ -262,6 +263,8 @@ export default function LessonScreen() {
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   // Gramer ipucu gösterimi (her lesson özelinde, ders başlamadan)
   const [grammarTipShown, setGrammarTipShown] = useState(false);
+  // 3. ders paywall — free kullanıcıya bir kez gösterilir
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const actionLockRef = useRef(false);
   const advanceLockRef = useRef(false);
@@ -304,6 +307,8 @@ export default function LessonScreen() {
   const recordReviewResult = useUserStore((s) => s.recordReviewResult);
   const incrementQuestProgress = useUserStore((s) => s.incrementQuestProgress);
   const completedLessons = useUserStore((s) => s.completedLessons);
+  const completedLessonsSize = useUserStore((s) => s.completedLessons.size);
+  const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
   const lessonExerciseProgress = useUserStore((s) => s.lessonExerciseProgress);
   const checkAndUnlockAchievements = useUserStore((s) => s.checkAndUnlockAchievements);
   // (Level-up sistemi kaldırıldı — amaca yönelik sadeleştirme)
@@ -448,7 +453,15 @@ export default function LessonScreen() {
 
     dispatch({ type: 'FINISH_LESSON', isUnitComplete: unitJustCompleted });
     actionLockRef.current = false;
-  }, [lesson, lessonCourseId, completeLesson, incrementQuestProgress, registerStudySession, checkAndUnlockAchievements, state.wrongCount]);
+
+    // 💎 Paywall: 3. ders tamamlandığında free kullanıcıya bir kez göster
+    if (!isPremium && allCorrect) {
+      const newSize = completedLessonsSize + 1;
+      if (newSize === 3) {
+        setTimeout(() => setShowPaywall(true), 1200);
+      }
+    }
+  }, [lesson, lessonCourseId, completeLesson, incrementQuestProgress, registerStudySession, checkAndUnlockAchievements, state.wrongCount, isPremium, completedLessonsSize]);
 
   const checkAnswer = useCallback(() => {
     if (!lesson || !currentExercise || !canCheck || isAnswered || actionLockRef.current) return;
@@ -580,15 +593,22 @@ export default function LessonScreen() {
             onContinue={dismissPendingStreakMilestone}
           />
         ) : (
-          <LessonCompleteScreen
-            xpEarned={earnedXp}
-            correctCount={correctCount}
-            totalExercises={exercises.length}
-            heartsRemaining={hearts}
-            maxHearts={maxHearts}
-            onContinue={goHome}
-            isUnitComplete={isUnitComplete}
-          />
+          <>
+            <LessonCompleteScreen
+              xpEarned={earnedXp}
+              correctCount={correctCount}
+              totalExercises={exercises.length}
+              heartsRemaining={hearts}
+              maxHearts={maxHearts}
+              onContinue={goHome}
+              isUnitComplete={isUnitComplete}
+              isPremium={isPremium}
+            />
+            <PaywallModal
+              visible={showPaywall}
+              onDismiss={() => setShowPaywall(false)}
+            />
+          </>
         )}
       </SafeAreaView>
     );

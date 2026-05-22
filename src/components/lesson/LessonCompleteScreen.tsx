@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   Easing,
@@ -27,6 +28,7 @@ type LessonCompleteScreenProps = {
   maxHearts: number;
   onContinue: () => void;
   isUnitComplete?: boolean;
+  isPremium?: boolean;
 };
 
 type ResultStyle = {
@@ -107,10 +109,11 @@ function getResultStyle(
 
 export function LessonCompleteScreen({
   xpEarned, correctCount, totalExercises,
-  heartsRemaining, maxHearts, onContinue, isUnitComplete = false,
+  heartsRemaining, maxHearts, onContinue, isUnitComplete = false, isPremium = false,
 }: LessonCompleteScreenProps) {
   const c = useThemeColors();
   const t = useT();
+  const showLowHeartsBanner = !isPremium && heartsRemaining <= 1;
   const insets = useSafeAreaInsets();
   const accuracy = totalExercises > 0 ? Math.round((correctCount / totalExercises) * 100) : 0;
   const result = getResultStyle(c, accuracy, isUnitComplete);
@@ -199,6 +202,18 @@ export function LessonCompleteScreen({
           label={t('lessonComplete.heartsLabel')} value={`${heartsRemaining}/${maxHearts}`} />
       </Animated.View>
 
+      {/* ❤️ Düşük can uyarısı — premium upsell */}
+      {showLowHeartsBanner ? (
+        <Animated.View entering={FadeIn.delay(380).duration(300)}>
+          <Pressable
+            onPress={() => { onContinue(); router.push('/(tabs)/shop'); }}
+            style={({ pressed }) => [styles.lowHeartsBanner, pressed && { opacity: 0.8 }]}
+          >
+            <Text style={styles.lowHeartsText}>{t('lessonComplete.lowHeartsBanner')}</Text>
+          </Pressable>
+        </Animated.View>
+      ) : null}
+
       <Animated.View entering={FadeIn.delay(450).duration(300)} style={styles.buttonWrap}>
         <Pressable
           onPress={onContinue}
@@ -277,6 +292,14 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     statHeaderText: { ...textStyles.label, fontSize: 10 },
     statBody: { paddingVertical: spacing.md, alignItems: 'center', gap: spacing.xs },
     statValue: { ...textStyles.subheading, fontSize: 20 },
+    lowHeartsBanner: {
+      backgroundColor: c.redBg,
+      borderWidth: 1, borderColor: c.red,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.base, paddingVertical: spacing.sm,
+      marginHorizontal: spacing.xs,
+    },
+    lowHeartsText: { ...textStyles.bodyBold, color: c.red, fontSize: 13, textAlign: 'center' },
     buttonWrap: { paddingHorizontal: spacing.xs },
     continueButton: {
       minHeight: 56, borderRadius: radius.md,

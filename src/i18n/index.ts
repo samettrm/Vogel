@@ -247,6 +247,10 @@ export const messages = {
     totalXp: { tr: 'TOPLAM XP', en: 'TOTAL XP' },
     accuracyLabel: { tr: 'DOĞRULUK', en: 'ACCURACY' },
     heartsLabel: { tr: 'CAN', en: 'HEARTS' },
+    lowHeartsBanner: {
+      tr: '❤️ Can azaldı! Sınırsız can için Vogel Plus →',
+      en: '❤️ Low on hearts! Get unlimited with Vogel Plus →',
+    },
   },
 
   // Exercises
@@ -448,6 +452,24 @@ export const messages = {
     refillNow: { tr: '450 XP ile YENİLE', en: 'REFILL with 450 XP' },
     goShop: { tr: 'Markete Git', en: 'Go to Shop' },
     backHome: { tr: 'Ana Ekrana Dön', en: 'Back to Home' },
+    getPlus: { tr: '💎 VOGEL PLUS — Sınırsız Can', en: '💎 VOGEL PLUS — Unlimited Hearts' },
+    plusBenefit: { tr: 'Sınırsız can · Reklamsız · Tüm seviyeler', en: 'Unlimited hearts · No ads · All levels' },
+  },
+
+  // Paywall (3. ders sonrası modal)
+  paywall: {
+    badge: { tr: '🎉 3. dersinizi bitirdiniz!', en: '🎉 You finished your 3rd lesson!' },
+    title: { tr: 'Gerçek öğrenme başlıyor', en: 'Real learning starts here' },
+    subtitle: {
+      tr: 'Sınırsız can, reklamsız öğrenme. Durmak yok.',
+      en: 'Unlimited hearts, no ads. Never stop learning.',
+    },
+    feature1: { tr: '♾️  Sınırsız can', en: '♾️  Unlimited hearts' },
+    feature2: { tr: '🚫  Reklam yok', en: '🚫  No ads' },
+    feature3: { tr: '📚  Tüm seviyelere erişim', en: '📚  Access to all levels' },
+    feature4: { tr: '⚡  Öncelikli destek', en: '⚡  Priority support' },
+    cta: { tr: 'VOGEL PLUS\'I GÖR', en: 'SEE VOGEL PLUS' },
+    dismiss: { tr: 'Hayır, teşekkürler', en: 'No thanks' },
   },
 
   // Streak Calendar
