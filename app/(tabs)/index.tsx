@@ -364,27 +364,8 @@ export default function HomeScreen() {
         <Text style={styles.levelDescription}>{course.description}</Text>
       </View>
 
-      {/* 🎓 SINAV HAZIRLIĞI — haritada görünür yönlendirici banner */}
-      <Pressable
-        onPress={() => router.push('/(tabs)/lessons')}
-        style={({ pressed }) => [styles.examBanner, pressed && styles.examBannerPressed]}
-      >
-        <View style={styles.examBannerHighlight} pointerEvents="none" />
-        <View style={styles.examBannerLeft}>
-          <View style={styles.examBannerIcon}>
-            <Text style={styles.examBannerEmoji}>🎓</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.examBannerTitle}>Goethe · TELC Sınavına Hazırlan</Text>
-            <Text style={styles.examBannerSub}>Sınav hazırlık dersleri · Her seviyeden erişilebilir</Text>
-          </View>
-        </View>
-        <View style={styles.examBannerArrow}>
-          <Ionicons name="arrow-forward" size={16} color={c.gold} />
-        </View>
-      </Pressable>
     </View>
-  ), [styles, lc, selectedLevel, course.title, course.description, router, c.gold]);
+  ), [styles, lc, selectedLevel, course.title, course.description]);
 
   const ListFooter = useMemo(() => (
     <>
@@ -451,6 +432,26 @@ export default function HomeScreen() {
 
           <BirdMascot message={mascotMessage} size="md" />
         </View>
+
+        {/* 🎓 SINAV HAZIRLIĞI — sabit, scroll etmez */}
+        <Pressable
+          onPress={() => router.push('/(tabs)/lessons')}
+          style={({ pressed }) => [styles.examBanner, pressed && styles.examBannerPressed]}
+        >
+          <View style={styles.examBannerHighlight} pointerEvents="none" />
+          <View style={styles.examBannerLeft}>
+            <View style={styles.examBannerIcon}>
+              <Text style={styles.examBannerEmoji}>🎓</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.examBannerTitle}>Goethe · TELC Sınavına Hazırlan</Text>
+              <Text style={styles.examBannerSub}>Sınav hazırlık dersleri · Her seviyeden erişilebilir</Text>
+            </View>
+          </View>
+          <View style={styles.examBannerArrow}>
+            <Ionicons name="arrow-forward" size={16} color={c.gold} />
+          </View>
+        </Pressable>
 
         {/* 🚀 PERF: FlatList virtualization — 11 ünite, sadece görünür olanlar render */}
         <FlatList
@@ -548,15 +549,15 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     levelPillText: { ...textStyles.bodyBold, fontSize: 11, letterSpacing: 1.5 },
     levelTitle: { ...textStyles.heading, fontSize: 22 },
     levelDescription: { ...textStyles.body, color: c.textLow, fontSize: 13, lineHeight: 18 },
-    // 🎓 Sınav hazırlığı yönlendirici banner
+    // 🎓 Sınav hazırlığı — sabit banner (scroll etmez)
     examBanner: {
       marginHorizontal: spacing.base,
-      marginBottom: spacing.md,
+      marginBottom: spacing.xs,
       flexDirection: 'row', alignItems: 'center',
       backgroundColor: c.goldBg,
       borderWidth: 1.5, borderColor: c.gold,
       borderRadius: radius.lg,
-      paddingHorizontal: spacing.base, paddingVertical: spacing.md,
+      paddingHorizontal: spacing.base, paddingVertical: spacing.sm + 2,
       gap: spacing.md, overflow: 'hidden',
       shadowColor: c.gold,
       shadowOffset: { width: 0, height: 0 },
