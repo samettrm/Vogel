@@ -25,7 +25,7 @@ export const TR_DE_A1: Course = {
   targetLanguage: 'de',
   level: 'A1',
   title: 'Almanca A1',
-  description: 'Sıfırdan başlayanlar için. Selamlaşma, sayılar, kişisel bilgi, aile, temel fiiller ve günlük objeler. 100+ kelime, 35+ cümle.',
+  description: 'Sıfırdan başlayanlar için. Selamlaşma, sayılar, kişisel bilgi, aile, temel fiiller ve günlük objeler.',
   units: [
     // ═════════════ ÜNİTE 1: SELAMLAŞMA + SAYILAR ═════════════
     {

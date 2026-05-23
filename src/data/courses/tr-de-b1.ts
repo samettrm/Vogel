@@ -22,7 +22,7 @@ export const TR_DE_B1: Course = {
   targetLanguage: 'de',
   level: 'B1',
   title: 'Almanca B1',
-  description: 'Orta seviye: Perfekt, gelecek planları, fikir ifade etme, tatil-iş-sağlık konuları. 100+ kelime, 30+ cümle.',
+  description: 'Orta seviye: Perfekt, gelecek planları, fikir ifade etme, tatil-iş-sağlık konuları.',
   units: [
     // ═════════════ ÜNİTE 1: GEÇMİŞ ZAMAN (Perfekt) ═════════════
     {

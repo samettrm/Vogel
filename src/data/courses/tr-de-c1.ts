@@ -21,7 +21,7 @@ export const TR_DE_C1: Course = {
   targetLanguage: 'de',
   level: 'C1',
   title: 'Almanca C1',
-  description: 'İleri seviye: idiyomatik ifadeler, akademik dil, politik tartışma, Genitiv, Konjunktiv I, soyut kavramlar. 100+ kelime, 30+ cümle.',
+  description: 'İleri seviye: idiyomatik ifadeler, akademik dil, politik tartışma, Genitiv, Konjunktiv I, soyut kavramlar.',
   units: [
     // ═════════════ ÜNİTE 1: İDİYOMATİK İFADELER ═════════════
     {

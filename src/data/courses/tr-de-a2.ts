@@ -11,7 +11,7 @@ export const TR_DE_A2: Course = {
   level: 'A2',
   title: 'Almanca A2',
   description:
-    'Temel iletişim, günlük hayat konuları, basit cümleler kurmak ve anlamak. 120+ kelime, 50+ cümle.',
+    'Temel iletişim, günlük hayat konuları, basit cümleler kurmak ve anlamak.',
   units: [
     // ═════════════ ÜNİTE 1: SAATLER VE ZAMAN ═════════════
     {

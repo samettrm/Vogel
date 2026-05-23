@@ -297,9 +297,11 @@ export function PremiumPlansCard({
             ))}
           </View>
 
-          <Text style={styles.premiumManageText}>
-            Google Play'den aboneliğini yönetebilirsin
-          </Text>
+          {Platform.OS === 'android' ? (
+            <Text style={styles.premiumManageText}>
+              Google Play'den aboneliğini yönetebilirsin
+            </Text>
+          ) : null}
         </View>
 
         <FamilyShareGuide

@@ -249,9 +249,7 @@ export default function LessonsScreen() {
         <Text style={styles.title}>{t('lessons.title')}</Text>
         <Text style={styles.statsInline}>
           <Text style={{ color: c.neon }}>{stats.completed}</Text>
-          {' tamamlandı · '}
-          <Text style={{ color: c.textHigh }}>{stats.total}</Text>
-          {' ders'}
+          {' tamamlandı'}
         </Text>
       </View>
 

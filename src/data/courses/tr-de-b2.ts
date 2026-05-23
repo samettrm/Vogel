@@ -21,7 +21,7 @@ export const TR_DE_B2: Course = {
   targetLanguage: 'de',
   level: 'B2',
   title: 'Almanca B2',
-  description: 'Üst-orta seviye: karmaşık yan cümleler, Konjunktiv II, Passiv, çevre, teknoloji ve kültür konuları. 100+ kelime, 30+ cümle.',
+  description: 'Üst-orta seviye: karmaşık yan cümleler, Konjunktiv II, Passiv, çevre, teknoloji ve kültür konuları.',
   units: [
     // ═════════════ ÜNİTE 1: YAN CÜMLELER ═════════════
     {

@@ -19,74 +19,60 @@ const NEON_DIM   = '#22C55E';
 const GOLD       = '#FBBF24';
 const WHITE      = '#FFFFFF';
 
-// ─── KUŞUN SVG TANIMI ────────────────────────────────────────────
-// Kuş: havadan (üstten) bakış açısı. Baş yukarıda, kuyruk aşağıda.
-// Koordinat sistemi: 1024×1024, kuş merkezi (512, 500)
+// ─── KUŞUN SVG TANIMI — YAN PROFİL ───────────────────────────────
+// Kuş: yandan profil, sola bakıyor. Modern flat songbird silueti.
+// Koordinat sistemi: 1024×1024 viewBox
 //
-//         ●  ← baş
-//        /|\
-//    ←←← | →→→   ← kanatlar
-//        \|/
-//         ↓  ← kuyruk
+//   ◀── gaga    ┌──── baş ────┐
+//                │   • göz     │
+//                │             └──── gövde ───┐
+//                                              └── kuyruk ◢
+//
+// Kuş ortalanmış, viewport'un ~%75'ini kaplar.
+// Halkalar/glow KALDIRILDI — kuş tek başına büyük ve net dursun.
 
-// Kuş merkezi orijinal koordinatlarda: (512, 502)
-// SVG transform ile istenilen boyut + merkeze getirme
-function birdGroup(scale = 1, withGlow = true) {
-  // translate(512,512) scale(s) translate(-512,-502)
-  // = kuşu (512,502)'den alıp (512,512)'ye taşır, istenilen ölçekte
-  const tx = 512 - 512 * scale;
-  const ty = 512 - 502 * scale;
+function birdGroup(scale = 1, _withGlow = false) {
+  // SERÇE/SONGBIRD silueti — narın gövde, kuyruk yukarı kalkık.
+  // Görsel merkez: yaklaşık (515, 430)
+  const tx = 512 - 515 * scale;
+  const ty = 512 - 430 * scale;
   return `<g transform="translate(${tx.toFixed(1)}, ${ty.toFixed(1)}) scale(${scale})">
-    ${withGlow ? `
-    <!-- Parlama halkası -->
-    <circle cx="512" cy="490" r="200" fill="${NEON}" opacity="0.06"/>
-    <circle cx="512" cy="490" r="130" fill="${NEON}" opacity="0.04"/>
-    ` : ''}
 
-    <!-- === SOL KANAT === -->
+    <!-- === GÖVDE + KUYRUK (tek silüet, narın, kuyruk yukarı kalkık) === -->
     <path d="
-      M 490 488
-      C 450 468, 355 432, 215 435
-      C 178 437, 158 452, 163 472
-      C 184 456, 248 453, 372 480
-      C 428 494, 480 507, 492 518 Z
+      M 290 510
+      C 250 460, 260 380, 340 360
+      C 430 340, 540 350, 620 400
+      C 680 415, 740 395, 800 360
+      L 855 410
+      L 815 425
+      L 845 475
+      L 770 460
+      C 710 480, 620 520, 530 535
+      C 430 555, 340 555, 290 510 Z
     " fill="${NEON}"/>
 
-    <!-- === SAĞ KANAT (ayna) === -->
+    <!-- === BAŞ (gövdenin sol-üstüne overlap, dengeli boyut) === -->
+    <circle cx="350" cy="345" r="100" fill="${NEON}"/>
+
+    <!-- === GAGA (sola çıkan ince altın üçgen) === -->
+    <path d="M 250 338 L 165 355 L 250 372 Z" fill="${GOLD}"/>
+
+    <!-- === GÖZ (kontrast koyu + parlama) === -->
+    <circle cx="325" cy="320" r="22" fill="${BG_DARK}"/>
+    <circle cx="334" cy="312" r="8" fill="${WHITE}"/>
+
+    <!-- === KANAT DETAYI (yan yüzeyde katlanmış kanat) === -->
     <path d="
-      M 534 488
-      C 574 468, 669 432, 809 435
-      C 846 437, 866 452, 861 472
-      C 840 456, 776 453, 652 480
-      C 596 494, 544 507, 532 518 Z
-    " fill="${NEON}"/>
+      M 410 440
+      C 490 415, 600 425, 690 460
+      C 620 485, 530 490, 450 475
+      C 425 466, 410 455, 410 440 Z
+    " fill="${NEON_DIM}" opacity="0.7"/>
 
-    <!-- === GÖVDE === -->
-    <ellipse cx="512" cy="515" rx="38" ry="88" fill="${NEON}"/>
-
-    <!-- === BAŞ === -->
-    <circle cx="512" cy="400" r="46" fill="${NEON}"/>
-
-    <!-- === GÖZ === -->
-    <circle cx="526" cy="393" r="10" fill="${BG_DARK}" opacity="0.8"/>
-    <circle cx="529" cy="390" r="3.5" fill="${WHITE}" opacity="0.5"/>
-
-    <!-- === GAGA === -->
-    <path d="M 502 358 L 512 330 L 522 358 Z" fill="${GOLD}" opacity="0.95"/>
-
-    <!-- === KUYRUK TÜYLERİ === -->
-    <path d="
-      M 493 598
-      C 477 620, 460 645, 444 668
-      L 476 650 L 512 674 L 548 650 L 580 668
-      C 564 645, 547 620, 531 598 Z
-    " fill="${NEON}" opacity="0.88"/>
-
-    <!-- === KANAT İÇ ÇİZGİLERİ === -->
-    <path d="M 490 488 C 430 472, 320 460, 215 435"
-          stroke="${NEON_DIM}" stroke-width="2" fill="none" opacity="0.35"/>
-    <path d="M 534 488 C 594 472, 704 460, 809 435"
-          stroke="${NEON_DIM}" stroke-width="2" fill="none" opacity="0.35"/>
+    <!-- === KANAT İÇ TÜY ÇİZGİSİ === -->
+    <path d="M 440 460 C 520 445, 600 455, 670 475"
+          stroke="${NEON_DIM}" stroke-width="3" fill="none" opacity="0.5"/>
   </g>`;
 }
 
@@ -144,19 +130,22 @@ const androidBgSvg = `<svg xmlns="http://www.w3.org/2000/svg"
 // ─── ANDROID MONOCHROME (Android 13+ theming) ────────────────────
 // Sistem kendi rengini uygular — sadece şekil/alfa önemli (beyaz siluet)
 function birdGroupMono(scale = 0.7) {
-  const tx = 512 - 512 * scale;
-  const ty = 512 - 502 * scale;
+  const tx = 512 - 515 * scale;
+  const ty = 512 - 430 * scale;
   return `<g transform="translate(${tx.toFixed(1)}, ${ty.toFixed(1)}) scale(${scale})">
-    <path d="M 490 488 C 450 468, 355 432, 215 435 C 178 437, 158 452, 163 472
-             C 184 456, 248 453, 372 480 C 428 494, 480 507, 492 518 Z" fill="white"/>
-    <path d="M 534 488 C 574 468, 669 432, 809 435 C 846 437, 866 452, 861 472
-             C 840 456, 776 453, 652 480 C 596 494, 544 507, 532 518 Z" fill="white"/>
-    <ellipse cx="512" cy="515" rx="38" ry="88" fill="white"/>
-    <circle cx="512" cy="400" r="46" fill="white"/>
-    <path d="M 502 358 L 512 330 L 522 358 Z" fill="white"/>
-    <path d="M 493 598 C 477 620, 460 645, 444 668
-             L 476 650 L 512 674 L 548 650 L 580 668
-             C 564 645, 547 620, 531 598 Z" fill="white"/>
+    <!-- Gövde + kuyruk + baş + gaga — hepsi beyaz silüet -->
+    <path d="
+      M 290 510
+      C 250 460, 260 380, 340 360
+      C 430 340, 540 350, 620 400
+      C 680 415, 740 395, 800 360
+      L 855 410 L 815 425 L 845 475 L 770 460
+      C 710 480, 620 520, 530 535
+      C 430 555, 340 555, 290 510 Z
+    " fill="white"/>
+    <circle cx="350" cy="345" r="100" fill="white"/>
+    <path d="M 250 338 L 165 355 L 250 372 Z" fill="white"/>
+    <!-- Monochrome'da göz detayı atlanır, sistem tek-renk uygular -->
   </g>`;
 }
 const androidMonoSvg = `<svg xmlns="http://www.w3.org/2000/svg"
