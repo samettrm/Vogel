@@ -9,11 +9,6 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_SENTRY_DSN": "",
-        "EXPO_PUBLIC_RC_API_KEY_IOS": "",
-        "EXPO_PUBLIC_RC_API_KEY_ANDROID": ""
       }
     },
     "preview": {
@@ -37,7 +32,7 @@
       "ios": {
         "language": "tr-TR",
         "appleId": "trsamet71@gmail.com",
-        "ascAppId": "",
+        "ascAppId": "6711534635",
         "bundleIdentifier": "com.yenipc002.Vogel"
       }
     }
