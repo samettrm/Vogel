@@ -6,6 +6,24 @@ aşağıdaki komutları aynen uygula.
 
 ---
 
+## 📁 Repo konumu (KRİTİK)
+
+**Repo `D:\Vogel`'de.** Eski `C:\Users\avbus\Documents\Vogel` yolu artık geçersiz
+(disk yer açmak için 2026-05-23'te D:'ye taşındı). Tüm komutlarda absolute path
+`D:\Vogel` kullan veya `Set-Location D:\Vogel` ile başla. Bash sandbox cwd'si
+hala C: gösterebilir, takma.
+
+Paylaşımlı tool yolları:
+- JDK 17:           `C:\Program Files\Microsoft\jdk-17.0.19.10-hotspot`
+- Android SDK:      `D:\Android\Sdk`
+- Gradle cache:     `D:\Android\gradle-cache`
+- APK output:       `D:\Android\` (Vogel-debug.apk, Vogel.apk vb.)
+
+Env vars User scope'ta kalıcı set (JAVA_HOME, ANDROID_HOME, ANDROID_SDK_ROOT,
+GRADLE_USER_HOME, PATH). Lexora ile paylaşımlı.
+
+---
+
 ## 📦 Komut tablosu
 
 | Komut | Ne yapar |
@@ -48,13 +66,62 @@ aşağıdaki komutları aynen uygula.
 
 **Sonuç:** APK indirilir, telefona sideload ile kurulur (Play Store değil).
 
-> ⚠️ **Geçici durum:** Play Store onayı incelemede olduğu için şimdilik APK.
+> ⚠️ **EAS QUOTA UYARISI:** 2026-05 sonunda Free tier Android quota'sı doldu.
+> **Reset tarihi: 2026-06-01.** Tarih bu tarihten önceyse EAS cloud'da `eas build`
+> hata verir ("monthly limit exhausted"). O durumda **acil durum yedeği** olarak
+> aşağıdaki "🔧 Local build" akışını kullan.
+
+> ⚠️ **Play Store onayı durumu:** Play onayı incelemede olduğu için şimdilik APK.
 > Onay gelince:
 > 1. `eas.json` → `build.production.android.buildType` → `"app-bundle"` (geri al)
 > 2. `eas.json` → `submit.production.android` bloğunu doldur (serviceAccountKeyPath, track: "internal", releaseStatus: "completed" vb.)
 > 3. `google-service-account.json`'u proje köküne koy (gitignore'da olsun)
 > 4. Bu dosyada "çıktı al android" komutuna `--auto-submit` flag'ini geri ekle
 > 5. Lexora ile aynı anda yap
+
+---
+
+## 🔧 Local Android build — sadece EAS quota dolduğunda
+
+EAS quota'sı dolu olduğunda APK'yi Windows'ta direkt gradle ile üret.
+Sonuç: `D:\Android\Vogel-debug.apk` — sideload için yeterli.
+
+```powershell
+Set-Location "D:\Vogel"
+$env:JAVA_HOME = 'C:\Program Files\Microsoft\jdk-17.0.19.10-hotspot'
+$env:ANDROID_HOME = 'D:\Android\Sdk'
+$env:ANDROID_SDK_ROOT = 'D:\Android\Sdk'
+$env:GRADLE_USER_HOME = 'D:\Android\gradle-cache'
+$env:GRADLE_OPTS = '-Xmx4g -XX:MaxMetaspaceSize=1g'
+$env:PATH = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:PATH"
+$env:SENTRY_DISABLE_AUTO_UPLOAD = 'true'
+$env:SENTRY_ALLOW_FAILURE = 'true'
+
+# android/ klasörü yoksa veya kirliyse:
+npx expo prebuild --platform android --clean
+
+Set-Location "D:\Vogel\android"
+.\gradlew.bat assembleDebug 2>&1 | Out-File "D:\Android\build.log" -Encoding utf8
+
+# Sonuç:
+Copy-Item "D:\Vogel\android\app\build\outputs\apk\debug\app-debug.apk" `
+          "D:\Android\Vogel-debug.apk" -Force
+
+# Build sonrası daemon'u kapat (RAM/disk rahatlasın):
+Get-Process java -ErrorAction SilentlyContinue | Stop-Process -Force
+```
+
+**Süre:** İlk build ~30-40 dk (cache boşken), sonraki ~5-15 dk.
+
+**APK:** `D:\Android\Vogel-debug.apk`, debug-signed, ~190 MB. Play Store'a
+yüklenmez ama sideload (Drive/USB/adb) ile telefona kurulur.
+
+**Hata kovalama:**
+- Sentry "Auth token required" → env vars yukarıdaki gibi set olmamış demek
+- Gradle "out of memory" → `GRADLE_OPTS` heap artır
+- Output pipeline buffer overflow → asla `Select-Object -Last N` ile gradle output
+  pipe'lama; her zaman `Out-File`'la dosyaya yaz, sonra `Get-Content -Tail`
+- C: diskine yazıyor sanısı → cwd `D:\Vogel`'de mi kontrol et
 
 ---
 
