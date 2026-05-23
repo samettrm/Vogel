@@ -32,18 +32,17 @@ import { initPurchases } from '../src/services/purchases';
 // ════════════════════════════════════════════════════════════════
 initPurchases();
 
-if (SENTRY_DSN) {
-  Sentry.init({
-    dsn: SENTRY_DSN,
-    // Dev'de logları görmek için true yapılabilir; production'da false olsun.
-    debug: false,
-    environment: __DEV__ ? 'development' : 'production',
-    // Performance traces: her 100 işlemden 15'ini örnek al (production yükünü azaltır).
-    tracesSampleRate: __DEV__ ? 1.0 : 0.15,
-    // Breadcrumb'ları sınırla — bellek tasarrufu.
-    maxBreadcrumbs: 50,
-  });
-}
+// Sentry.init her zaman çağrılmalı — aksi hâlde plugin'in native wrap'i önce çalışır
+// ve "App Start Span could not be finished" uyarısı oluşur.
+// DSN yoksa enabled:false ile init yapılır → veri gönderilmez, wrap çalışır.
+Sentry.init({
+  dsn: SENTRY_DSN || undefined,
+  enabled: !!SENTRY_DSN,
+  debug: false,
+  environment: __DEV__ ? 'development' : 'production',
+  tracesSampleRate: __DEV__ ? 1.0 : 0.15,
+  maxBreadcrumbs: 50,
+});
 
 // ═════════════════════════════════════════════════════════════════
 // SUPPRESS DEV LOGS
@@ -57,6 +56,8 @@ LogBox.ignoreLogs([
   'expo-notifications: Android Push notifications',
   'expo-notifications functionality is not fully supported',
   'Expo AV has been deprecated',
+  // RevenueCat: Expo Go'da native App Store yok — development build'de çalışır.
+  'Error configuring Purchases',
 ]);
 
 // ════════════════════════════════════════════════════════════════

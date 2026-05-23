@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../utils/haptics';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { Confetti } from '../feedback/Confetti';
 

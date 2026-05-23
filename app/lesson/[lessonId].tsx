@@ -1,5 +1,5 @@
-import * as Haptics from 'expo-haptics';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Haptics from '../../src/utils/haptics';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
@@ -325,6 +325,32 @@ export default function LessonScreen() {
     [lessonId, activeCourseId],
   );
 
+  // ── Erişim kontrolü — kilitli derslere URL ile bypass girişini engelle ──
+  // Harita kilitleriyle aynı mantık: tamamlanmış veya "current" ders açık.
+  const isAccessBlocked = useMemo(() => {
+    if (!lesson) return false; // ders bulunamadı → ayrı hata ekranı
+    const course = getCourseById(lessonCourseId);
+    if (!course) return false;
+    const flatAll = course.units.flatMap((u) => u.lessons);
+    let foundCurrent = false;
+    for (const l of flatAll) {
+      const inExamUnit = course.units.some(
+        (u) => (u.tags?.includes('exam') ?? false) && u.lessons.some((x) => x.id === l.id),
+      );
+      if (completedLessons.has(l.id)) {
+        // tamamlanmış = erişilebilir, devam et
+      } else if (inExamUnit) {
+        if (!isPremium && l.id === lesson.id) return true; // sınav + premium değil = kilitli
+      } else if (!foundCurrent) {
+        foundCurrent = true;
+        if (l.id === lesson.id) return false; // "current" ders = erişilebilir
+      } else {
+        if (l.id === lesson.id) return true; // henüz sırası gelmemiş = kilitli
+      }
+    }
+    return false;
+  }, [lesson, lessonCourseId, completedLessons, isPremium]);
+
   // Egzersizleri tek bir snapshot olarak hesapla (ders id değişirse yeniden)
   const exercises = useMemo<Exercise[]>(() => {
     if (!lesson) return [];
@@ -559,6 +585,11 @@ export default function LessonScreen() {
 
   // ─── Early returns ────────────────────────────────────────────────
 
+  // Kilitli ders koruması — harita dışından bypass girişini önle
+  if (isAccessBlocked) {
+    return <Redirect href="/(tabs)" />;
+  }
+
   // Kalp kontrolü — sıfır can + free kullanıcı → ders açılamaz
   if (hearts === 0 && !isPremium) {
     return (
@@ -668,6 +699,7 @@ export default function LessonScreen() {
           hearts={hearts}
           onClose={closeLesson}
           completed={isLessonAlreadyCompleted}
+          isPremium={isPremium}
         />
 
         <View style={styles.statusRow} pointerEvents="none">

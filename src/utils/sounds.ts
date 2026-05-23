@@ -1,4 +1,5 @@
 import { Audio } from 'expo-av';
+import { useUserStore } from '../store/useUserStore';
 
 // Ses sistemi — expo-av ile.
 // Dört kısa efekt: correct / wrong / lessonComplete / unitComplete.
@@ -39,6 +40,8 @@ async function ensureAudioMode(): Promise<void> {
 }
 
 export async function playSound(key: SoundKey): Promise<void> {
+  // Ses efektleri kapalıysa çalma
+  if (!useUserStore.getState().soundEnabled) return;
   try {
     await ensureAudioMode();
 

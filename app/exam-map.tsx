@@ -27,6 +27,7 @@ type ExamLevel = {
 export default function ExamMapScreen() {
   const c = useThemeColors();
   const completedLessons = useUserStore((s) => s.completedLessons);
+  const isPremium = useUserStore((s) => s.isPremium);
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const examLevels = useMemo<ExamLevel[]>(() => {
@@ -51,6 +52,40 @@ export default function ExamMapScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      {/* ── PREMİUM GATE — premium değilse içeriği karart + kilit göster ── */}
+      {!isPremium && (
+        <View style={styles.premiumGate} pointerEvents="box-none">
+          {/* Koyu blur perdesi */}
+          <View style={styles.premiumGateBg} pointerEvents="none" />
+          {/* Kilit kartı */}
+          <View style={styles.premiumGateCard}>
+            <View style={styles.premiumGateLockRing}>
+              <Ionicons name="lock-closed" size={32} color="#a855f7" />
+            </View>
+            <Text style={styles.premiumGateTitle}>Premium İçerik</Text>
+            <Text style={styles.premiumGateSub}>
+              Goethe · TELC sınav hazırlık derslerine{'\n'}erişmek için Vogel Plus gerekiyor.
+            </Text>
+            <Pressable
+              onPress={() => router.replace('/(tabs)/shop')}
+              style={({ pressed }) => [
+                styles.premiumGateBtn,
+                pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+              ]}
+            >
+              <Text style={styles.premiumGateBtnText}>Vogel Plus'a Geç</Text>
+              <Ionicons name="arrow-forward" size={16} color="#fff" />
+            </Pressable>
+            <Pressable
+              onPress={() => router.back()}
+              style={({ pressed }) => [styles.premiumGateBack, pressed && { opacity: 0.6 }]}
+            >
+              <Text style={styles.premiumGateBackText}>Geri Dön</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
       {/* Üst bar */}
       <View style={styles.topBar}>
         <Pressable
@@ -220,6 +255,61 @@ function LevelCard({
 function makeStyles(c: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.bg },
+
+    // ── Premium gate overlay ──────────────────────────────────────
+    premiumGate: {
+      position: 'absolute', inset: 0,
+      zIndex: 99,
+      alignItems: 'center', justifyContent: 'center',
+      paddingHorizontal: spacing.base,
+    },
+    premiumGateBg: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.82)',
+    },
+    premiumGateCard: {
+      width: '100%',
+      backgroundColor: '#0d0320',
+      borderWidth: 1.5, borderColor: 'rgba(168,85,247,0.35)',
+      borderRadius: 24,
+      padding: spacing.xl ?? spacing.lg,
+      alignItems: 'center', gap: 14,
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.3, shadowRadius: 24,
+      elevation: 10,
+    },
+    premiumGateLockRing: {
+      width: 72, height: 72, borderRadius: 36,
+      backgroundColor: 'rgba(168,85,247,0.12)',
+      borderWidth: 1.5, borderColor: 'rgba(168,85,247,0.4)',
+      alignItems: 'center', justifyContent: 'center',
+      marginBottom: 4,
+    },
+    premiumGateTitle: {
+      ...textStyles.subheading, color: '#fff', fontSize: 20, fontWeight: '800',
+    },
+    premiumGateSub: {
+      ...textStyles.body, color: 'rgba(255,255,255,0.45)', fontSize: 14,
+      textAlign: 'center', lineHeight: 21,
+    },
+    premiumGateBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      backgroundColor: '#a855f7',
+      borderRadius: 14, paddingVertical: 14, paddingHorizontal: 28,
+      marginTop: 4,
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.45, shadowRadius: 12,
+      elevation: 6,
+    },
+    premiumGateBtnText: {
+      ...textStyles.button, color: '#fff', fontSize: 15, fontWeight: '800',
+    },
+    premiumGateBack: { paddingVertical: 8, paddingHorizontal: 16 },
+    premiumGateBackText: {
+      ...textStyles.body, color: 'rgba(255,255,255,0.3)', fontSize: 13,
+    },
 
     // Üst bar
     topBar: {

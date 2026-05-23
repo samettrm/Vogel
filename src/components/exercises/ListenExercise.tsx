@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../utils/haptics';
 import { radius, spacing, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
 import type { Exercise } from '../../types';

@@ -42,12 +42,13 @@ type LessonItem = {
   status: 'completed' | 'in-progress' | 'untouched';
   correctCount: number;
   total: number;
+  isLocked: boolean; // true → bu dersten önce tamamlanması gereken dersler var
 };
 
-type StatusFilter = 'all' | 'completed' | 'in-progress' | 'untouched' | 'exam';
+type StatusFilter = 'all' | 'exam';
 
 // 🚀 PERF: Module-level lazy cache — sadece bir kere hesaplanır
-type StaticItem = Omit<LessonItem, 'status' | 'correctCount'>;
+type StaticItem = Omit<LessonItem, 'status' | 'correctCount' | 'isLocked'>;
 let STATIC_ITEMS_CACHE: StaticItem[] | null = null;
 function getStaticItems(): StaticItem[] {
   if (STATIC_ITEMS_CACHE) return STATIC_ITEMS_CACHE;
@@ -79,6 +80,7 @@ export default function LessonsScreen() {
   const completedLessons = useUserStore((s) => s.completedLessons);
   const lessonExerciseProgress = useUserStore((s) => s.lessonExerciseProgress);
   const learningMotivations = useUserStore((s) => s.learningMotivations);
+  const isPremium = useUserStore((s) => s.isPremium);
 
   const [search, setSearch] = useState('');
   const [levelFilter, setLevelFilter] = useState<CEFRLevel | 'all'>('all');
@@ -107,6 +109,29 @@ export default function LessonsScreen() {
   }, []);
 
   const allItems = useMemo<LessonItem[]>(() => {
+    // ── Erişilebilir ders ID'leri — her kurs için kilit mantığı ──
+    // Tamamlanmış veya sıradaki (current) dersler açık; geri kalanlar kilitli.
+    // Sınav üniteleri: premium kullanıcılar için her zaman açık.
+    const accessibleIds = new Set<string>();
+    for (const course of ALL_COURSES) {
+      const flatAll = course.units.flatMap((u) => u.lessons);
+      let foundCurrent = false;
+      for (const lesson of flatAll) {
+        const inExamUnit = course.units.some(
+          (u) => (u.tags?.includes('exam') ?? false) && u.lessons.some((l) => l.id === lesson.id),
+        );
+        if (completedLessons.has(lesson.id)) {
+          accessibleIds.add(lesson.id);
+        } else if (inExamUnit) {
+          if (isPremium) accessibleIds.add(lesson.id); // exam: sadece premium
+        } else if (!foundCurrent) {
+          accessibleIds.add(lesson.id); // İlk tamamlanmamış normal ders = "current"
+          foundCurrent = true;
+        }
+        // Geri kalan normal dersler: kilitli (accessibleIds'e eklenmez)
+      }
+    }
+
     const statics = getStaticItems();
     const result: LessonItem[] = new Array(statics.length);
     for (let i = 0; i < statics.length; i++) {
@@ -123,18 +148,20 @@ export default function LessonsScreen() {
       let status: LessonItem['status'] = 'untouched';
       if (completedLessons.has(s.lesson.id)) status = 'completed';
       else if (hasAnyProgress) status = 'in-progress';
-      result[i] = { ...s, status, correctCount };
+      result[i] = { ...s, status, correctCount, isLocked: !accessibleIds.has(s.lesson.id) };
     }
     return result;
-  }, [completedLessons, lessonExerciseProgress]);
+  }, [completedLessons, lessonExerciseProgress, isPremium]);
 
   const filteredItems = useMemo(() => {
+    // Premium değilse sınav derslerini hiç gösterme — gate gösterilecek
+    if (statusFilter === 'exam' && !isPremium) return [];
     const lowerSearch = search.toLocaleLowerCase('tr-TR').trim();
     return allItems.filter((item) => {
       if (levelFilter !== 'all' && item.level !== levelFilter) return false;
       if (statusFilter === 'exam') {
         if (!(item.unit.tags?.includes('exam') ?? false)) return false;
-      } else if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+      }
       if (lowerSearch.length > 0) {
         const haystack = (
           item.lesson.title + ' ' + item.unitTitle + ' ' + item.courseTitle
@@ -143,27 +170,26 @@ export default function LessonsScreen() {
       }
       return true;
     });
-  }, [allItems, search, levelFilter, statusFilter]);
+  }, [allItems, search, levelFilter, statusFilter, isPremium]);
 
   const stats = useMemo(() => {
     let completed = 0;
-    let inProgress = 0;
     for (const item of allItems) {
       if (item.status === 'completed') completed++;
-      else if (item.status === 'in-progress') inProgress++;
     }
-    return { completed, inProgress, total: allItems.length };
+    return { completed, total: allItems.length };
   }, [allItems]);
 
   const recommended = useMemo(() => {
-    const inProgressItem = allItems.find((i) => i.status === 'in-progress');
+    // Kilitli dersleri öneri listesinden çıkar
+    const inProgressItem = allItems.find((i) => i.status === 'in-progress' && !i.isLocked);
     if (inProgressItem) return inProgressItem;
 
     if (!learningMotivations || learningMotivations.length === 0) {
-      return allItems.find((i) => i.status === 'untouched') ?? null;
+      return allItems.find((i) => i.status === 'untouched' && !i.isLocked) ?? null;
     }
 
-    const untouched = allItems.filter((i) => i.status === 'untouched');
+    const untouched = allItems.filter((i) => i.status === 'untouched' && !i.isLocked);
     if (untouched.length === 0) return null;
 
     const firstUntouchedPerUnit = new Map<string, LessonItem>();
@@ -217,69 +243,60 @@ export default function LessonsScreen() {
 
   const ListHeader = useMemo(() => (
     <View style={styles.headerWrap}>
+
+      {/* ── Başlık + özet stat ── */}
       <View style={styles.header}>
         <Text style={styles.title}>{t('lessons.title')}</Text>
+        <Text style={styles.statsInline}>
+          <Text style={{ color: c.neon }}>{stats.completed}</Text>
+          {' tamamlandı · '}
+          <Text style={{ color: c.textHigh }}>{stats.total}</Text>
+          {' ders'}
+        </Text>
       </View>
 
-      {/* 🎓 SINAV HAZIRLIĞI — Goethe · TELC */}
+      {/* ── Goethe · TELC — kompakt pill ── */}
       <Pressable
-        onPress={() => router.push('/exam-map')}
-        style={({ pressed }) => [styles.examCard, pressed && styles.examCardPressed]}
+        onPress={() => isPremium ? router.push('/exam-map') : router.push('/(tabs)/shop')}
+        style={({ pressed }) => [styles.examPill, pressed && styles.examPillPressed]}
       >
-        <View style={styles.examCardHighlight} pointerEvents="none" />
-        <View style={styles.examCardLeft}>
-          <View style={styles.examIconBox}>
-            <Text style={styles.examIconEmoji}>🎓</Text>
-          </View>
-          <View style={styles.examTextCol}>
-            <Text style={styles.examCardTitle}>Goethe · TELC Sınavı</Text>
-            <Text style={styles.examCardSub}>Sınav hazırlık dersleri · Her seviyeden erişilebilir</Text>
-          </View>
+        <Text style={styles.examPillEmoji}>🎓</Text>
+        <View style={styles.examPillText}>
+          <Text style={styles.examPillTitle}>Goethe · TELC Sınavı</Text>
+          <Text style={styles.examPillSub}>
+            {isPremium ? 'Sınav hazırlığı' : 'A1 · A2 · B1 · B2 · C1  🔒'}
+          </Text>
         </View>
-        <View style={styles.examCardArrow}>
-          <Ionicons name="chevron-forward" size={16} color={c.gold} />
-        </View>
+        <Ionicons
+          name={isPremium ? 'chevron-forward' : 'lock-closed'}
+          size={14}
+          color={c.gold}
+        />
       </Pressable>
 
+      {/* ── Önerilen ders — tek satır kompakt ── */}
       {recommended ? (
         <Pressable
           onPress={() => router.push(`/lesson/${recommended.lesson.id}`)}
           style={({ pressed }) => [styles.recommendedCard, pressed && styles.recommendedCardPressed]}
         >
-          <View style={styles.recommendedHeader}>
-            <View style={styles.recommendedIconBox}>
-              <Ionicons name="star" size={20} color={c.textOnNeon} />
-            </View>
-            <View style={styles.recommendedTextCol}>
-              <Text style={styles.recommendedLabel}>{t('recommended.title')}</Text>
-              <Text style={styles.recommendedTitle} numberOfLines={1}>{recommended.lesson.title}</Text>
-              <Text style={styles.recommendedMeta} numberOfLines={1}>
-                {recommended.level} · {recommended.unitTitle}
-              </Text>
-            </View>
+          <View style={styles.recommendedIconBox}>
+            <Ionicons name="star" size={18} color={c.textOnNeon} />
           </View>
-          <View style={styles.recommendedCtaRow}>
-            <Text style={styles.recommendedCta}>{t('recommended.cta')}</Text>
-            <Ionicons name="arrow-forward" size={16} color={c.textOnNeon} />
+          <View style={styles.recommendedTextCol}>
+            <Text style={styles.recommendedLabel}>{t('recommended.title')}</Text>
+            <Text style={styles.recommendedTitle} numberOfLines={1}>{recommended.lesson.title}</Text>
+            <Text style={styles.recommendedMeta} numberOfLines={1}>
+              {recommended.level} · {recommended.unitTitle}
+            </Text>
+          </View>
+          <View style={styles.recommendedArrow}>
+            <Ionicons name="arrow-forward" size={16} color={c.neon} />
           </View>
         </Pressable>
       ) : null}
 
-      <View style={styles.statsRow}>
-        <View style={[styles.statBox, { borderColor: c.neon }]}>
-          <Text style={[styles.statValue, { color: c.neon }]}>{stats.completed}</Text>
-          <Text style={styles.statLabel}>{t('lessons.completed')}</Text>
-        </View>
-        <View style={[styles.statBox, { borderColor: c.cyan }]}>
-          <Text style={[styles.statValue, { color: c.cyan }]}>{stats.inProgress}</Text>
-          <Text style={styles.statLabel}>{t('lessons.inProgress')}</Text>
-        </View>
-        <View style={[styles.statBox, { borderColor: c.textLow }]}>
-          <Text style={[styles.statValue, { color: c.textHigh }]}>{stats.total}</Text>
-          <Text style={styles.statLabel}>{t('lessons.total')}</Text>
-        </View>
-      </View>
-
+      {/* ── Arama ── */}
       <View style={styles.searchBox}>
         <Ionicons name="search" size={18} color={c.textLow} />
         <TextInput
@@ -297,8 +314,9 @@ export default function LessonsScreen() {
         ) : null}
       </View>
 
+      {/* ── Seviye filtreleri: A1 → C1 ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-        <FilterChip c={c} label={t('lessons.allLevels')} active={levelFilter === 'all'} onPress={() => setLevelFilter('all')} />
+        <FilterChip c={c} label={t('lessons.all')} active={levelFilter === 'all'} onPress={() => setLevelFilter('all')} />
         {AVAILABLE_LEVELS.map((lvl) => {
           const lc = getLevelColor(lvl, c);
           return (
@@ -315,31 +333,53 @@ export default function LessonsScreen() {
         })}
       </ScrollView>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+      {/* ── Durum filtresi: Hepsi · Sınav ── */}
+      <View style={styles.statusRow}>
         <FilterChip c={c} label={t('lessons.all')} active={statusFilter === 'all'} onPress={() => setStatusFilter('all')} />
-        <FilterChip c={c} label="🎓 Sınav" active={statusFilter === 'exam'} onPress={() => setStatusFilter('exam')} color={c.gold} colorBg={c.goldBg} />
-        <FilterChip c={c} label={t('lessons.completed')} active={statusFilter === 'completed'} onPress={() => setStatusFilter('completed')} color={c.neon} colorBg={c.neonBg} />
-        <FilterChip c={c} label={t('lessons.inProgress')} active={statusFilter === 'in-progress'} onPress={() => setStatusFilter('in-progress')} color={c.cyan} colorBg={'rgba(34, 211, 238, 0.15)'} />
-        <FilterChip c={c} label={t('lessons.notStarted')} active={statusFilter === 'untouched'} onPress={() => setStatusFilter('untouched')} color={c.textLow} />
-      </ScrollView>
-    </View>
-  ), [c, t, styles, stats, recommended, search, levelFilter, statusFilter, setStatusFilter, setLevelFilter]);
+        <FilterChip c={c} label={isPremium ? '🎓 Sınav' : '🎓 Sınav 🔒'} active={statusFilter === 'exam'} onPress={() => setStatusFilter('exam')} color={c.gold} colorBg={c.goldBg} />
+      </View>
 
-  const ListEmpty = useMemo(() => (
-    <View style={styles.empty}>
-      <Ionicons name="search-outline" size={48} color={c.textLow} />
-      <Text style={styles.emptyTitle}>{t('lessons.noResults')}</Text>
-      <Text style={styles.emptySubtitle}>{t('lessons.noResultsDesc')}</Text>
-      {hasFilters ? (
-        <Pressable
-          onPress={clearFilters}
-          style={({ pressed }) => [styles.clearButton, pressed && { opacity: 0.85 }]}
-        >
-          <Text style={styles.clearButtonText}>{t('lessons.clearFilters')}</Text>
-        </Pressable>
-      ) : null}
     </View>
-  ), [c, t, hasFilters, clearFilters, styles]);
+  ), [c, t, styles, stats, recommended, search, levelFilter, statusFilter, setStatusFilter, setLevelFilter, isPremium]);
+
+  const ListEmpty = useMemo(() => {
+    // Sınav filtresi aktif + premium değil → özel premium gate
+    if (statusFilter === 'exam' && !isPremium) {
+      return (
+        <View style={styles.examGate}>
+          <View style={styles.examGateLockRing}>
+            <Ionicons name="lock-closed" size={28} color="#a855f7" />
+          </View>
+          <Text style={styles.examGateTitle}>Premium İçerik</Text>
+          <Text style={styles.examGateSub}>
+            Goethe · TELC sınav hazırlık derslerine{'\n'}erişmek için Vogel Plus gerekiyor.
+          </Text>
+          <Pressable
+            onPress={() => router.push('/(tabs)/shop')}
+            style={({ pressed }) => [styles.examGateBtn, pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] }]}
+          >
+            <Text style={styles.examGateBtnText}>Vogel Plus'a Geç</Text>
+            <Ionicons name="arrow-forward" size={15} color="#fff" />
+          </Pressable>
+        </View>
+      );
+    }
+    return (
+      <View style={styles.empty}>
+        <Ionicons name="search-outline" size={48} color={c.textLow} />
+        <Text style={styles.emptyTitle}>{t('lessons.noResults')}</Text>
+        <Text style={styles.emptySubtitle}>{t('lessons.noResultsDesc')}</Text>
+        {hasFilters ? (
+          <Pressable
+            onPress={clearFilters}
+            style={({ pressed }) => [styles.clearButton, pressed && { opacity: 0.85 }]}
+          >
+            <Text style={styles.clearButtonText}>{t('lessons.clearFilters')}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    );
+  }, [c, t, hasFilters, clearFilters, styles, statusFilter, isPremium]);
 
   const ItemSeparator = useCallback(
     () => <View style={{ height: ITEM_SEPARATOR_HEIGHT }} />,
@@ -460,13 +500,17 @@ function chipStyles(c: ReturnType<typeof useThemeColors>) {
 function LessonCardImpl({ item }: { item: LessonItem }) {
   const c = useThemeColors();
   const t = useT();
-  const onPress = useCallback(() => router.push(`/lesson/${item.lesson.id}`), [item.lesson.id]);
+  const onPress = useCallback(() => {
+    if (!item.isLocked) router.push(`/lesson/${item.lesson.id}`);
+  }, [item.lesson.id, item.isLocked]);
 
-  const statusMeta = item.status === 'completed'
-    ? { icon: 'checkmark-circle' as const, color: c.neon, bgColor: c.neonBg, label: t('lessons.completedBadge') }
-    : item.status === 'in-progress'
-      ? { icon: 'time' as const, color: c.cyan, bgColor: 'rgba(34, 211, 238, 0.15)', label: t('lessons.inProgressBadge') }
-      : { icon: 'play-circle' as const, color: c.textLow, bgColor: c.glassBg, label: t('lessons.notStartedBadge') };
+  const statusMeta = item.isLocked
+    ? { icon: 'lock-closed' as const, color: c.textLow, bgColor: c.glassBg, label: 'Kilitli' }
+    : item.status === 'completed'
+      ? { icon: 'checkmark-circle' as const, color: c.neon, bgColor: c.neonBg, label: t('lessons.completedBadge') }
+      : item.status === 'in-progress'
+        ? { icon: 'time' as const, color: c.cyan, bgColor: 'rgba(34, 211, 238, 0.15)', label: t('lessons.inProgressBadge') }
+        : { icon: 'play-circle' as const, color: c.textLow, bgColor: c.glassBg, label: t('lessons.notStartedBadge') };
 
   const lc = getLevelColor(item.level, c);
   const progressPercent = item.total > 0 ? Math.round((item.correctCount / item.total) * 100) : 0;
@@ -475,11 +519,15 @@ function LessonCardImpl({ item }: { item: LessonItem }) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.card,
+        item.isLocked && styles.cardLocked,
+        pressed && !item.isLocked && styles.pressed,
+      ]}
     >
       <View style={styles.row}>
         <View style={[styles.statusIcon, { backgroundColor: statusMeta.bgColor, borderColor: statusMeta.color }]}>
-          <Ionicons name={statusMeta.icon} size={20} color={statusMeta.color} />
+          <Ionicons name={statusMeta.icon} size={item.isLocked ? 17 : 20} color={statusMeta.color} />
         </View>
 
         <View style={styles.content}>
@@ -494,18 +542,24 @@ function LessonCardImpl({ item }: { item: LessonItem }) {
             </View>
             <Text style={styles.unitText} numberOfLines={1}>{item.unitTitle}</Text>
           </View>
-          <Text style={styles.lessonTitle} numberOfLines={1}>{item.lesson.title}</Text>
+          <Text style={[styles.lessonTitle, item.isLocked && { color: c.textLow }]} numberOfLines={1}>
+            {item.lesson.title}
+          </Text>
           <View style={styles.bottomRow}>
             <Text style={[styles.statusLabel, { color: statusMeta.color }]}>{statusMeta.label}</Text>
-            {item.status !== 'untouched' ? (
+            {!item.isLocked && item.status !== 'untouched' ? (
               <Text style={styles.progressText}>{item.correctCount}/{item.total} ({progressPercent}%)</Text>
-            ) : (
+            ) : !item.isLocked ? (
               <Text style={styles.progressText}>{t('lessons.questionsCount', { n: item.total })}</Text>
-            )}
+            ) : null}
           </View>
         </View>
 
-        <Ionicons name="chevron-forward" size={20} color={c.textLow} />
+        <Ionicons
+          name={item.isLocked ? 'lock-closed' : 'chevron-forward'}
+          size={item.isLocked ? 15 : 20}
+          color={c.textLow}
+        />
       </View>
     </Pressable>
   );
@@ -516,7 +570,8 @@ const LessonCard = React.memo(LessonCardImpl, (prev, next) =>
   prev.item.lesson.id === next.item.lesson.id &&
   prev.item.status === next.item.status &&
   prev.item.correctCount === next.item.correctCount &&
-  prev.item.total === next.item.total,
+  prev.item.total === next.item.total &&
+  prev.item.isLocked === next.item.isLocked,
 );
 
 function cardStylesFn(c: ReturnType<typeof useThemeColors>) {
@@ -525,6 +580,7 @@ function cardStylesFn(c: ReturnType<typeof useThemeColors>) {
       backgroundColor: c.glassBg, borderWidth: 1, borderColor: c.glassBorderStrong,
       borderRadius: radius.lg, padding: spacing.base,
     },
+    cardLocked: { opacity: 0.45 },
     pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     statusIcon: {
@@ -555,79 +611,60 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       paddingBottom: spacing.xxl,
     },
     headerWrap: {
-      gap: spacing.base,
-      marginBottom: spacing.base,
+      gap: spacing.md,
+      marginBottom: spacing.sm,
     },
-    header: { paddingVertical: spacing.sm },
+    header: { paddingTop: spacing.sm, paddingBottom: 2 },
     title: { ...textStyles.display, color: c.textHigh },
-    subtitle: { ...textStyles.body, color: c.textLow, fontSize: 13, marginTop: 2 },
-    // Goethe · TELC sınav kartı
-    examCard: {
+    statsInline: { ...textStyles.body, color: c.textLow, fontSize: 13, marginTop: 3 },
+
+    // 🎓 Goethe · TELC — kompakt pill (eski büyük kart kaldırıldı)
+    examPill: {
       flexDirection: 'row', alignItems: 'center',
       backgroundColor: c.goldBg,
       borderWidth: 1.5, borderColor: c.gold,
-      borderRadius: radius.lg,
-      paddingHorizontal: spacing.base, paddingVertical: spacing.md,
-      gap: spacing.md, overflow: 'hidden',
+      borderRadius: radius.pill,
+      paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 1,
+      gap: spacing.sm,
       shadowColor: c.gold,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.3, shadowRadius: 10, elevation: 4,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2, shadowRadius: 6, elevation: 3,
     },
-    examCardHighlight: {
-      position: 'absolute', top: 0, left: spacing.lg, right: spacing.lg,
-      height: 1, backgroundColor: 'rgba(245,158,11,0.3)',
-    },
-    examCardPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-    examCardLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-    examIconBox: {
-      width: 44, height: 44, borderRadius: 22,
-      backgroundColor: c.gold,
-      alignItems: 'center', justifyContent: 'center',
-    },
-    examIconEmoji: { fontSize: 22 },
-    examTextCol: { flex: 1, gap: 2 },
-    examCardTitle: { ...textStyles.subheading, color: c.gold, fontSize: 15 },
-    examCardSub: { ...textStyles.body, color: c.textMed, fontSize: 12 },
-    examCardArrow: {
-      width: 28, height: 28, borderRadius: 14,
-      backgroundColor: 'rgba(245,158,11,0.15)',
-      alignItems: 'center', justifyContent: 'center',
-    },
+    examPillPressed: { opacity: 0.82, transform: [{ scale: 0.97 }] },
+    examPillEmoji: { fontSize: 18 },
+    examPillText: { flex: 1, gap: 1 },
+    examPillTitle: { ...textStyles.bodyBold, color: c.gold, fontSize: 13 },
+    examPillSub: { ...textStyles.body, color: c.textMed, fontSize: 10 },
+
+    // ⭐ Önerilen ders — tek satır kompakt
     recommendedCard: {
+      flexDirection: 'row', alignItems: 'center',
       backgroundColor: c.neonBg,
       borderWidth: 1.5, borderColor: c.neon,
       borderRadius: radius.lg,
-      padding: spacing.base,
+      paddingHorizontal: spacing.md, paddingVertical: spacing.md,
       gap: spacing.md,
     },
     recommendedCardPressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
-    recommendedHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     recommendedIconBox: {
-      width: 44, height: 44, borderRadius: 22,
+      width: 38, height: 38, borderRadius: 19,
       backgroundColor: c.neon,
       alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0,
     },
-    recommendedTextCol: { flex: 1, gap: 2 },
-    recommendedLabel: { ...textStyles.label, color: c.neonLight, fontSize: 10, letterSpacing: 1 },
-    recommendedTitle: { ...textStyles.subheading, color: c.textHigh, fontSize: 16 },
+    recommendedTextCol: { flex: 1, gap: 1 },
+    recommendedLabel: { ...textStyles.label, color: c.neonLight, fontSize: 9, letterSpacing: 1 },
+    recommendedTitle: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 14 },
     recommendedMeta: { ...textStyles.body, color: c.textLow, fontSize: 11 },
-    recommendedCtaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 6,
-      backgroundColor: c.neon,
-      borderRadius: radius.md,
-      paddingVertical: spacing.sm,
+    recommendedArrow: {
+      width: 30, height: 30, borderRadius: 15,
+      backgroundColor: 'rgba(0,255,136,0.12)',
+      alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0,
     },
-    recommendedCta: { ...textStyles.button, color: c.textOnNeon, fontSize: 14 },
-    statsRow: { flexDirection: 'row', gap: spacing.sm },
-    statBox: {
-      flex: 1, borderWidth: 1.5, borderRadius: radius.md,
-      backgroundColor: c.glassBg, paddingVertical: spacing.sm, alignItems: 'center',
-    },
-    statValue: { ...textStyles.display, fontSize: 22 },
-    statLabel: { ...textStyles.label, color: c.textLow, fontSize: 10 },
+
+    // ── Durum filtresi satırı (Hepsi · Sınav) ──
+    statusRow: { flexDirection: 'row', gap: spacing.sm },
     searchBox: {
       flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
       backgroundColor: c.glassBg, borderWidth: 1, borderColor: c.glassBorderStrong,
@@ -636,6 +673,36 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     searchInput: { ...textStyles.body, flex: 1, color: c.textHigh, paddingVertical: 0 },
     chipRow: { gap: spacing.sm, paddingRight: spacing.base },
     empty: { alignItems: 'center', paddingVertical: spacing.xxl, gap: spacing.sm },
+
+    // ── Sınav filtresi premium gate ──────────────────────────────
+    examGate: {
+      alignItems: 'center',
+      paddingVertical: 48,
+      paddingHorizontal: spacing.xl ?? spacing.lg,
+      gap: 14,
+    },
+    examGateLockRing: {
+      width: 68, height: 68, borderRadius: 34,
+      backgroundColor: 'rgba(168,85,247,0.1)',
+      borderWidth: 1.5, borderColor: 'rgba(168,85,247,0.35)',
+      alignItems: 'center', justifyContent: 'center',
+      marginBottom: 4,
+    },
+    examGateTitle: { ...textStyles.subheading, color: c.textHigh, fontSize: 18, fontWeight: '800' },
+    examGateSub: {
+      ...textStyles.body, color: c.textMed, fontSize: 13,
+      textAlign: 'center', lineHeight: 20,
+    },
+    examGateBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      backgroundColor: '#a855f7',
+      borderRadius: 14, paddingVertical: 13, paddingHorizontal: 24,
+      marginTop: 4,
+      shadowColor: '#a855f7',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4, shadowRadius: 10, elevation: 5,
+    },
+    examGateBtnText: { ...textStyles.button, color: '#fff', fontSize: 14, fontWeight: '800' },
     emptyTitle: { ...textStyles.subheading, color: c.textMed, marginTop: spacing.sm },
     emptySubtitle: { ...textStyles.body, color: c.textLow, fontSize: 13, textAlign: 'center' },
     clearButton: {

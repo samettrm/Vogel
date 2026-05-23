@@ -1,21 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   Easing,
-  FadeIn,
   cancelAnimation,
-  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withSpring,
   withTiming,
-  runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../utils/haptics';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
 import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
@@ -120,8 +116,8 @@ export function LessonCompleteScreen({
   const result = getResultStyle(c, accuracy, isUnitComplete);
 
   const iconScale = useSharedValue(0);
-  const xpProgress = useSharedValue(0);
-  const [displayedXp, setDisplayedXp] = useState(0);
+  // Tüm içerik için tek opacity — 5 ayrı FadeIn yerine 1 animasyon
+  const contentOpacity = useSharedValue(0);
 
   useEffect(() => {
     if (result.tone === 'retry') {
@@ -129,86 +125,89 @@ export function LessonCompleteScreen({
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
-    iconScale.value = withSpring(1, { damping: 11, stiffness: 140, mass: 0.6 });
-    xpProgress.value = 0;
-    xpProgress.value = withDelay(250, withTiming(xpEarned, { duration: 900, easing: Easing.out(Easing.cubic) }));
+    // Daha sert yay → daha hızlı snap, daha az overshot
+    iconScale.value = withSpring(1, { damping: 18, stiffness: 220, mass: 0.5 });
+    // Tek basit opacity fade
+    contentOpacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) });
     return () => {
-      cancelAnimation(xpProgress);
       cancelAnimation(iconScale);
+      cancelAnimation(contentOpacity);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [xpEarned]);
-
-  useAnimatedReaction(
-    () => Math.round(xpProgress.value),
-    (current, previous) => {
-      if (current !== previous) runOnJS(setDisplayedXp)(current);
-    },
-  );
+  }, []);
 
   const iconStyle = useAnimatedStyle(() => ({
     transform: [{ scale: iconScale.value }],
   }));
 
+  const contentStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+  }));
+
   // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
   const styles = useMemo(() => makeStyles(c), [c]);
+
+  // Çıkışta animasyonları temiz kapat, sonra navigate et
+  const handleContinue = () => {
+    cancelAnimation(iconScale);
+    cancelAnimation(contentOpacity);
+    onContinue();
+  };
 
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) + spacing.xl }]}>
       <View style={[styles.bgGlow, { backgroundColor: result.iconShadowColor }]} pointerEvents="none" />
 
-      {/* 🎊 Konfeti — SADECE ders sonu (positive tone) için patlar.
-          Tek mount'ta animasyon, sonra fade out. UI thread'de çalışır. */}
+      {/* 🎊 Konfeti — parçacık sayısı azaltıldı: daha az worklet yükü */}
       {result.tone === 'positive' ? (
-        <Confetti origin="top" count={20} fullScreen baseDuration={1800} />
+        <Confetti origin="top" count={10} baseDuration={1400} />
       ) : null}
 
-      <View style={styles.celebration}>
-        <Animated.View
-          style={[
-            styles.iconCircle,
-            {
-              backgroundColor: result.iconBgColor,
-              borderColor: result.iconShadowColor,
-              shadowColor: result.iconShadowColor,
-            },
-            iconStyle,
-          ]}
-        >
-          <Ionicons name={result.icon} size={72} color={result.iconColor} />
-        </Animated.View>
+      {/* Tek opacity wrapper — 5 ayrı FadeIn.delay() yerine */}
+      <Animated.View style={[styles.innerContent, contentStyle]}>
 
-        <Animated.Text
-          entering={FadeIn.delay(150).duration(300)}
-          style={[styles.title, { color: result.iconColor }]}
-        >
-          {t(result.titleKey as 'lessonComplete.perfectTitle')}
-        </Animated.Text>
+        <View style={styles.celebration}>
+          <Animated.View
+            style={[
+              styles.iconCircle,
+              {
+                backgroundColor: result.iconBgColor,
+                borderColor: result.iconShadowColor,
+                shadowColor: result.iconShadowColor,
+              },
+              iconStyle,
+            ]}
+          >
+            <Ionicons name={result.icon} size={72} color={result.iconColor} />
+          </Animated.View>
 
-        <Animated.Text
-          entering={FadeIn.delay(220).duration(300)}
-          style={styles.subtitle}
-        >
-          {t(result.subtitleKey as 'lessonComplete.perfectDesc')}
-        </Animated.Text>
-      </View>
+          <Text style={[styles.title, { color: result.iconColor }]}>
+            {t(result.titleKey as 'lessonComplete.perfectTitle')}
+          </Text>
 
-      <Animated.View entering={FadeIn.delay(320).duration(300)} style={styles.statsRow}>
-        <StatCard c={c} icon="flash" tone={c.gold} toneBg={c.goldBg}
-          label={t('lessonComplete.totalXp')} value={`+${displayedXp}`} />
-        <StatCard c={c} icon="checkmark-circle"
-          tone={accuracy >= 70 ? c.neon : accuracy >= 40 ? c.cyan : '#FB7185'}
-          toneBg={accuracy >= 70 ? c.neonBg : accuracy >= 40 ? 'rgba(34, 211, 238, 0.18)' : 'rgba(239, 68, 68, 0.18)'}
-          label={t('lessonComplete.accuracyLabel')} value={`%${accuracy}`} />
-        <StatCard c={c} icon="heart" tone={c.red} toneBg={c.redBg}
-          label={t('lessonComplete.heartsLabel')} value={`${heartsRemaining}/${maxHearts}`} />
-      </Animated.View>
+          <Text style={styles.subtitle}>
+            {t(result.subtitleKey as 'lessonComplete.perfectDesc')}
+          </Text>
+        </View>
 
-      {/* ❤️ Düşük can uyarısı — güçlü premium upsell CTA */}
-      {showLowHeartsBanner ? (
-        <Animated.View entering={FadeIn.delay(380).duration(300)}>
+        <View style={styles.statsRow}>
+          <StatCard c={c} icon="flash" tone={c.gold} toneBg={c.goldBg}
+            label={t('lessonComplete.totalXp')} value={`+${xpEarned}`} />
+          <StatCard c={c} icon="checkmark-circle"
+            tone={accuracy >= 70 ? c.neon : accuracy >= 40 ? c.cyan : '#FB7185'}
+            toneBg={accuracy >= 70 ? c.neonBg : accuracy >= 40 ? 'rgba(34, 211, 238, 0.18)' : 'rgba(239, 68, 68, 0.18)'}
+            label={t('lessonComplete.accuracyLabel')} value={`%${accuracy}`} />
+          <StatCard c={c} icon="heart"
+            tone={isPremium ? c.neon : c.red}
+            toneBg={isPremium ? c.neonBg : c.redBg}
+            label={t('lessonComplete.heartsLabel')}
+            value={isPremium ? '∞' : `${heartsRemaining}/${maxHearts}`} />
+        </View>
+
+        {/* ❤️ Düşük can uyarısı */}
+        {showLowHeartsBanner ? (
           <Pressable
-            onPress={() => { onContinue(); router.push('/(tabs)/shop'); }}
+            onPress={() => { handleContinue(); router.push('/(tabs)/shop'); }}
             style={({ pressed }) => [styles.lowHeartsCard, pressed && styles.lowHeartsCardPressed]}
           >
             <View style={styles.lowHeartsHighlight} pointerEvents="none" />
@@ -223,29 +222,30 @@ export function LessonCompleteScreen({
               <Ionicons name="chevron-forward" size={16} color={c.purpleLight} />
             </View>
           </Pressable>
-        </Animated.View>
-      ) : null}
+        ) : null}
 
-      <Animated.View entering={FadeIn.delay(450).duration(300)} style={styles.buttonWrap}>
-        <Pressable
-          onPress={onContinue}
-          style={({ pressed }) => [
-            styles.continueButton,
-            {
-              backgroundColor: result.tone === 'retry' ? c.red : c.neon,
-              shadowColor: result.tone === 'retry' ? c.red : c.neon,
-            },
-            pressed && styles.pressed,
-          ]}
-          accessibilityRole="button"
-        >
-          <Text
-            style={[
-              styles.continueButtonText,
-              { color: result.tone === 'retry' ? c.white : c.textOnNeon },
+        <View style={styles.buttonWrap}>
+          <Pressable
+            onPress={handleContinue}
+            style={({ pressed }) => [
+              styles.continueButton,
+              {
+                backgroundColor: result.tone === 'retry' ? c.red : c.neon,
+                shadowColor: result.tone === 'retry' ? c.red : c.neon,
+              },
+              pressed && styles.pressed,
             ]}
-          >{t(result.buttonLabel as 'common.continue')}</Text>
-        </Pressable>
+            accessibilityRole="button"
+          >
+            <Text
+              style={[
+                styles.continueButtonText,
+                { color: result.tone === 'retry' ? c.white : c.textOnNeon },
+              ]}
+            >{t(result.buttonLabel as 'common.continue')}</Text>
+          </Pressable>
+        </View>
+
       </Animated.View>
     </View>
   );
@@ -279,6 +279,9 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
     container: {
       flex: 1, backgroundColor: c.bg,
+    },
+    innerContent: {
+      flex: 1,
       paddingHorizontal: spacing.base, paddingTop: spacing.xxxl,
       justifyContent: 'space-between',
     },

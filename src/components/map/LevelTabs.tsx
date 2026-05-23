@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../utils/haptics';
 import type { CEFRLevel } from '../../types';
 import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../theme';
 
@@ -88,15 +88,15 @@ export function LevelTabs({ levels, selectedLevel, onSelect }: LevelTabsProps) {
 function makeStyles(_c: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
     container: { paddingVertical: spacing.xs },
-    scroll: { paddingHorizontal: spacing.base, gap: spacing.sm, alignItems: 'center' },
+    scroll: { paddingHorizontal: spacing.base, gap: 6, alignItems: 'center' },
     tab: {
-      paddingHorizontal: spacing.base, paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md, paddingVertical: spacing.xs,
       borderRadius: radius.pill, borderWidth: 1.5,
-      flexDirection: 'row', alignItems: 'center', gap: 6,
-      minWidth: 56, justifyContent: 'center',
+      flexDirection: 'row', alignItems: 'center', gap: 5,
+      minWidth: 48, justifyContent: 'center',
     },
     tabPressed: { opacity: 0.7, transform: [{ scale: 0.97 }] },
-    tabText: { ...textStyles.bodyBold, fontSize: 14, letterSpacing: 1 },
+    tabText: { ...textStyles.bodyBold, fontSize: 13, letterSpacing: 0.8 },
     activeDot: {
       width: 6, height: 6, borderRadius: 3,
       shadowOffset: { width: 0, height: 0 },

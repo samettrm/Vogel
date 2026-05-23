@@ -90,6 +90,8 @@ export const messages = {
 
   // Map
   map: {
+    greetingHi:  { tr: 'Selam 👋',                  en: 'Hello 👋' },
+    greetingSub: { tr: 'Bugün ne öğrenelim?',        en: "What shall we learn today?" },
     welcome: { tr: 'Hadi başlayalım!', en: "Let's start!" },
     keepGoing: { tr: 'Devam et!', en: 'Keep going!' },
     levelCompleted: { tr: 'tamamlandı!', en: 'completed!' },
@@ -507,7 +509,7 @@ export const messages = {
 
   // Achievements
   achievements: {
-    title: { tr: 'Başarımlar', en: 'Achievements' },
+    title: { tr: 'Başarılar', en: 'Achievements' },
     summary: { tr: '{unlocked}/{total} rozet açıldı', en: '{unlocked}/{total} badges unlocked' },
     viewAll: { tr: 'Tümünü gör', en: 'View all' },
     locked: { tr: 'Kilitli', en: 'Locked' },

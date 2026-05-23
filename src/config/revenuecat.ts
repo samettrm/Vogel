@@ -21,7 +21,7 @@ export const RC_API_KEY = Platform.select({
 }) ?? '';
 
 // RevenueCat Dashboard → Entitlements → Create "premium"
-export const ENTITLEMENT_PREMIUM = 'premium';
+export const ENTITLEMENT_PREMIUM = 'Vogel: Language Lessons Pro';
 
 // RevenueCat Dashboard → Offerings → Default Offering ID
 export const OFFERING_DEFAULT = 'default';
@@ -36,8 +36,8 @@ export const PRODUCT_IDS = {
   premiumMonthly:  'vogel_premium_monthly',   // ₺99.99 / ay
   premiumYearly:   'vogel_premium_yearly',    // ₺499.99 / yıl
 
-  // ── TEK SEFERLİK (Non-Consumable In-App Purchase) ──────────────
-  premiumLifetime: 'vogel_premium_lifetime',  // ₺1499.99 ömür boyu
+  // ── AİLE PLANI (Auto-Renewable Subscription, Family Sharing) ──
+  premiumFamily:   'vogel_premium_family',    // ₺1199.99 yıllık aile
 
   // ── TÜKETİLEBİLİR (Consumable In-App Purchase) ────────────────
   xp100:   'vogel_xp_100',    // ₺19.99 → 100 XP

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { CEFRLevel, ExerciseType, LanguageCode } from '../types';
+import type { PlanId } from '../services/purchases';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { ALL_COURSES } from '../data/courses';
 
@@ -94,6 +95,7 @@ interface UserState {
   leagueCompetitors: LeagueCompetitor[];
   leagueEndDate: number;
   isPremium: boolean;
+  activePlanId: PlanId | null;
 
   // ONBOARDING
   onboardingCompleted: boolean;
@@ -109,6 +111,10 @@ interface UserState {
   // TEMA + DIL (UI ayarlari)
   themeMode: 'dark' | 'light';
   language: 'tr' | 'en';
+
+  // SES + HAPTIC ayarları
+  soundEnabled: boolean;
+  hapticEnabled: boolean;
 
   // 🏆 Başarımlar
   achievementsUnlocked: Set<string>;
@@ -158,7 +164,7 @@ interface UserState {
   getDueReviewItems: () => ReviewItem[];
   resetReviewItems: () => void;
   checkLeagueStatus: () => void;
-  makePremium: () => void;
+  makePremium: (planId?: PlanId) => void;
   // IAP: n adet can ekle (max'ta kesilebilir)
   addHearts: (n: number) => void;
   // IAP: RC'den gelen premium durumunu store'a yaz (app açılışı senkronizasyonu)
@@ -174,6 +180,10 @@ interface UserState {
   // TEMA + DIL setters
   setThemeMode: (mode: 'dark' | 'light') => void;
   setLanguage: (lang: 'tr' | 'en') => void;
+
+  // SES + HAPTIC setters
+  setSoundEnabled: (v: boolean) => void;
+  setHapticEnabled: (v: boolean) => void;
 
   // 🎯 Quest actions
   refreshDailyQuestsIfNeeded: () => void;
@@ -355,12 +365,15 @@ export const useUserStore = create<UserState>()(
       leagueCompetitors: createInitialCompetitors(0),
       leagueEndDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
       isPremium: false,
+      activePlanId: null,
       onboardingCompleted: false,
       dailyXpGoal: 30,
       learningMotivations: [],
       selectedLevel: 'A1',
       themeMode: 'dark',
       language: 'tr',
+      soundEnabled: true,
+      hapticEnabled: true,
 
       addXp: (amount) =>
         set((state) => {
@@ -606,9 +619,10 @@ export const useUserStore = create<UserState>()(
           };
         }),
 
-      makePremium: () =>
+      makePremium: (planId) =>
         set((state) => ({
           isPremium: true,
+          activePlanId: planId ?? state.activePlanId,
           hearts: state.maxHearts,
           nextHeartRefillAt: null,
         })),
@@ -659,6 +673,10 @@ export const useUserStore = create<UserState>()(
         set({
           language: lang,
         }),
+
+      // SES + HAPTIC
+      setSoundEnabled: (v) => set({ soundEnabled: v }),
+      setHapticEnabled: (v) => set({ hapticEnabled: v }),
 
       // ──────────────────────────────────────────────────────────────────
       // 🎯 DAILY QUESTS — günlük görev sistemi
@@ -827,7 +845,7 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'vogel-user-storage',
-      version: 12,
+      version: 13,
       storage: createJSONStorage(() => AsyncStorage, {
         replacer: (_key, value) => {
           if (value instanceof Set) {
@@ -889,6 +907,8 @@ export const useUserStore = create<UserState>()(
           })(),
           recentlyUnlocked: null,
           hasHydrated: false,
+          soundEnabled: (state as { soundEnabled?: boolean }).soundEnabled ?? true,
+          hapticEnabled: (state as { hapticEnabled?: boolean }).hapticEnabled ?? true,
         };
       },
       partialize: (state) => ({
@@ -915,6 +935,8 @@ export const useUserStore = create<UserState>()(
         selectedLevel: state.selectedLevel,
         themeMode: state.themeMode,
         language: state.language,
+        soundEnabled: state.soundEnabled,
+        hapticEnabled: state.hapticEnabled,
         // 🏆 Achievements persist
         achievementsUnlocked: state.achievementsUnlocked,
         hasFirstPurchase: state.hasFirstPurchase,

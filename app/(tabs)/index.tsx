@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +15,7 @@ import { ALL_COURSES, AVAILABLE_LEVELS, getCourseByLevel } from '../../src/data/
 import { useT } from '../../src/i18n';
 import { useUserStore } from '../../src/store/useUserStore';
 import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
-import type { Lesson, Unit } from '../../src/types';
+import type { CEFRLevel, Lesson, Unit } from '../../src/types';
 
 // ════════════════════════════════════════════════════════════════
 // HARITA — Ders haritası ekranı
@@ -41,6 +41,7 @@ export default function HomeScreen() {
   const resetProgressForTesting = useUserStore((s) => s.resetProgressForTesting);
   const selectedLevel = useUserStore((s) => s.selectedLevel);
   const setSelectedLevel = useUserStore((s) => s.setSelectedLevel);
+  const isPremium = useUserStore((s) => s.isPremium);
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -64,6 +65,15 @@ export default function HomeScreen() {
   const buttonOpacity = useRef(new Animated.Value(0)).current; // Buton fade in/out
   const [showScrollButton, setShowScrollButton] = useState(false);
   const isAnimatingScrollRef = useRef(false);
+  // Programmatik scroll (useEffect / ⬆️ button) sırasında sticky güncellemesini durdur
+  const isProgrammaticScrollRef = useRef(false);
+
+  // ─── Sticky bölüm başlığı (Duolingo tarzı) ──────────────────────────
+  // Scroll edilince o anki ünitenin adı üstte sabit bantla gösterilir
+  const stickyUnitRef = useRef<Unit | null>(null);
+  const [stickyUnit, setStickyUnit] = useState<Unit | null>(null);
+  const stickyAnim = useRef(new Animated.Value(0)).current;
+  const listHeaderHeight = useRef(0);
 
   const course = useMemo(
     () => getCourseByLevel(selectedLevel) ?? ALL_COURSES[0],
@@ -131,6 +141,7 @@ export default function HomeScreen() {
     // (40 unit header - 100 padding - lessonIndex * 124)
     const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
 
+    isProgrammaticScrollRef.current = true;
     const tt = setTimeout(() => {
       try {
         listRef.current?.scrollToIndex({
@@ -142,10 +153,39 @@ export default function HomeScreen() {
       } catch {
         // Fallback onScrollToIndexFailed'de
       }
-    }, 100);
+      // Animasyon bittikten sonra sticky güncellemesini aç (~700ms yeterli)
+      setTimeout(() => { isProgrammaticScrollRef.current = false; }, 700);
+    }, 250);  // Önceden 100ms — artık daha yumuşak başlatmak için 250ms
 
     return () => clearTimeout(tt);
   }, [hasHydrated, currentUnitIndex, currentLessonId, course.units]);
+
+  // 📜 Tab focus → current lesson'a anlık snap
+  // Başka sekmeden (Dersler, Mağaza) haritaya geçilince dersin tam görünür olmasını sağlar.
+  // animated: false — geçiş anında sert jump istemiyoruz, ama animasyonlu kayma da yok.
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasHydrated || currentUnitIndex < 0 || !currentLessonId) return;
+      const currentUnit = course.units[currentUnitIndex];
+      if (!currentUnit) return;
+      const lessonIndexInUnit = currentUnit.lessons.findIndex((l) => l.id === currentLessonId);
+      if (lessonIndexInUnit < 0) return;
+      const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
+      const tid = setTimeout(() => {
+        try {
+          listRef.current?.scrollToIndex({
+            index: currentUnitIndex,
+            animated: false,
+            viewPosition: 0,
+            viewOffset: viewOffsetValue,
+          });
+        } catch {
+          // FlatList henüz hazır değilse sustur
+        }
+      }, 80);
+      return () => clearTimeout(tid);
+    }, [hasHydrated, currentUnitIndex, currentLessonId, course.units]),
+  );
 
   // 📜 Hedef scroll Y koordinatı — current lesson'ın tam görünür olacağı konum
   // (useEffect içindeki scrollToIndex formulüyle birebir uyumlu)
@@ -191,8 +231,36 @@ export default function HomeScreen() {
           useNativeDriver: true,
         }).start();
       }
+
+      // ── Sticky bölüm başlığı: programmatik scroll sırasında güncelleme yapma
+      if (isProgrammaticScrollRef.current) return;
+      const headerH = listHeaderHeight.current;
+      let found: Unit | null = null;
+      if (y >= headerH) {
+        let acc = headerH;
+        for (const unit of course.units) {
+          const unitH = unit.lessons.length * 124 + 40 + 80;
+          if (y < acc + unitH) { found = unit; break; }
+          acc += unitH;
+        }
+      }
+      if (found !== stickyUnitRef.current) {
+        const prev = stickyUnitRef.current;
+        stickyUnitRef.current = found;
+        if (found && !prev) {
+          setStickyUnit(found);
+          Animated.timing(stickyAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+        } else if (!found && prev) {
+          Animated.timing(stickyAnim, { toValue: 0, duration: 160, useNativeDriver: true }).start(
+            () => { setStickyUnit(null); },
+          );
+        } else if (found) {
+          // Ünite değişti — içeriği güncelle (banner zaten görünür)
+          setStickyUnit(found);
+        }
+      }
     },
-    [targetScrollY, showScrollButton, buttonOpacity],
+    [targetScrollY, showScrollButton, buttonOpacity, course.units, stickyAnim],
   );
 
   // 📜 Butona basınca çalışır — yavaşta hizlanan animasyonla current lesson'a dön
@@ -204,6 +272,7 @@ export default function HomeScreen() {
     if (distance < 50) return; // Zaten near current ise atla
     const duration = Math.min(1400, Math.max(600, distance * 0.5));
     isAnimatingScrollRef.current = true;
+    isProgrammaticScrollRef.current = true;
     scrollAnimY.setValue(startY);
     Animated.timing(scrollAnimY, {
       toValue: targetScrollY,
@@ -212,6 +281,7 @@ export default function HomeScreen() {
       useNativeDriver: false, // scrollToOffset için zorunlu
     }).start(() => {
       isAnimatingScrollRef.current = false;
+      isProgrammaticScrollRef.current = false;
     });
   }, [scrollAnimY, targetScrollY]);
 
@@ -233,16 +303,17 @@ export default function HomeScreen() {
     [],
   );
 
-  // Exam ünitelerinin ders ID'leri — bunlar her zaman erişilebilir (kilitli değil)
+  // Exam ünitelerinin ders ID'leri — sadece premium kullanıcılar erişebilir
   const examLessonIds = useMemo(() => {
     const ids = new Set<string>();
+    if (!isPremium) return ids;             // premium değilse kilitli
     for (const unit of course.units) {
       if (unit.tags?.includes('exam')) {
         for (const lesson of unit.lessons) ids.add(lesson.id);
       }
     }
     return ids;
-  }, [course.units]);
+  }, [course.units, isPremium]);
 
   const getLessonInfo = useCallback((lesson: Lesson) => {
     const isExam = examLessonIds.has(lesson.id);
@@ -307,8 +378,22 @@ export default function HomeScreen() {
 
   const keyExtractor = useCallback((u: Unit) => u.id, []);
 
+  // ListHeader yüksekliğini ölç → sticky banner tetikleme noktası
+  const onListHeaderLayout = useCallback(
+    (e: { nativeEvent: { layout: { height: number } } }) => {
+      listHeaderHeight.current = e.nativeEvent.layout.height;
+    },
+    [],
+  );
+
   const ListHeader = useMemo(() => (
-    <View>
+    <View onLayout={onListHeaderLayout}>
+      {/* 👋 Günlük karşılama */}
+      <View style={styles.greetingWrap}>
+        <Text style={styles.greetingHi}>{t('map.greetingHi')}</Text>
+        <Text style={styles.greetingSub}>{t('map.greetingSub')}</Text>
+      </View>
+
       {/* 🔄 Tekrar Sırası banner — SM-2 algoritmasıyla due olan kelimeler varsa görünür */}
       <ReviewBanner />
       <View style={[styles.levelHeader, { borderLeftColor: lc.main }]}>
@@ -320,7 +405,7 @@ export default function HomeScreen() {
       </View>
 
     </View>
-  ), [styles, lc, selectedLevel, course.title, course.description]);
+  ), [styles, lc, selectedLevel, course.title, course.description, onListHeaderLayout, t]);
 
   const ListFooter = useMemo(() => (
     <>
@@ -373,39 +458,67 @@ export default function HomeScreen() {
         />
 
         <View style={styles.mascotRow}>
+          {/* 🎓 Goethe · TELC — kompakt pill */}
           <Pressable
-            onPress={handleResetProgress}
-            style={({ pressed }) => [
-              styles.resetButton,
-              pressed && styles.resetButtonPressed,
-            ]}
-            hitSlop={8}
-          >
-            <Ionicons name="refresh" size={14} color={c.red} />
-            <Text style={styles.resetButtonText}>{t('map.resetButton')}</Text>
-          </Pressable>
-
-          {/* 🎓 Goethe · TELC — mesaj balonunun olduğu boşluğa */}
-          <Pressable
-            onPress={() => router.push('/exam-map')}
+            onPress={() => isPremium ? router.push('/exam-map') : router.push('/(tabs)/shop')}
             style={({ pressed }) => [styles.examChip, pressed && styles.examChipPressed]}
           >
-            <View style={styles.examChipHighlight} pointerEvents="none" />
             <Text style={styles.examChipEmoji}>🎓</Text>
             <View style={styles.examChipText}>
               <Text style={styles.examChipTitle}>Goethe · TELC</Text>
-              <Text style={styles.examChipSub}>Sınav hazırlığı</Text>
+              <Text style={styles.examChipSub}>
+                {isPremium ? 'Sınav hazırlığı' : 'A1 · A2 · B1 · B2 · C1 🔒'}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={13} color={c.gold} />
+            <Ionicons
+              name={isPremium ? 'chevron-forward' : 'lock-closed'}
+              size={13}
+              color={c.gold}
+            />
           </Pressable>
 
-          <BirdMascot size="md" />
+          {/* Mascot + dev-only reset (gizli küçük ikon) */}
+          <View style={styles.mascotEnd}>
+            {__DEV__ && (
+              <Pressable
+                onPress={handleResetProgress}
+                style={({ pressed }) => [styles.resetIconBtn, pressed && { opacity: 0.5 }]}
+                hitSlop={10}
+              >
+                <Ionicons name="refresh" size={13} color={c.textLow} />
+              </Pressable>
+            )}
+            <BirdMascot size="md" />
+          </View>
         </View>
 
-        {/* 🚀 PERF: FlatList virtualization — 11 ünite, sadece görünür olanlar render */}
-        <FlatList
+        {/* 📌 Harita alanı — sticky bölüm başlığı + FlatList */}
+        <View style={styles.mapArea}>
+
+          {/* Sticky bölüm başlığı — level header kaydırılınca yukarıda sabit kalar */}
+          <Animated.View
+            style={[styles.stickyUnitBanner, { opacity: stickyAnim }]}
+            pointerEvents="none"
+          >
+            {stickyUnit ? (
+              <View style={styles.stickyUnitContent}>
+                <Text style={styles.stickyUnitOrder} numberOfLines={1}>
+                  {stickyUnit.tags?.includes('exam')
+                    ? '🎓 SINAV'
+                    : `${t('lessons.unit')} ${stickyUnit.order}`}
+                </Text>
+                <View style={styles.stickyDivider} />
+                <Text style={styles.stickyUnitTitle} numberOfLines={1}>
+                  {stickyUnit.title}
+                </Text>
+              </View>
+            ) : null}
+          </Animated.View>
+
+          {/* 🚀 PERF: FlatList virtualization — 11 ünite, sadece görünür olanlar render */}
+          <FlatList
           // 🔑 Key — her current LESSON değişiminde FlatList remount eder (timing sorunlarını yok eder)
-          key={`${selectedLevel}-${currentLessonId ?? 'none'}`}
+          key={selectedLevel}
           ref={listRef}
           data={course.units}
           renderItem={renderUnit}
@@ -425,6 +538,8 @@ export default function HomeScreen() {
           onScroll={handleScroll}
           scrollEventThrottle={16}
         />
+
+        </View>{/* /mapArea */}
 
         {/* ⬆️ Scroll-to-Current Button — Duolingo tarzı yukarı ok butonu */}
         {/* Kullanıcı aşağı kaydırınca görünür, basınca current lesson'a döner */}
@@ -467,19 +582,30 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     root: { flex: 1, backgroundColor: c.bg },
     safe: { flex: 1 },
     mascotRow: {
-      paddingHorizontal: spacing.base, paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.base, paddingVertical: spacing.xs,
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     },
-    resetButton: {
-      flexDirection: 'row', alignItems: 'center', gap: 4,
-      paddingHorizontal: spacing.sm, paddingVertical: 6,
-      backgroundColor: 'rgba(239, 68, 68, 0.12)',
-      borderWidth: 1, borderColor: c.red,
-      borderRadius: radius.pill,
+    mascotEnd: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
     },
-    resetButtonPressed: { opacity: 0.7, transform: [{ scale: 0.95 }] },
-    resetButtonText: { ...textStyles.label, color: c.red, fontSize: 10 },
+    // 🔧 Dev-only reset — küçük, soluk, dikkat çekmiyor
+    resetIconBtn: {
+      width: 26, height: 26, borderRadius: 13,
+      backgroundColor: c.glassBg,
+      borderWidth: 1, borderColor: c.glassBorderStrong,
+      alignItems: 'center', justifyContent: 'center',
+      opacity: 0.45,
+    },
     scrollContent: { paddingTop: spacing.sm, paddingBottom: spacing.xxl },
+    // 👋 Günlük karşılama
+    greetingWrap: {
+      paddingHorizontal: spacing.base,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.sm,
+    },
+    greetingHi:  { ...textStyles.display, color: c.textHigh, fontSize: 22, lineHeight: 28 },
+    greetingSub: { ...textStyles.bodyBold, color: c.neon, fontSize: 13, marginTop: 3, opacity: 0.9 },
+    // ─────────────────────────────────────────────────────────────
     levelHeader: {
       paddingHorizontal: spacing.base, paddingTop: spacing.md, paddingBottom: spacing.lg,
       gap: spacing.xs,
@@ -498,27 +624,23 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     levelPillText: { ...textStyles.bodyBold, fontSize: 11, letterSpacing: 1.5 },
     levelTitle: { ...textStyles.heading, fontSize: 22 },
     levelDescription: { ...textStyles.body, color: c.textLow, fontSize: 13, lineHeight: 18 },
-    // 🎓 Goethe · TELC chip — mascotRow içinde, mesaj balonunun yerine
+    // 🎓 Goethe · TELC chip — kompakt pill
     examChip: {
       flexDirection: 'row', alignItems: 'center',
       backgroundColor: c.goldBg,
       borderWidth: 1.5, borderColor: c.gold,
-      borderRadius: radius.lg,
-      paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 2,
-      gap: spacing.xs, overflow: 'hidden',
+      borderRadius: radius.pill,
+      paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+      gap: spacing.sm,
       shadowColor: c.gold,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.25, shadowRadius: 8, elevation: 3,
-    },
-    examChipHighlight: {
-      position: 'absolute', top: 0, left: spacing.sm, right: spacing.sm,
-      height: 1, backgroundColor: 'rgba(245,158,11,0.3)',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.22, shadowRadius: 6, elevation: 3,
     },
     examChipPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
-    examChipEmoji: { fontSize: 18 },
+    examChipEmoji: { fontSize: 17 },
     examChipText: { gap: 1 },
-    examChipTitle: { ...textStyles.bodyBold, color: c.gold, fontSize: 13 },
-    examChipSub: { ...textStyles.body, color: c.textMed, fontSize: 10 },
+    examChipTitle: { ...textStyles.bodyBold, color: c.gold, fontSize: 12 },
+    examChipSub: { ...textStyles.body, color: c.textMed, fontSize: 9.5, opacity: 0.9 },
     nextLevelCard: {
       marginHorizontal: spacing.base,
       marginTop: spacing.xl,
@@ -556,6 +678,46 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     scrollToCurrentPressed: {
       opacity: 0.7,
       transform: [{ scale: 0.9 }],
+    },
+    // 📌 Sticky bölüm başlığı
+    mapArea: { flex: 1 },
+    stickyUnitBanner: {
+      position: 'absolute',
+      top: 0, left: 0, right: 0,
+      zIndex: 20,
+      paddingHorizontal: spacing.base,
+      paddingVertical: 8,
+      backgroundColor: c.bg,
+      borderBottomWidth: 1,
+      borderBottomColor: c.glassBorder,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.12,
+      shadowRadius: 3,
+      elevation: 3,
+    },
+    stickyUnitContent: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    stickyUnitOrder: {
+      ...textStyles.label,
+      color: c.neon,
+      fontSize: 11,
+      letterSpacing: 0.8,
+    },
+    stickyDivider: {
+      width: 1,
+      height: 11,
+      backgroundColor: c.glassBorder,
+    },
+    stickyUnitTitle: {
+      ...textStyles.bodyBold,
+      color: c.textHigh,
+      fontSize: 13,
+      flex: 1,
     },
   });
 }

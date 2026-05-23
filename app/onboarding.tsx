@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../src/utils/haptics';
 import Animated, {
   cancelAnimation,
   Easing, FadeIn, FadeInDown, FadeInRight, FadeOutLeft,

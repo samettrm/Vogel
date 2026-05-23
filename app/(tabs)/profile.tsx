@@ -1,11 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { AvatarCard } from '../../src/components/profile/AvatarCard';
-import { ProgressCard } from '../../src/components/profile/ProgressCard';
 import { StatRow } from '../../src/components/profile/StatRow';
 import { StreakCalendar } from '../../src/components/profile/StreakCalendar';
 import { GoalsCard } from '../../src/components/profile/GoalsCard';
@@ -57,6 +56,17 @@ export default function ProfileScreen() {
   const level = Math.floor(xp / XP_PER_LEVEL) + 1;
   const xpInLevel = xp % XP_PER_LEVEL;
 
+  // ✨ Premium banner shimmer — soldan sağa süpürme
+  const shimmerX = useRef(new Animated.Value(-120)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerX, { toValue: 420, duration: 1600, useNativeDriver: true }),
+        Animated.delay(2200),
+      ]),
+    ).start();
+  }, [shimmerX]);
+
   // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -88,13 +98,10 @@ export default function ProfileScreen() {
 
         {/* 🚀 PERF: FadeInDown chain'i kaldırıldı — 5 paralel spring animasyon
             her thaw/mount'ta tetikleniyordu. Şimdi anında görünür. */}
-        <AvatarCard level={level} />
-
-        <ProgressCard
+        <AvatarCard
           level={level}
           xpInLevel={xpInLevel}
           xpForNext={XP_PER_LEVEL}
-          totalXp={xp}
         />
 
         <StatRow
@@ -105,22 +112,41 @@ export default function ProfileScreen() {
           completedCount={completedLessons.size}
         />
 
-        {/* 💎 PREMIUM UPSELL — sadece free kullanıcılara, güçlü CTA */}
+        {/* 💎 PREMIUM UPSELL — sadece free kullanıcılara, ışıltılı CTA */}
         {!isPremium ? (
           <Pressable
             onPress={() => router.push('/(tabs)/shop')}
             style={({ pressed }) => [styles.premiumBanner, pressed && styles.premiumBannerPressed]}
           >
+            {/* Arka plan glow'ları */}
+            <View style={styles.pBannerGlowL} pointerEvents="none" />
+            <View style={styles.pBannerGlowR} pointerEvents="none" />
+            {/* Üst ışık çizgisi */}
             <View style={styles.premiumBannerHighlight} pointerEvents="none" />
-            <View style={styles.premiumBannerLeft}>
-              <SpinningDiamondGem size={30} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.premiumBannerTitle}>Vogel Plus'a Geç</Text>
-                <Text style={styles.premiumBannerSub}>Sınırsız can · Reklamsız · Günde ₺3.3</Text>
-              </View>
+            {/* Shimmer süpürme */}
+            <Animated.View
+              style={[styles.pBannerShimmer, { transform: [{ translateX: shimmerX }] }]}
+              pointerEvents="none"
+            />
+            {/* Dekoratif kıvılcımlar */}
+            <Text style={styles.pSpark1} pointerEvents="none">✦</Text>
+            <Text style={styles.pSpark2} pointerEvents="none">✦</Text>
+            <Text style={styles.pSpark3} pointerEvents="none">✦</Text>
+            <Text style={styles.pSpark4} pointerEvents="none">✦</Text>
+            {/* Üst rozet çubuğu */}
+            <View style={styles.pBannerTopBadge} pointerEvents="none">
+              <Text style={styles.pBannerTopBadgeText}>✦ 3 GÜN ÜCRETSİZ DENEMELİ ✦</Text>
             </View>
-            <View style={styles.premiumBannerArrow}>
-              <Ionicons name="chevron-forward" size={16} color={c.purpleLight} />
+            {/* İçerik */}
+            <View style={styles.pBannerContent}>
+              <SpinningDiamondGem size={46} />
+              <View style={{ flex: 1, gap: 5 }}>
+                <Text style={styles.premiumBannerTitle}>Vogel Plus'a Geç</Text>
+                <Text style={styles.premiumBannerSub}>Sınırsız can · Reklamsız · Goethe & TELC</Text>
+              </View>
+              <View style={styles.premiumBannerArrow}>
+                <Ionicons name="chevron-forward" size={16} color={c.gold} />
+              </View>
             </View>
           </Pressable>
         ) : null}
@@ -163,29 +189,68 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       alignItems: 'center', justifyContent: 'center',
     },
     settingsButtonPressed: { opacity: 0.7, transform: [{ scale: 0.95 }] },
-    // Premium upsell — altın yaldızlı CTA
+    // ✨ Premium upsell — cosmic ışıltılı CTA
     premiumBanner: {
       width: '100%',
-      backgroundColor: c.purple,
-      borderRadius: 16,
-      borderWidth: 2, borderColor: c.gold,
-      flexDirection: 'row', alignItems: 'center',
-      paddingHorizontal: spacing.base, paddingVertical: spacing.md,
-      gap: spacing.md, overflow: 'hidden',
+      backgroundColor: '#07021a',
+      borderRadius: 18,
+      borderWidth: 1.5,
+      borderColor: c.gold,
+      overflow: 'hidden',
       shadowColor: c.gold,
       shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.55, shadowRadius: 16, elevation: 8,
+      shadowOpacity: 0.65,
+      shadowRadius: 20,
+      elevation: 10,
+    },
+    pBannerTopBadge: {
+      alignItems: 'center',
+      paddingVertical: 6,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(245,158,11,0.2)',
+      backgroundColor: 'rgba(245,158,11,0.07)',
+    },
+    pBannerTopBadgeText: {
+      ...textStyles.label,
+      color: c.gold,
+      fontSize: 10,
+      fontWeight: '800' as const,
+      letterSpacing: 1.6,
+    },
+    pBannerContent: {
+      flexDirection: 'row', alignItems: 'center',
+      paddingHorizontal: spacing.base, paddingVertical: spacing.lg,
+      gap: spacing.md,
+    },
+    pBannerGlowL: {
+      position: 'absolute', top: -24, left: -24,
+      width: 110, height: 110, borderRadius: 55,
+      backgroundColor: 'rgba(168,85,247,0.28)',
+    },
+    pBannerGlowR: {
+      position: 'absolute', bottom: -20, right: 10,
+      width: 90, height: 90, borderRadius: 45,
+      backgroundColor: 'rgba(245,158,11,0.22)',
     },
     premiumBannerHighlight: {
       position: 'absolute', top: 0, left: spacing.lg, right: spacing.lg,
-      height: 1.5, backgroundColor: 'rgba(255,220,80,0.4)',
+      height: 1, backgroundColor: 'rgba(255,220,80,0.55)',
     },
-    premiumBannerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    premiumBannerTitle: { ...textStyles.button, color: c.gold, fontSize: 16, letterSpacing: 0.2 },
-    premiumBannerSub: { ...textStyles.body, color: 'rgba(255,255,255,0.72)', fontSize: 12, marginTop: 1 },
+    pBannerShimmer: {
+      position: 'absolute', top: 0, bottom: 0,
+      width: 80,
+      backgroundColor: 'rgba(255,255,255,0.07)',
+    },
+    pSpark1: { position: 'absolute', top: 32,  right: 60, fontSize: 10, color: c.gold,                    opacity: 0.9 },
+    pSpark2: { position: 'absolute', top: 46,  right: 42, fontSize: 7,  color: '#c084fc',                  opacity: 0.8 },
+    pSpark3: { position: 'absolute', bottom: 16, left: 100, fontSize: 8, color: c.gold,                    opacity: 0.7 },
+    pSpark4: { position: 'absolute', top: 28,  left: 140, fontSize: 6,  color: 'rgba(255,255,255,0.6)',     opacity: 0.6 },
+    premiumBannerTitle: { ...textStyles.button, color: c.gold, fontSize: 19, fontWeight: '900' as const, letterSpacing: 0.3 },
+    premiumBannerSub: { ...textStyles.body, color: 'rgba(255,255,255,0.65)', fontSize: 13 },
     premiumBannerArrow: {
-      width: 28, height: 28, borderRadius: 14,
-      backgroundColor: 'rgba(255,255,255,0.12)',
+      width: 32, height: 32, borderRadius: 16,
+      backgroundColor: 'rgba(245,158,11,0.18)',
+      borderWidth: 1, borderColor: 'rgba(245,158,11,0.4)',
       alignItems: 'center', justifyContent: 'center',
     },
     premiumBannerPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },

@@ -7,7 +7,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../utils/haptics';
 
 import { useUserStore, type DailyQuest } from '../../store/useUserStore';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';

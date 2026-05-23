@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { router } from 'expo-router';
 import {
   Pressable,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../src/utils/haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { radius, spacing, textStyles, useThemeColors } from '../src/theme';
@@ -21,8 +21,7 @@ import { MOTIVATIONS_META } from '../src/services/personalization';
 
 // ════════════════════════════════════════════════════════════════
 // SETTINGS SCREEN
-// Tema (dark/light) ve dil (TR/EN) artik AKTIF — store'a yazar.
-// Diger toggle'lar (ses/haptik/bildirim) hala mock (yerel state).
+// Tüm toggle'lar (ses/haptik/tema/dil) store'a yazar — kalıcıdır.
 // ════════════════════════════════════════════════════════════════
 
 export default function SettingsScreen() {
@@ -36,19 +35,11 @@ export default function SettingsScreen() {
   const learningMotivations = useUserStore((s) => s.learningMotivations);
   const setLearningMotivations = useUserStore((s) => s.setLearningMotivations);
 
-  // Mock toggle'lar (ses + haptik hala lokal state — ileride store'a taşınabilir)
-  const [soundOn, setSoundOn] = useState(true);
-  const [hapticOn, setHapticOn] = useState(true);
-
-  const toggle = (
-    setter: React.Dispatch<React.SetStateAction<boolean>>,
-    value: boolean,
-  ) => {
-    if (hapticOn) {
-      Haptics.selectionAsync().catch(() => {});
-    }
-    setter(!value);
-  };
+  // Ses + Haptic — store'dan kalıcı
+  const soundOn = useUserStore((s) => s.soundEnabled);
+  const hapticOn = useUserStore((s) => s.hapticEnabled);
+  const setSoundEnabled = useUserStore((s) => s.setSoundEnabled);
+  const setHapticEnabled = useUserStore((s) => s.setHapticEnabled);
 
   const handleThemeChange = (mode: 'dark' | 'light') => {
     if (mode === themeMode) return;
@@ -114,7 +105,7 @@ export default function SettingsScreen() {
             label={t('settings.soundEffects')}
             description={t('settings.soundEffectsDesc')}
             value={soundOn}
-            onValueChange={() => toggle(setSoundOn, soundOn)}
+            onValueChange={() => { Haptics.selectionAsync(); setSoundEnabled(!soundOn); }}
           />
           <ToggleRow
             c={c}
@@ -124,7 +115,7 @@ export default function SettingsScreen() {
             label={t('settings.haptic')}
             description={t('settings.hapticDesc')}
             value={hapticOn}
-            onValueChange={() => toggle(setHapticOn, hapticOn)}
+            onValueChange={() => { Haptics.selectionAsync(); setHapticEnabled(!hapticOn); }}
           />
         </Section>
 

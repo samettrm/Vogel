@@ -2,18 +2,15 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../utils/haptics';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useUserStore } from '../../store/useUserStore';
-import { ACHIEVEMENTS } from '../../data/achievements';
-
 // ════════════════════════════════════════════════════════════════
 // TOP STATUS BAR — Ana sayfa üst bilgi şeridi
 //
-// İçindeki 4 sayaç:
+// Tek grup pill içinde dikey ayraçlarla 3 sayaç:
 //   🔥 Alev   → STREAK (günlük seri sayısı). Tıklayınca profile sekmesi.
-//   ❤️ Kalp   → CAN sayısı (max 5, premium ise ∞).
-//   💎 Elmas  → AÇILAN ROZET SAYISI ({unlocked}/{total}). Tıklayınca rozet ekranı.
+//   ❤️ Kalp   → CAN sayısı (max 5, premium ise ∞ neon).
 //   ⚡ Şimşek → TOPLAM XP.
 // ════════════════════════════════════════════════════════════════
 
@@ -25,28 +22,19 @@ export function TopStatusBar() {
   const c = useThemeColors();
   const router = useRouter();
 
-  const xp = useUserStore((s) => s.xp);
-  const hearts = useUserStore((s) => s.hearts);
+  const xp       = useUserStore((s) => s.xp);
+  const hearts   = useUserStore((s) => s.hearts);
   const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
-  const streak = useUserStore((s) => s.streak);
+  const streak   = useUserStore((s) => s.streak);
   const activeCourse = useUserStore((s) => s.activeCourse);
-  const achievementsUnlocked = useUserStore((s) => s.achievementsUnlocked);
-
-  const achievementCount = achievementsUnlocked.size;
-  const totalAchievements = ACHIEVEMENTS.length;
-
   const targetFlag = FLAG_BY_LANG[activeCourse.target] ?? '🌐';
+
   // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const goToProfile = () => {
     Haptics.selectionAsync().catch(() => {});
     router.push('/profile');
-  };
-
-  const goToAchievements = () => {
-    Haptics.selectionAsync().catch(() => {});
-    router.push('/achievements');
   };
 
   const goToHearts = () => {
@@ -58,93 +46,50 @@ export function TopStatusBar() {
     }
   };
 
+  const heartIconColor  = isPremium ? c.neon : hearts > 0 ? c.red : c.textMuted;
+  const heartTextColor  = isPremium ? c.neon : hearts === 0 ? c.textMuted : c.textHigh;
+
   return (
     <View style={styles.container}>
-      <Pressable style={styles.flagButton}>
+      {/* Bayrak — sade pill, border yok */}
+      <Pressable style={({ pressed }) => [styles.flagBtn, pressed && styles.flagBtnPressed]}>
         <Text style={styles.flag}>{targetFlag}</Text>
       </Pressable>
-      <View style={styles.counters}>
-        <Counter
-          c={c}
-          icon="flame"
-          color={streak > 0 ? c.gold : c.textMuted}
-          value={streak}
-          dimmed={streak === 0}
+
+      {/* ─── Tek grup pill: 🔥 | ❤️ | ⚡ ─── */}
+      <View style={styles.group}>
+        {/* 🔥 Streak */}
+        <Pressable
           onPress={goToProfile}
-        />
-        <Counter
-          c={c}
-          icon="heart"
-          color={isPremium ? c.neon : hearts > 0 ? c.red : c.textMuted}
-          value={hearts}
-          label={isPremium ? '∞' : undefined}
-          dimmed={!isPremium && hearts === 0}
+          style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+        >
+          <Ionicons name="flame" size={17} color={streak > 0 ? c.gold : c.textMuted} />
+          <Text style={[styles.itemText, streak === 0 && styles.itemTextDim]}>{streak}</Text>
+        </Pressable>
+
+        <View style={styles.sep} />
+
+        {/* ❤️ Hearts — premium ise ∞ neon */}
+        <Pressable
           onPress={!isPremium ? goToHearts : undefined}
-        />
-        <Counter
-          c={c}
-          icon="diamond"
-          color={c.cyan}
-          value={achievementCount}
-          suffix={`/${totalAchievements}`}
-          onPress={goToAchievements}
-        />
-        <Counter c={c} icon="flash" color={c.neon} value={xp} />
+          style={({ pressed }) => [styles.item, !isPremium && pressed && styles.itemPressed]}
+        >
+          <Ionicons name="heart" size={17} color={heartIconColor} />
+          <Text style={[styles.itemText, { color: heartTextColor }]}>
+            {isPremium ? '∞' : hearts}
+          </Text>
+        </Pressable>
+
+        <View style={styles.sep} />
+
+        {/* ⚡ XP */}
+        <View style={styles.item}>
+          <Ionicons name="flash" size={17} color={c.neon} />
+          <Text style={styles.itemText}>{xp}</Text>
+        </View>
       </View>
     </View>
   );
-}
-
-function Counter({
-  c,
-  icon,
-  color,
-  value,
-  label,
-  suffix,
-  dimmed,
-  onPress,
-}: {
-  c: ReturnType<typeof useThemeColors>;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
-  value: number;
-  label?: string;
-  suffix?: string;
-  dimmed?: boolean;
-  onPress?: () => void;
-}) {
-  // 🚀 PERF: useMemo — Counter 4 kez render oluyor, her seferinde StyleSheet.create önlenir
-  const styles = useMemo(() => makeStyles(c), [c]);
-  const isPressable = !!onPress;
-
-  const content = (
-    <>
-      <Ionicons name={icon} size={18} color={color} />
-      <Text style={[styles.counterText, dimmed && styles.counterTextDim]}>
-        {label ?? value}
-        {suffix ? <Text style={styles.counterSuffix}>{suffix}</Text> : null}
-      </Text>
-    </>
-  );
-
-  if (isPressable) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [
-          styles.counter,
-          // İşlevsel sayaçların kenarına hafif renk ver — tıklanabilir olduğu belli olsun
-          { borderColor: color, opacity: dimmed ? 0.5 : 1 },
-          pressed && styles.counterPressed,
-        ]}
-      >
-        {content}
-      </Pressable>
-    );
-  }
-
-  return <View style={[styles.counter, dimmed && { opacity: 0.5 }]}>{content}</View>;
 }
 
 function makeStyles(c: ReturnType<typeof useThemeColors>) {
@@ -156,25 +101,42 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       paddingHorizontal: spacing.base,
       paddingVertical: spacing.sm,
       backgroundColor: c.bg,
-      borderBottomWidth: 1,
-      borderBottomColor: c.divider,
     },
-    flagButton: {
-      width: 44, height: 36, borderRadius: radius.md,
-      backgroundColor: c.glassBg, borderWidth: 1, borderColor: c.glassBorder,
-      justifyContent: 'center', alignItems: 'center',
-    },
-    flag: { fontSize: 22 },
-    counters: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    counter: {
-      flexDirection: 'row', alignItems: 'center', gap: 4,
-      paddingHorizontal: spacing.sm, paddingVertical: 6,
-      backgroundColor: c.glassBg, borderWidth: 1, borderColor: c.glassBorder,
+    // Bayrak butonu — minimal pill, border yok
+    flagBtn: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
       borderRadius: radius.pill,
+      backgroundColor: c.glassBg,
     },
-    counterPressed: { opacity: 0.7, transform: [{ scale: 0.96 }] },
-    counterText: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 14 },
-    counterTextDim: { color: c.textMuted },
-    counterSuffix: { ...textStyles.body, color: c.textLow, fontSize: 11 },
+    flagBtnPressed: { opacity: 0.7, transform: [{ scale: 0.95 }] },
+    flag: { fontSize: 20 },
+    // Tek grup pill — üç sayaç bir arada
+    group: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.glassBg,
+      borderWidth: 1,
+      borderColor: c.glassBorder,
+      borderRadius: radius.pill,
+      overflow: 'hidden',
+    },
+    // Her sayaç öğesi
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 7,
+    },
+    itemPressed: { backgroundColor: c.surface },
+    itemText: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 14 },
+    itemTextDim: { color: c.textMuted },
+    // Dikey ayraç
+    sep: {
+      width: 1,
+      height: 16,
+      backgroundColor: c.divider,
+    },
   });
 }

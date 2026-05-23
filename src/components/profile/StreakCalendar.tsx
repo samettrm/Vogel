@@ -65,27 +65,36 @@ export function StreakCalendar({ streak, activeDays }: StreakCalendarProps) {
 
   return (
     <View style={styles.card}>
+      {/* Arka plan ateş glow */}
+      <View style={styles.glowOrb} pointerEvents="none" />
       <View style={styles.topHighlight} pointerEvents="none" />
 
+      {/* Header: alev ikonu + başlık + streak sayısı rozeti */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Ionicons name="flame" size={18} color={c.gold} />
-          <Text style={styles.title}>{t('streakCalendar.title')}</Text>
+          <Text style={styles.flameBig}>🔥</Text>
+          <View>
+            <Text style={styles.title}>{t('streakCalendar.title')}</Text>
+            <Text style={styles.subtitle}>{t('streakCalendar.subtitle')}</Text>
+          </View>
         </View>
-        <Text style={styles.subtitle}>{t('streakCalendar.subtitle')}</Text>
+        <View style={styles.streakBadge}>
+          <Text style={styles.streakBadgeNum}>{streak}</Text>
+          <Text style={styles.streakBadgeUnit}>{t('streakCalendar.unit')}</Text>
+        </View>
       </View>
 
+      {/* Günler */}
       <View style={styles.daysRow}>
         {days.map((day, idx) => (
           <Animated.View
             key={idx}
-            entering={FadeInUp.delay(idx * 40).duration(280).springify().damping(14)}
+            entering={FadeInUp.delay(idx * 35).duration(260).springify().damping(16)}
             style={styles.dayCell}
           >
             <Text style={[styles.dayLabel, day.isToday && styles.dayLabelToday]}>
               {t(day.labelKey)}
             </Text>
-
             <View
               style={[
                 styles.dayCircle,
@@ -96,12 +105,7 @@ export function StreakCalendar({ streak, activeDays }: StreakCalendarProps) {
               {day.isActive ? (
                 <Text style={styles.dayActiveEmoji}>🔥</Text>
               ) : (
-                <Text
-                  style={[
-                    styles.dayNumber,
-                    day.isToday && styles.dayNumberToday,
-                  ]}
-                >
+                <Text style={[styles.dayNumber, day.isToday && styles.dayNumberToday]}>
                   {day.dayNumber}
                 </Text>
               )}
@@ -110,14 +114,17 @@ export function StreakCalendar({ streak, activeDays }: StreakCalendarProps) {
         ))}
       </View>
 
+      {/* Footer */}
       <View style={styles.footerRow}>
-        <View style={styles.streakSummary}>
-          <Text style={styles.streakValue}>{streak}</Text>
-          <Text style={styles.streakUnit}>{t('streakCalendar.unit')}</Text>
-        </View>
         <Text style={styles.encourage}>
           {streak > 0 ? t('streakCalendar.keepGoing') : t('streakCalendar.startToday')}
         </Text>
+        {streak > 0 && (
+          <View style={styles.footerChip}>
+            <Ionicons name="flame" size={11} color={c.gold} />
+            <Text style={styles.footerChipText}>{streak} gün</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -179,9 +186,45 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       borderTopWidth: 1,
       borderTopColor: c.divider,
     },
-    streakSummary: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-    streakValue: { ...textStyles.subheading, color: c.gold, fontSize: 22 },
-    streakUnit: { ...textStyles.body, color: c.textLow, fontSize: 13 },
     encourage: { ...textStyles.label, color: c.textMed },
+    glowOrb: {
+      position: 'absolute', bottom: -30, right: -20,
+      width: 100, height: 100, borderRadius: 50,
+      backgroundColor: 'rgba(245,158,11,0.1)',
+    },
+    flameBig: { fontSize: 28 },
+    streakBadge: {
+      alignItems: 'center',
+      backgroundColor: c.goldBg,
+      borderWidth: 1.5,
+      borderColor: c.gold,
+      borderRadius: radius.pill,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+    },
+    streakBadgeNum: {
+      ...textStyles.subheading,
+      color: c.gold,
+      fontSize: 20,
+      fontWeight: '900' as const,
+    },
+    streakBadgeUnit: { ...textStyles.label, color: c.gold, fontSize: 10 },
+    footerChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: c.goldBg,
+      borderWidth: 1,
+      borderColor: c.gold + '55',
+      borderRadius: radius.pill,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+    },
+    footerChipText: {
+      ...textStyles.label,
+      color: c.gold,
+      fontSize: 11,
+      fontWeight: '700' as const,
+    },
   });
 }

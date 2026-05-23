@@ -39,7 +39,7 @@ export function GoalsCard() {
     >
       <View style={styles.headerRow}>
         <View style={styles.iconBox}>
-          <Ionicons name="flag" size={18} color={c.purple} />
+          <Ionicons name="flag" size={18} color={c.gold} />
         </View>
         <View style={styles.headerTextCol}>
           <Text style={styles.title}>{t('profile.goalsCardTitle')}</Text>
@@ -79,10 +79,10 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     card: {
       backgroundColor: c.glassBgStrong,
       borderWidth: 1,
-      borderColor: c.purple,
+      borderColor: c.glassBorder,
       borderRadius: radius.lg,
       padding: spacing.base,
-      gap: spacing.md,
+      gap: spacing.xs,
     },
     cardPressed: {
       opacity: 0.9,
@@ -94,12 +94,12 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       gap: spacing.md,
     },
     iconBox: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: c.purpleBg,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: c.goldBg,
       borderWidth: 1,
-      borderColor: c.purple,
+      borderColor: c.gold,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -110,12 +110,12 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     title: {
       ...textStyles.bodyBold,
       color: c.textHigh,
-      fontSize: 15,
+      fontSize: 13,
     },
     subtitle: {
       ...textStyles.body,
       color: c.textLow,
-      fontSize: 12,
+      fontSize: 11,
     },
     chipsRow: {
       flexDirection: 'row',
@@ -125,21 +125,21 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     chip: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: spacing.sm,
-      paddingVertical: 6,
+      gap: 4,
+      paddingHorizontal: 7,
+      paddingVertical: 3,
       backgroundColor: c.purpleBg,
       borderWidth: 1,
       borderColor: c.purple,
       borderRadius: radius.pill,
     },
     chipEmoji: {
-      fontSize: 14,
+      fontSize: 12,
     },
     chipLabel: {
       ...textStyles.bodyBold,
       color: c.purpleLight,
-      fontSize: 12,
+      fontSize: 11,
     },
     emptyHint: {
       backgroundColor: c.glassBg,

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../utils/haptics';
 import { router } from 'expo-router'; // Yönlendirme için ekledik
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';

@@ -17,7 +17,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../utils/haptics';
 import { router } from 'expo-router';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
@@ -41,10 +41,12 @@ interface PaywallModalProps {
 }
 
 const FEATURES = [
-  { text: '♾️  Sınırsız can — hiç durma(k) zorunda kalmassın' },
-  { text: '🚫  Reklam yok — tam odaklanma' },
-  { text: '📚  Tüm seviyelere erişim' },
+  { text: '♾️  Sınırsız ders — hiç durma' },
+  { text: '📖  Tüm alıştırmalar açık' },
+  { text: '📊  Detaylı istatistikler' },
+  { text: '📡  Çevrimdışı erişim' },
   { text: '⚡  Öncelikli destek' },
+  { text: '👨‍👩‍👧  Aile paylaşımı (6 üyeye kadar)' },
 ] as const;
 
 export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {

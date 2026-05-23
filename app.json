@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Vogel",
+    "name": "Vogel: Language Lessons",
     "slug": "Vogel",
     "version": "1.0.2",
     "orientation": "portrait",
@@ -20,7 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0B1020",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -45,10 +45,10 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#F8FAFC",
+          "backgroundColor": "#0B1020",
           "dark": {
             "image": "./assets/images/splash-icon.png",
-            "backgroundColor": "#0F172A"
+            "backgroundColor": "#0B1020"
           }
         }
       ],

@@ -1,0 +1,40 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "copyright": "2025 Vogel Language Learning",
+    "primaryCategory": "EDUCATION",
+    "secondaryCategory": "REFERENCE",
+    "info": {
+      "tr": {
+        "title": "Vogel: Language Lessons",
+        "subtitle": "Almancayı Akıllıca Öğren",
+        "description": {
+          "path": "store/tr/description.txt"
+        },
+        "keywords": {
+          "path": "store/tr/keywords.txt"
+        },
+        "marketingUrl": "https://vogel-app.com",
+        "supportUrl": "https://vogel-app.com/support",
+        "promotionalText": {
+          "path": "store/tr/promotional_text.txt"
+        }
+      },
+      "en-US": {
+        "title": "Vogel: Language Lessons",
+        "subtitle": "Learn German Intelligently",
+        "description": {
+          "path": "store/en-US/description.txt"
+        },
+        "keywords": {
+          "path": "store/en-US/keywords.txt"
+        },
+        "marketingUrl": "https://vogel-app.com",
+        "supportUrl": "https://vogel-app.com/support",
+        "promotionalText": {
+          "path": "store/en-US/promotional_text.txt"
+        }
+      }
+    }
+  }
+}

@@ -44,6 +44,7 @@ interface LessonHeaderProps {
   hearts: number;
   onClose: () => void;
   completed?: boolean; // Kullanılmıyor artık ama API uyumu için tutuldu
+  isPremium?: boolean;
 }
 
 const BAR_HEIGHT = 24;
@@ -82,6 +83,7 @@ export function LessonHeader({
   progress,
   hearts,
   onClose,
+  isPremium = false,
 }: LessonHeaderProps) {
   const c = useThemeColors();
 
@@ -250,8 +252,10 @@ export function LessonHeader({
       </View>
 
       <View style={styles.hearts}>
-        <Ionicons name="heart" size={18} color={c.red} />
-        <Text style={styles.heartText}>{hearts}</Text>
+        <Ionicons name="heart" size={18} color={isPremium ? c.neon : c.red} />
+        <Text style={[styles.heartText, isPremium && { color: c.neon }]}>
+          {isPremium ? '∞' : hearts}
+        </Text>
       </View>
     </View>
   );

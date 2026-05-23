@@ -16,13 +16,18 @@ interface AvatarCardProps {
   level: number;
   username?: string;
   joinedLabel?: string;
+  xpInLevel?: number;
+  xpForNext?: number;
 }
 
-export function AvatarCard({ level, username, joinedLabel }: AvatarCardProps) {
+export function AvatarCard({ level, username, joinedLabel, xpInLevel = 0, xpForNext = 100 }: AvatarCardProps) {
   const c = useThemeColors();
   const t = useT();
   const bob = useSharedValue(0);
   const tilt = useSharedValue(0);
+  const xpFill = useSharedValue(0);
+
+  const xpRatio = Math.min(1, Math.max(0, xpInLevel / Math.max(1, xpForNext)));
 
   useEffect(() => {
     bob.value = withRepeat(
@@ -38,18 +43,24 @@ export function AvatarCard({ level, username, joinedLabel }: AvatarCardProps) {
       ),
       -1, false,
     );
-    // 🚀 PERF: unmount'ta animasyonları iptal et — arka planda CPU yakmaya devam etmesin
     return () => {
       cancelAnimation(bob);
       cancelAnimation(tilt);
     };
   }, [bob, tilt]);
 
+  useEffect(() => {
+    xpFill.value = withTiming(xpRatio, { duration: 700, easing: Easing.out(Easing.cubic) });
+  }, [xpRatio, xpFill]);
+
   const birdStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: bob.value }, { rotate: `${tilt.value}deg` }],
   }));
 
-  // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
+  const xpFillStyle = useAnimatedStyle(() => ({
+    width: `${xpFill.value * 100}%`,
+  }));
+
   const styles = useMemo(() => makeStyles(c), [c]);
   const defaultUsername = username ?? 'Vogel';
   const defaultJoinedLabel = joinedLabel ?? 'Almanca';
@@ -57,6 +68,8 @@ export function AvatarCard({ level, username, joinedLabel }: AvatarCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.topHighlight} pointerEvents="none" />
+
+      {/* Avatar satırı */}
       <View style={styles.row}>
         <View style={styles.avatarWrap}>
           <View style={styles.avatarGlowRing} pointerEvents="none" />
@@ -72,6 +85,23 @@ export function AvatarCard({ level, username, joinedLabel }: AvatarCardProps) {
           <Text style={styles.name} numberOfLines={1}>{defaultUsername}</Text>
           <Text style={styles.joined}>{defaultJoinedLabel}</Text>
         </View>
+      </View>
+
+      {/* XP progress bölümü */}
+      <View style={styles.xpSection}>
+        <View style={styles.xpRow}>
+          <Text style={styles.xpLabel}>{t('profile.level')} {level}</Text>
+          <Text style={styles.xpMeta}>
+            <Text style={[styles.xpVal, { color: c.neon }]}>{xpInLevel}</Text>
+            <Text style={styles.xpOf}> / {xpForNext} XP</Text>
+          </Text>
+        </View>
+        <View style={styles.xpTrack}>
+          <Animated.View style={[styles.xpBar, { backgroundColor: c.neon }, xpFillStyle]} />
+        </View>
+        <Text style={styles.xpHint}>
+          {t('profile.nextLevel')}: {level + 1} · {xpForNext - xpInLevel} XP kaldı
+        </Text>
       </View>
     </View>
   );
@@ -126,5 +156,32 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     info: { flex: 1, gap: 2 },
     name: { ...textStyles.subheading, color: c.textHigh, fontSize: 18 },
     joined: { ...textStyles.body, color: c.textLow, fontSize: 12 },
+    // XP progress
+    xpSection: {
+      gap: 6,
+      paddingTop: spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: c.divider,
+    },
+    xpRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    xpLabel: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 13 },
+    xpMeta: { flexDirection: 'row', alignItems: 'baseline' },
+    xpVal: { ...textStyles.bodyBold, fontSize: 13 },
+    xpOf: { ...textStyles.body, color: c.textLow, fontSize: 11 },
+    xpTrack: {
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: c.surface,
+      overflow: 'hidden',
+    },
+    xpBar: {
+      height: '100%',
+      borderRadius: 5,
+    },
+    xpHint: { ...textStyles.label, color: c.textMuted, fontSize: 10 },
   });
 }

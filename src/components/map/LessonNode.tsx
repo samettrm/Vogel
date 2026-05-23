@@ -9,7 +9,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../utils/haptics';
 import { radius, shadows, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
 import { SegmentedRing } from './SegmentedRing';

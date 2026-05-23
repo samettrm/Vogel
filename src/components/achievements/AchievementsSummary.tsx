@@ -35,11 +35,9 @@ export function AchievementsSummary() {
       onPress={() => router.push('/achievements')}
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
     >
-      <View style={styles.topHighlight} pointerEvents="none" />
-
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Ionicons name="trophy" size={18} color={c.gold} />
+          <Ionicons name="trophy" size={15} color={c.gold} />
           <Text style={styles.title}>{t('achievements.title')}</Text>
         </View>
         <Text style={styles.summary}>
@@ -61,22 +59,30 @@ export function AchievementsSummary() {
               key={ach.id}
               style={[
                 styles.badge,
-                isUnlocked ? { borderColor: accent } : styles.badgeLocked,
+                isUnlocked
+                  ? { borderColor: accent, backgroundColor: accent + '18', shadowColor: accent }
+                  : styles.badgeLocked,
               ]}
             >
               <Ionicons
                 name={ach.iconName as keyof typeof Ionicons.glyphMap}
-                size={20}
+                size={16}
                 color={isUnlocked ? accent : c.textMuted}
               />
             </View>
           );
         })}
+        {/* Kalan rozet sayısı */}
+        {totalCount - unlockedCount > 0 && (
+          <View style={styles.moreChip}>
+            <Text style={styles.moreChipText}>+{totalCount - unlockedCount}</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.footerRow}>
         <Text style={styles.viewAll}>{t('achievements.viewAll')}</Text>
-        <Ionicons name="chevron-forward" size={16} color={c.neonLight} />
+        <Ionicons name="chevron-forward" size={13} color={c.textMed} />
       </View>
     </Pressable>
   );
@@ -90,38 +96,41 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       borderWidth: 1,
       borderColor: c.glassBorder,
       padding: spacing.base,
-      gap: spacing.md,
+      gap: spacing.xs + 2,
       overflow: 'hidden',
-      marginBottom: spacing.lg,
     },
     cardPressed: { opacity: 0.85, transform: [{ scale: 0.99 }] },
-    topHighlight: {
-      position: 'absolute', top: 0,
-      left: spacing.md, right: spacing.md,
-      height: 1, backgroundColor: c.glassHighlight,
-    },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    title: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 15 },
-    summary: { ...textStyles.label, color: c.gold, fontSize: 12 },
-    previewRow: { flexDirection: 'row', gap: spacing.sm },
+    titleRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+    title: { ...textStyles.bodyBold, color: c.textHigh, fontSize: 13 },
+    summary: { ...textStyles.label, color: c.textHigh, fontSize: 11 },
+    previewRow: { flexDirection: 'row', gap: spacing.xs + 2, alignItems: 'center' },
     badge: {
-      width: 44, height: 44, borderRadius: 22,
+      width: 36, height: 36, borderRadius: 18,
       backgroundColor: c.surface,
       borderWidth: 1.5,
       alignItems: 'center', justifyContent: 'center',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.5, shadowRadius: 6, elevation: 3,
     },
-    badgeLocked: { borderColor: c.divider, opacity: 0.4 },
+    badgeLocked: { borderColor: c.divider, opacity: 0.35 },
+    moreChip: {
+      paddingHorizontal: 7, paddingVertical: 3,
+      borderRadius: radius.pill,
+      backgroundColor: c.glassBg,
+      borderWidth: 1, borderColor: c.glassBorderStrong,
+    },
+    moreChipText: { ...textStyles.label, color: c.textMed, fontSize: 10, fontWeight: '700' as const },
     footerRow: {
       flexDirection: 'row',
       justifyContent: 'flex-end',
       alignItems: 'center',
-      gap: 4,
+      gap: 3,
     },
-    viewAll: { ...textStyles.label, color: c.neonLight, fontSize: 12 },
+    viewAll: { ...textStyles.label, color: c.textHigh, fontSize: 11 },
   });
 }
