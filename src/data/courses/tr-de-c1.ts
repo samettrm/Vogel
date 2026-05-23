@@ -744,7 +744,7 @@ export const TR_DE_C1: Course = {
       order: 8,
       title: 'Felsefe ve Düşünce',
       description: 'Felsefe terimleri, soyut kavramlar — entelektüel sohbetin dili.',
-      tags: ['academic', 'formal'],
+      tags: ['formal'],
       lessons: [
         {
           id: 'tr-de-c1-u8-l1',
@@ -950,7 +950,7 @@ export const TR_DE_C1: Course = {
       order: 10,
       title: 'Bilim ve Teknoloji İleri',
       description: 'Yapay zeka, araştırma, dijital dünya — geleceğin dili.',
-      tags: ['tech', 'academic'],
+      tags: ['tech', 'formal'],
       lessons: [
         {
           id: 'tr-de-c1-u10-l1',

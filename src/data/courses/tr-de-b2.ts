@@ -744,7 +744,7 @@ export const TR_DE_B2: Course = {
       order: 8,
       title: 'Eğitim ve Üniversite',
       description: 'Üniversite hayatı, dersler, sınavlar — akademik dünya.',
-      tags: ['academic', 'formal'],
+      tags: ['formal'],
       lessons: [
         {
           id: 'tr-de-b2-u8-l1',

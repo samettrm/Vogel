@@ -231,5 +231,5 @@ export type ThemePalette = { [K in keyof typeof dark]: string };
  * Component'lerde `useThemeColors()` ile cagrilir (bkz. theme/useThemeColors.ts)
  */
 export function getPalette(mode: 'dark' | 'light'): ThemePalette {
-  return mode === 'light' ? light : dark;
+  return (mode === 'light' ? light : dark) as unknown as ThemePalette;
 }

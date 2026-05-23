@@ -796,7 +796,7 @@ export const TR_DE_B1: Course = {
       order: 9,
       title: 'Medya ve Haber',
       description: 'Gazete, TV, internet — bilgiye nasıl ulaşırız?',
-      tags: ['media', 'culture'],
+      tags: ['culture'],
       lessons: [
         {
           id: 'tr-de-b1-u9-l1',
