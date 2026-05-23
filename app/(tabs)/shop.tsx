@@ -115,13 +115,6 @@ export default function ShopScreen() {
             </TouchableOpacity>
           ) : null}
 
-          {/* İptal bilgisi — yalnızca Android */}
-          {Platform.OS === 'android' ? (
-            <Text style={styles.cancelText}>
-              Google Play'den istediğiniz zaman iptal edebilirsiniz.
-            </Text>
-          ) : null}
-
           {/* Yalnızca mock modda göster */}
           {!isPurchasesConfigured() ? (
             <View style={styles.mockNote}>
