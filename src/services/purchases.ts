@@ -34,11 +34,15 @@ let _initialized = false;
 
 export function initPurchases(): void {
   if (!RC_API_KEY || _initialized) return;
-  if (__DEV__) {
-    Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+  try {
+    if (__DEV__) {
+      Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+    }
+    Purchases.configure({ apiKey: RC_API_KEY });
+    _initialized = true;
+  } catch {
+    // Expo Go'da native modül yok — sessizce geç, mock mod devreye girer
   }
-  Purchases.configure({ apiKey: RC_API_KEY });
-  _initialized = true;
 }
 
 export function isPurchasesConfigured(): boolean {
@@ -49,7 +53,7 @@ export function isPurchasesConfigured(): boolean {
 // TİPLER
 // ─────────────────────────────────────────────────────────────────
 
-export type PlanId = 'monthly' | 'yearly' | 'lifetime';
+export type PlanId = 'monthly' | 'yearly' | 'family';
 
 export type PremiumPackage = {
   id: PlanId;
@@ -78,7 +82,7 @@ export async function fetchPremiumPackages(): Promise<PremiumPackage[] | null> {
       const id: PlanId | null =
         productId === PRODUCT_IDS.premiumMonthly  ? 'monthly'
         : productId === PRODUCT_IDS.premiumYearly ? 'yearly'
-        : productId === PRODUCT_IDS.premiumLifetime ? 'lifetime'
+        : productId === PRODUCT_IDS.premiumFamily  ? 'family'
         : null;
 
       if (id) {
