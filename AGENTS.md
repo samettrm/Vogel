@@ -178,8 +178,13 @@ Play Store'a yüklenmez ama sideload (Drive/USB/adb) ile telefona kurulur.
 |---|---|---|
 | Workflow | `codemagic.yaml` | Repo kökünde mevcut |
 | Tetikleyici | push to `main` | Otomatik |
-| Signing | Codemagic dashboard → automatic | app_store, com.yenipc002.Vogel |
-| ASC entegrasyonu | Codemagic dashboard → Integrations | `Vogel_ASC` adıyla ekli |
+| Signing | **Manuel** — `IOS_DIST_PRIVATE_KEY` env var | `appstore_credentials` grubunda, Codemagic → Vogel → Env vars |
+| ASC API Key | `appstore_credentials` grubu | APP_STORE_CONNECT_PRIVATE_KEY + KEY_IDENTIFIER (C4Z2AK6JRF) + ISSUER_ID |
+| Dist Private Key dosyası | `C:\Users\i9pc\Desktop\codemagic AppConnect\vogel_dist_key.pem` | **SİLME** — silersan Apple 409 hatası (cert limit dolu, yeni cert oluşturulamaz) |
+
+> ⚠️ **ÖNEMLİ:** `codemagic.yaml`'a asla `ios_signing:` bloğu ekleme!
+> Bu blok Codemagic'in pre-build profile check'ini tetikler → "No matching profiles" hatası.
+> Signing tamamen script adımlarında `app-store-connect fetch-signing-files --certificate-key "@env:IOS_DIST_PRIVATE_KEY" --create` ile yapılıyor.
 
 ---
 
@@ -189,10 +194,17 @@ Play Store'a yüklenmez ama sideload (Drive/USB/adb) ile telefona kurulur.
 Apple ID:        sametrme@gmail.com
 Apple Team ID:   7Q6ZYGVH67 (Samet TERME - Individual)
 Provider ID:     128933404
-Dist cert ID:    6CV56NRC3X (2027-05'e kadar, Lexora ile ortak)
 Bundle ID:       com.yenipc002.Vogel
 ASC App ID:      6771534635
+ASC API Key ID:  C4Z2AK6JRF (Admin — Codemagic APP_STORE_CONNECT_KEY_IDENTIFIER)
 ```
+
+**Distribution cert durumu (2026-05):**
+- Apple hesabında max **2 Distribution All** cert var (limit dolu)
+- Cert 1: Lexora için (Lexora projesinin IOS_DIST_PRIVATE_KEY'i ile oluşturuldu)
+- Cert 2: Vogel için (`C:\Users\i9pc\Desktop\codemagic AppConnect\vogel_dist_key.pem` ile oluşturuldu)
+- Her build sırasında Codemagic mevcut cert'i yeniden kullanır; aynı private key varsa 409 olmaz
+- Private key **kaybolursa**: Apple'dan o cert'i revoke et, yeni key ile yeni cert oluştur (1 slot serbest kalır)
 
 Apple cred'ler keychain'de cache'lendi, build sırasında sormaz.
 
@@ -202,7 +214,9 @@ Apple cred'ler keychain'de cache'lendi, build sırasında sormaz.
 
 - `--non-interactive` flag'ini çıkarma → terminalde takılır
 - Android'e şu an `--auto-submit` ekleme → submit config eksik, hata verir
-- buildNumber'ı manuel artırma → autoIncrement yapıyor
+- buildNumber'ı manuel artırma → Codemagic `app-store-connect get-latest-build-number` ile otomatik artırıyor
 - Aynı build'i tekrar submit etme → "Build already submitted" hatası
 - iOS için `eas build --platform ios` çalıştırma → iOS Codemagic'e geçti, EAS quota'yı boşa harcar
-- Codemagic build numarasını EAS ile karıştırma → offset +100 var (EAS #7 → Codemagic #1 = iOS build 101)
+- `codemagic.yaml`'a `ios_signing:` bloğu ekleme → "No matching profiles found" hatası (13 build bu yüzden başarısız oldu!)
+- `vogel_dist_key.pem` dosyasını silme/kaybetme → Apple cert limit 2/2 dolu, yeni cert oluşturulamaz
+- Codemagic'te Vogel'in `IOS_DIST_PRIVATE_KEY`'ini Lexora'nın key'i ile değiştirme → farklı cert'ler, karışır

@@ -23,6 +23,7 @@ import {
   type PremiumPackage,
   type PlanId,
 } from '../../src/services/purchases';
+import { ENTITLEMENT_PREMIUM } from '../../src/config/revenuecat';
 import type { PurchasesPackage } from 'react-native-purchases';
 
 // ════════════════════════════════════════════════════════════════
@@ -73,7 +74,7 @@ export default function ShopScreen() {
     }
     const result = await rcRestorePurchases();
     if (result.ok) {
-      const hasPremium = result.customerInfo.entitlements.active['premium'] !== undefined;
+      const hasPremium = result.customerInfo.entitlements.active[ENTITLEMENT_PREMIUM] !== undefined;
       if (hasPremium) {
         if (typeof makePremium === 'function') makePremium();
         Alert.alert(t('shop.restoreSuccess'));
