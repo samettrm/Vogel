@@ -6,21 +6,27 @@ aşağıdaki komutları aynen uygula.
 
 ---
 
-## 📁 Repo konumu (KRİTİK)
+## 📁 Repo & SDK konumları
 
-**Repo `D:\Vogel`'de.** Eski `C:\Users\avbus\Documents\Vogel` yolu artık geçersiz
-(disk yer açmak için 2026-05-23'te D:'ye taşındı). Tüm komutlarda absolute path
-`D:\Vogel` kullan veya `Set-Location D:\Vogel` ile başla. Bash sandbox cwd'si
-hala C: gösterebilir, takma.
+### 💻 Laptop (avbus)
+- Repo:          `D:\Vogel`
+- JDK 17:        `C:\Program Files\Microsoft\jdk-17.0.19.10-hotspot`
+- Android SDK:   `D:\Android\Sdk`
+- Gradle cache:  `D:\Android\gradle-cache`
+- APK output:    `D:\Android\`
 
-Paylaşımlı tool yolları:
-- JDK 17:           `C:\Program Files\Microsoft\jdk-17.0.19.10-hotspot`
-- Android SDK:      `D:\Android\Sdk`
-- Gradle cache:     `D:\Android\gradle-cache`
-- APK output:       `D:\Android\` (Vogel-debug.apk, Vogel.apk vb.)
+### 🖥️ Desktop (i9pc) — 2026-05-24'ten itibaren
+- Repo:          `C:\Users\i9pc\Documents\Vogel`
+- JDK 17:        `C:\Program Files\Microsoft\jdk-17.0.19.10-hotspot`
+- Android SDK:   `C:\Android\Sdk`
+- Gradle cache:  `C:\Android\gradle-cache`
+- APK output:    `C:\Android\`
 
 Env vars User scope'ta kalıcı set (JAVA_HOME, ANDROID_HOME, ANDROID_SDK_ROOT,
 GRADLE_USER_HOME, PATH). Lexora ile paylaşımlı.
+
+> Bash sandbox cwd'si farklı gösterebilir — her zaman mevcut makinenin absolute
+> path'ini kullan.
 
 ---
 
@@ -34,20 +40,33 @@ GRADLE_USER_HOME, PATH). Lexora ile paylaşımlı.
 
 ---
 
-## 🔄 "çıktı al ios" akışı
+## 🔄 "çıktı al ios" akışı — Codemagic CI
 
-```bash
+> ⚠️ iOS build artık **EAS değil Codemagic** üzerinden yapılıyor.
+> `codemagic.yaml` repo köküne eklendi; `main`'e her push'ta otomatik tetiklenir.
+
+```
 1. git status --porcelain   # uncommit var mı?
-2. (varsa) git add . && git commit -m "<özet mesaj>"
+2. (varsa) git add -A && git commit -m "<özet mesaj>"
 3. git push origin main
-4. eas build --platform ios --profile production --auto-submit --non-interactive
-   → background'da çalıştır (run_in_background: true)
-5. Build bittiğinde output dosyasını oku, kullanıcıya raporla
+   → push tetikleyici: Codemagic otomatik mac_mini_m2 build başlatır
+4. İzlemek için: https://codemagic.io/apps  (Vogel → ios-production)
+5. Build bitti mi? Dashboard'da yeşil tik veya email (sametrme@gmail.com)
+6. Sonuç: IPA otomatik TestFlight'a submit edilir
 ```
 
-**Süre tahmini:** ~15-25 dk build + ~5-10 dk Apple processing → toplam ~30 dk.
+**Süre tahmini:** ~20-30 dk build + ~5-10 dk Apple işleme → toplam ~35 dk.
+
+**Build numarası:** Codemagic `BUILD_NUMBER + 100` offset kullanır (EAS ile
+çakışmayı önlemek için). EAS build #7 → Codemagic build #1 = iOS build 101.
 
 **Sonuç:** TestFlight "İç Testçiler" grubuna otomatik dağılır.
+
+**Codemagic hesap bilgisi:**
+- URL: https://codemagic.io
+- Bağlı GitHub hesabı: sametrme@gmail.com
+- App Store Connect entegrasyonu adı: `Vogel_ASC`
+- Workflow adı: `ios-production`
 
 ---
 
@@ -55,7 +74,7 @@ GRADLE_USER_HOME, PATH). Lexora ile paylaşımlı.
 
 ```bash
 1. git status --porcelain
-2. (varsa) git add . && git commit -m "<özet mesaj>"
+2. (varsa) git add -A && git commit -m "<özet mesaj>"
 3. git push origin main
 4. eas build --platform android --profile production --non-interactive
    → background'da çalıştır
@@ -84,7 +103,8 @@ GRADLE_USER_HOME, PATH). Lexora ile paylaşımlı.
 ## 🔧 Local Android build — sadece EAS quota dolduğunda
 
 EAS quota'sı dolu olduğunda APK'yi Windows'ta direkt gradle ile üret.
-Sonuç: `D:\Android\Vogel-debug.apk` — sideload için yeterli.
+
+### Laptop (D: sürücü)
 
 ```powershell
 Set-Location "D:\Vogel"
@@ -97,36 +117,54 @@ $env:PATH = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:PATH"
 $env:SENTRY_DISABLE_AUTO_UPLOAD = 'true'
 $env:SENTRY_ALLOW_FAILURE = 'true'
 
-# android/ klasörü yoksa veya kirliyse:
 npx expo prebuild --platform android --clean
-
 Set-Location "D:\Vogel\android"
 .\gradlew.bat assembleDebug 2>&1 | Out-File "D:\Android\build.log" -Encoding utf8
-
-# Sonuç:
-Copy-Item "D:\Vogel\android\app\build\outputs\apk\debug\app-debug.apk" `
-          "D:\Android\Vogel-debug.apk" -Force
-
-# Build sonrası daemon'u kapat (RAM/disk rahatlasın):
+Copy-Item "D:\Vogel\android\app\build\outputs\apk\debug\app-debug.apk" "D:\Android\Vogel-debug.apk" -Force
 Get-Process java -ErrorAction SilentlyContinue | Stop-Process -Force
 ```
 
-**Süre:** İlk build ~30-40 dk (cache boşken), sonraki ~5-15 dk.
+**APK çıktı:** `D:\Android\Vogel-debug.apk`
 
-**APK:** `D:\Android\Vogel-debug.apk`, debug-signed, ~190 MB. Play Store'a
-yüklenmez ama sideload (Drive/USB/adb) ile telefona kurulur.
+### Desktop (C: sürücü)
+
+```powershell
+Set-Location "C:\Users\i9pc\Documents\Vogel"
+$env:JAVA_HOME = 'C:\Program Files\Microsoft\jdk-17.0.19.10-hotspot'
+$env:ANDROID_HOME = 'C:\Android\Sdk'
+$env:ANDROID_SDK_ROOT = 'C:\Android\Sdk'
+$env:GRADLE_USER_HOME = 'C:\Android\gradle-cache'
+$env:GRADLE_OPTS = '-Xmx4g -XX:MaxMetaspaceSize=1g'
+$env:PATH = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:PATH"
+$env:SENTRY_DISABLE_AUTO_UPLOAD = 'true'
+$env:SENTRY_ALLOW_FAILURE = 'true'
+
+npx expo prebuild --platform android --clean
+Set-Location "C:\Users\i9pc\Documents\Vogel\android"
+.\gradlew.bat assembleDebug 2>&1 | Out-File "C:\Android\build.log" -Encoding utf8
+Copy-Item "C:\Users\i9pc\Documents\Vogel\android\app\build\outputs\apk\debug\app-debug.apk" "C:\Android\Vogel-debug.apk" -Force
+Get-Process java -ErrorAction SilentlyContinue | Stop-Process -Force
+```
+
+**APK çıktı:** `C:\Android\Vogel-debug.apk`
+
+---
+
+**Süre:** İlk build ~30-40 dk (cache boşken), sonraki ~5-15 dk. ~190 MB.
+Play Store'a yüklenmez ama sideload (Drive/USB/adb) ile telefona kurulur.
 
 **Hata kovalama:**
 - Sentry "Auth token required" → env vars yukarıdaki gibi set olmamış demek
 - Gradle "out of memory" → `GRADLE_OPTS` heap artır
 - Output pipeline buffer overflow → asla `Select-Object -Last N` ile gradle output
   pipe'lama; her zaman `Out-File`'la dosyaya yaz, sonra `Get-Content -Tail`
-- C: diskine yazıyor sanısı → cwd `D:\Vogel`'de mi kontrol et
+- CMake eksik hatası → `& "C:\Android\Sdk\cmdline-tools\latest\bin\sdkmanager.bat" "cmake;3.22.1"`
 
 ---
 
 ## ⚙️ Setup şartları (zaten ayarlı, kontrol için)
 
+### EAS (Android)
 | Şart | Yer | Olması gereken |
 |---|---|---|
 | Apple ID | `eas.json` → submit.production.ios.appleId | `sametrme@gmail.com` |
@@ -134,6 +172,14 @@ yüklenmez ama sideload (Drive/USB/adb) ile telefona kurulur.
 | ASC App ID | `eas.json` → submit.production.ios.ascAppId | `6771534635` |
 | Encryption | `app.json` → ios.infoPlist.ITSAppUsesNonExemptEncryption | `false` |
 | Android build type | `eas.json` → build.production.android.buildType | **`"apk"` (geçici)** |
+
+### Codemagic (iOS)
+| Şart | Yer | Olması gereken |
+|---|---|---|
+| Workflow | `codemagic.yaml` | Repo kökünde mevcut |
+| Tetikleyici | push to `main` | Otomatik |
+| Signing | Codemagic dashboard → automatic | app_store, com.yenipc002.Vogel |
+| ASC entegrasyonu | Codemagic dashboard → Integrations | `Vogel_ASC` adıyla ekli |
 
 ---
 
@@ -158,3 +204,5 @@ Apple cred'ler keychain'de cache'lendi, build sırasında sormaz.
 - Android'e şu an `--auto-submit` ekleme → submit config eksik, hata verir
 - buildNumber'ı manuel artırma → autoIncrement yapıyor
 - Aynı build'i tekrar submit etme → "Build already submitted" hatası
+- iOS için `eas build --platform ios` çalıştırma → iOS Codemagic'e geçti, EAS quota'yı boşa harcar
+- Codemagic build numarasını EAS ile karıştırma → offset +100 var (EAS #7 → Codemagic #1 = iOS build 101)

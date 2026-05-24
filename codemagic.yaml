@@ -1,0 +1,64 @@
+workflows:
+  ios-production:
+    name: iOS Production → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    # App Store Connect entegrasyonu (dashboard'da "Vogel_ASC" adıyla eklenecek)
+    integrations:
+      app_store_connect: Vogel_ASC
+
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.yenipc002.Vogel
+      node: 20.17.0
+      vars:
+        SENTRY_DISABLE_AUTO_UPLOAD: "true"
+        EAS_BUILD_NO_EXPO_GO_WARNING: "true"
+
+    # main'e her push'ta otomatik tetiklenir
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+
+      - name: Expo prebuild iOS
+        script: npx expo prebuild --platform ios --clean
+
+      - name: Set build number (offset 100 — EAS çakışmasını önler)
+        script: |
+          cd "$CM_BUILD_DIR/ios"
+          agvtool new-version -all $((BUILD_NUMBER + 100))
+
+      - name: CocoaPods install
+        script: |
+          cd "$CM_BUILD_DIR/ios"
+          pod install
+
+      - name: Build & sign IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "$CM_BUILD_DIR/ios/Vogel.xcworkspace" \
+            --scheme "Vogel"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+      email:
+        recipients:
+          - sametrme@gmail.com
+        notify:
+          success: true
+          failure: true
