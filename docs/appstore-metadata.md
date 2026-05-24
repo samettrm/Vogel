@@ -173,7 +173,7 @@ Sonuç: **4+**
 - First Name: Samet
 - Last Name: TERME  
 - Phone: (kendi telefonun)
-- Email: trsamet71@gmail.com
+- Email: bsdigitalapp@gmail.com
 
 **Notes for Reviewer:**
 ```

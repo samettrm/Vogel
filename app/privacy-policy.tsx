@@ -41,7 +41,7 @@ const POLICY_TR: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '6. Üçüncü Taraf Hizmetler',
-      body: 'Vogel reklam göstermez ve kullanıcı davranışını izleyen üçüncü taraf analiz araçları kullanmaz.',
+      body: 'Vogel, ücretsiz kullanıcılara reklam gösterebilir. Reklamlar Google tarafından sunulur ve genel demografik bilgilere göre hedeflenebilir; ancak uygulama içindeki öğrenme verileriniz reklam hedefleme amacıyla kullanılmaz.',
     },
     {
       title: '7. Çocukların Gizliliği',
@@ -53,7 +53,7 @@ const POLICY_TR: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '9. İletişim',
-      body: 'Gizlilik politikamıza ilişkin sorularınız için:\ntrsamet71@gmail.com',
+      body: 'Gizlilik politikamıza ilişkin sorularınız için:\nbsdigitalapp@gmail.com',
     },
   ],
 };
@@ -83,7 +83,7 @@ const POLICY_EN: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '6. Third-Party Services',
-      body: 'Vogel does not display advertisements and does not use third-party analytics tools that track user behavior.',
+      body: 'Vogel may display advertisements to free users. Ads are served by Google and may be targeted based on general demographic information; however, your in-app learning data is not used for ad targeting purposes.',
     },
     {
       title: "7. Children's Privacy",
@@ -95,7 +95,7 @@ const POLICY_EN: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '9. Contact',
-      body: 'For questions about our privacy policy:\ntrsamet71@gmail.com',
+      body: 'For questions about our privacy policy:\nbsdigitalapp@gmail.com',
     },
   ],
 };
