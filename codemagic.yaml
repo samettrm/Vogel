@@ -43,7 +43,7 @@ workflows:
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --certificate-key "@env:IOS_DIST_PRIVATE_KEY" \
-            --create
+           
 
           keychain add-certificates
 
