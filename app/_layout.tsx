@@ -332,16 +332,19 @@ function AuthSyncer() {
   useEffect(() => {
     setAuthLoading(true);
     const unsubscribe = subscribeToAuthState(async (user) => {
+      const prevUser = userRef.current;
       userRef.current = user;
       setUser(user);
 
+      // 🛡 RACE FIX: Kullanıcı çıkış yaptıysa bekleyen upload timer'ını HEMEN iptal et.
+      // Aksi halde signOut → clearLocalProgress → 3sn sonra eski timer ateşlenip
+      // BOŞ state'i cloud'a yazıyor ve gerçek ilerleme siliniyor.
+      if (prevUser && !user && uploadTimerRef.current) {
+        clearTimeout(uploadTimerRef.current);
+        uploadTimerRef.current = null;
+      }
+
       // Sadece e-posta doğrulanmışsa sync başlat.
-      // Apple/Google ile gelen user'lar emailVerified=true ile gelir → senkronize olur.
-      // Email/password sign-up'tan gelen unverified user'lar verify ekranına gider.
-      //
-      // ÖNEMLİ: Re-launch (app açılışı) senaryosunda cloud authoritative.
-      // login.tsx zaten ilk login'de replace yapıyor; burada da replace ki
-      // başka cihazda yapılan değişiklikler görünür olsun.
       if (user && user.emailVerified) {
         try {
           await downloadAndReplaceProgress(user.uid);
@@ -353,7 +356,7 @@ function AuthSyncer() {
   }, []);
 
   // İlerleme değiştiğinde otomatik yükle (debounced, 3 saniye)
-  // Sadece emailVerified=true ise upload yapar — onaylanmamış hesabın datası buluda gitmez.
+  // Sadece emailVerified=true ise upload yapar.
   useEffect(() => {
     const unsub = useUserStore.subscribe((state, prev) => {
       const user = userRef.current;
@@ -362,7 +365,13 @@ function AuthSyncer() {
           state.xp !== prev.xp) {
         if (uploadTimerRef.current) clearTimeout(uploadTimerRef.current);
         uploadTimerRef.current = setTimeout(() => {
-          uploadProgress(user.uid).catch(() => {});
+          // 🛡 RACE FIX: Timer ateşlendiğinde kullanıcı hâlâ giriş yapmış mı kontrol et.
+          // Çıkış yaptıysa closure'daki eski user'la cloud'u BOŞ state'le ezme.
+          const currentUser = userRef.current;
+          if (currentUser && currentUser.emailVerified && currentUser.uid === user.uid) {
+            uploadProgress(currentUser.uid).catch(() => {});
+          }
+          uploadTimerRef.current = null;
         }, 3000);
       }
     });
