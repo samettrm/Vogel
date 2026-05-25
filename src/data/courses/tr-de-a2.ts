@@ -625,7 +625,7 @@ export const TR_DE_A2: Course = {
       id: 'tr-de-a2-u7',
       order: 7,
       title: 'Alışveriş ve Para',
-      description: 'Para birimleri, fiyat sorma, alışveriş sıfatları — müsterilik kelimeleri.',
+      description: 'Para birimleri, fiyat sorma, alışveriş sıfatları — müşterilik kelimeleri.',
       tags: ['work', 'daily'],
       lessons: [
         {
@@ -728,7 +728,7 @@ export const TR_DE_A2: Course = {
       id: 'tr-de-a2-u8',
       order: 8,
       title: 'Giyim ve Moda',
-      description: 'Kıyafetler, renkler, mısık bedenler — mağazada sohbet.',
+      description: 'Kıyafetler, renkler, çeşitli bedenler — mağazada sohbet.',
       tags: ['daily'],
       lessons: [
         {
@@ -737,10 +737,10 @@ export const TR_DE_A2: Course = {
           title: 'Üst Giyim',
           xpReward: 100,
           exercises: [
-            { id: 'tr-de-a2-u8-l1-e1', type: 'multipleChoice', question: '"das Hemd" ne demek?', options: [{ id: 'a', text: 'Gömlek' }, { id: 'b', text: 'Tirt' }, { id: 'c', text: 'Ceket' }, { id: 'd', text: 'Süveter' }], correctOptionId: 'a' },
+            { id: 'tr-de-a2-u8-l1-e1', type: 'multipleChoice', question: '"das Hemd" ne demek?', options: [{ id: 'a', text: 'Gömlek' }, { id: 'b', text: 'Tişört' }, { id: 'c', text: 'Ceket' }, { id: 'd', text: 'Süveter' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u8-l1-e2', type: 'multipleChoice', question: '"die Jacke" ne demek?', options: [{ id: 'a', text: 'Ceket' }, { id: 'b', text: 'Mont' }, { id: 'c', text: 'Süveter' }, { id: 'd', text: 'Yelek' }], correctOptionId: 'a' },
-            { id: 'tr-de-a2-u8-l1-e3', type: 'multipleChoice', question: '"der Pullover" ne demek?', options: [{ id: 'a', text: 'Kazak' }, { id: 'b', text: 'Yelek' }, { id: 'c', text: 'Gömlek' }, { id: 'd', text: 'Tirt' }], correctOptionId: 'a' },
-            { id: 'tr-de-a2-u8-l1-e4', type: 'multipleChoice', question: '"das T-Shirt" ne demek?', options: [{ id: 'a', text: 'Tirt' }, { id: 'b', text: 'Gömlek' }, { id: 'c', text: 'Kazak' }, { id: 'd', text: 'Atıkli' }], correctOptionId: 'a' },
+            { id: 'tr-de-a2-u8-l1-e3', type: 'multipleChoice', question: '"der Pullover" ne demek?', options: [{ id: 'a', text: 'Kazak' }, { id: 'b', text: 'Yelek' }, { id: 'c', text: 'Gömlek' }, { id: 'd', text: 'Tişört' }], correctOptionId: 'a' },
+            { id: 'tr-de-a2-u8-l1-e4', type: 'multipleChoice', question: '"das T-Shirt" ne demek?', options: [{ id: 'a', text: 'Tişört' }, { id: 'b', text: 'Gömlek' }, { id: 'c', text: 'Kazak' }, { id: 'd', text: 'Atletli' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u8-l1-e5', type: 'multipleChoice', question: '"der Mantel" ne demek?', options: [{ id: 'a', text: 'Palto' }, { id: 'b', text: 'Mont' }, { id: 'c', text: 'Ceket' }, { id: 'd', text: 'Pelerin' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u8-l1-e6', type: 'translate', prompt: 'Bu gömlek güzel.', correctAnswer: 'Dieses Hemd ist schön', wordBank: ['Dieses', 'Hemd', 'ist', 'schön', 'die', 'Jacke'] },
             { id: 'tr-de-a2-u8-l1-e7', type: 'fillBlank', prompt: 'Ich trage einen ___. (kazak)', correctAnswer: 'Pullover', wordBank: ['Pullover', 'Hemd', 'Mantel', 'Jacke'] },
@@ -767,7 +767,7 @@ export const TR_DE_A2: Course = {
           title: 'Renkler',
           xpReward: 100,
           exercises: [
-            { id: 'tr-de-a2-u8-l3-e1', type: 'multipleChoice', question: '"rot" ne demek?', options: [{ id: 'a', text: 'Kırmızı' }, { id: 'b', text: 'Pembe' }, { id: 'c', text: 'Turuncu' }, { id: 'd', text: 'Bürgündı' }], correctOptionId: 'a' },
+            { id: 'tr-de-a2-u8-l3-e1', type: 'multipleChoice', question: '"rot" ne demek?', options: [{ id: 'a', text: 'Kırmızı' }, { id: 'b', text: 'Pembe' }, { id: 'c', text: 'Turuncu' }, { id: 'd', text: 'Bordo' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u8-l3-e2', type: 'multipleChoice', question: '"blau" ne demek?', options: [{ id: 'a', text: 'Mavi' }, { id: 'b', text: 'Lacivert' }, { id: 'c', text: 'Turkuaz' }, { id: 'd', text: 'Mor' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u8-l3-e3', type: 'multipleChoice', question: '"grün" ne demek?', options: [{ id: 'a', text: 'Yeşil' }, { id: 'b', text: 'Sarı' }, { id: 'c', text: 'Mavi' }, { id: 'd', text: 'Kahverengi' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u8-l3-e4', type: 'multipleChoice', question: '"schwarz" ne demek?', options: [{ id: 'a', text: 'Siyah' }, { id: 'b', text: 'Beyaz' }, { id: 'c', text: 'Gri' }, { id: 'd', text: 'Lacivert' }], correctOptionId: 'a' },
@@ -783,7 +783,7 @@ export const TR_DE_A2: Course = {
           xpReward: 100,
           exercises: [
             { id: 'tr-de-a2-u8-l4-e1', type: 'multipleChoice', question: '"die Größe" ne demek?', options: [{ id: 'a', text: 'Beden / Boy' }, { id: 'b', text: 'Renk' }, { id: 'c', text: 'Fiyat' }, { id: 'd', text: 'Marka' }], correctOptionId: 'a' },
-            { id: 'tr-de-a2-u8-l4-e2', type: 'multipleChoice', question: '"klein" ne demek?', options: [{ id: 'a', text: 'Küçük' }, { id: 'b', text: 'Büyük' }, { id: 'c', text: 'Orta' }, { id: 'd', text: 'Genis' }], correctOptionId: 'a' },
+            { id: 'tr-de-a2-u8-l4-e2', type: 'multipleChoice', question: '"klein" ne demek?', options: [{ id: 'a', text: 'Küçük' }, { id: 'b', text: 'Büyük' }, { id: 'c', text: 'Orta' }, { id: 'd', text: 'Geniş' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u8-l4-e3', type: 'multipleChoice', question: '"groß" ne demek?', options: [{ id: 'a', text: 'Büyük' }, { id: 'b', text: 'Küçük' }, { id: 'c', text: 'Uzun' }, { id: 'd', text: 'Geniş' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u8-l4-e4', type: 'multipleChoice', question: '"anziehen" ne demek?', options: [{ id: 'a', text: 'Giymek' }, { id: 'b', text: 'Çıkarmak' }, { id: 'c', text: 'Yıkamak' }, { id: 'd', text: 'Asmak' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u8-l4-e5', type: 'multipleChoice', question: '"die Umkleidekabine" ne demek?', options: [{ id: 'a', text: 'Soyunma kabini' }, { id: 'b', text: 'Vitrin' }, { id: 'c', text: 'Raf' }, { id: 'd', text: 'Depo' }], correctOptionId: 'a' },
@@ -889,7 +889,7 @@ export const TR_DE_A2: Course = {
             { id: 'tr-de-a2-u9-l4-e2', type: 'multipleChoice', question: '"sollen" ne demek?', options: [{ id: 'a', text: 'Gerekmek (tavsiye)' }, { id: 'b', text: 'İstemek' }, { id: 'c', text: 'Yapabilmek' }, { id: 'd', text: 'Yapmak' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u9-l4-e3', type: 'multipleChoice', question: '"Darf ich?" ne demek?', options: [{ id: 'a', text: 'İzin verir misin?' }, { id: 'b', text: 'Yapabilir miyim?' }, { id: 'c', text: 'Yapmak zorunda mıyım?' }, { id: 'd', text: 'İstiyor musun?' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u9-l4-e4', type: 'multipleChoice', question: '"du sollst" ne demek?', options: [{ id: 'a', text: 'Yapmalısın (tavsiye)' }, { id: 'b', text: 'Yapabilirsin' }, { id: 'c', text: 'Yapma' }, { id: 'd', text: 'İstiyorsun' }], correctOptionId: 'a' },
-            { id: 'tr-de-a2-u9-l4-e5', type: 'multipleChoice', question: '"Hier darf man nicht rauchen" ne demek?', options: [{ id: 'a', text: 'Burada sigara içilmez' }, { id: 'b', text: 'Burada sigara içiyorum' }, { id: 'c', text: 'Burada sigara istemiyorum' }, { id: 'd', text: 'Burada sigara satilmaz' }], correctOptionId: 'a' },
+            { id: 'tr-de-a2-u9-l4-e5', type: 'multipleChoice', question: '"Hier darf man nicht rauchen" ne demek?', options: [{ id: 'a', text: 'Burada sigara içilmez' }, { id: 'b', text: 'Burada sigara içiyorum' }, { id: 'c', text: 'Burada sigara istemiyorum' }, { id: 'd', text: 'Burada sigara satılmaz' }], correctOptionId: 'a' },
             { id: 'tr-de-a2-u9-l4-e6', type: 'translate', prompt: 'Buraya girebilir miyim?', correctAnswer: 'Darf ich hier rein', wordBank: ['Darf', 'ich', 'hier', 'rein', 'kann', 'will'] },
             { id: 'tr-de-a2-u9-l4-e7', type: 'listen', prompt: 'Dinle.', audioText: 'Du sollst lernen', translation: 'Öğrenmelisin', correctAnswer: 'Du sollst lernen', wordBank: ['Du', 'sollst', 'lernen', 'kannst', 'musst', 'willst'] },
           ],
@@ -934,7 +934,7 @@ export const TR_DE_A2: Course = {
       id: 'tr-de-a2-u10',
       order: 10,
       title: 'Telefon ve İletişim',
-      description: 'Telefonda konuşma, mesajlaşma — gündelik iletişim sütyel.',
+      description: 'Telefonda konuşma, mesajlaşma — gündelik iletişim üslubu.',
       tags: ['work', 'daily'],
       lessons: [
         {

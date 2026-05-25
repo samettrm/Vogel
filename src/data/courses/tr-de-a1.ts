@@ -1153,7 +1153,7 @@ export const TR_DE_A1: Course = {
           exercises: [
             { id: 'tr-de-a1-u11-l5-e1', type: 'multipleChoice', question: '"lachen" ne demek?', options: [{ id: 'a', text: 'Gülmek' }, { id: 'b', text: 'Ağlamak' }, { id: 'c', text: 'Bağırmak' }, { id: 'd', text: 'Konuşmak' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u11-l5-e2', type: 'multipleChoice', question: '"weinen" ne demek?', options: [{ id: 'a', text: 'Ağlamak' }, { id: 'b', text: 'Gülmek' }, { id: 'c', text: 'Bağırmak' }, { id: 'd', text: 'İnlemek' }], correctOptionId: 'a' },
-            { id: 'tr-de-a1-u11-l5-e3', type: 'multipleChoice', question: '"lächeln" ne demek?', options: [{ id: 'a', text: 'Gülümsemek' }, { id: 'b', text: 'Gülmek' }, { id: 'c', text: 'Sırıtmak' }, { id: 'd', text: 'Şakaklamak' }], correctOptionId: 'a' },
+            { id: 'tr-de-a1-u11-l5-e3', type: 'multipleChoice', question: '"lächeln" ne demek?', options: [{ id: 'a', text: 'Gülümsemek' }, { id: 'b', text: 'Gülmek' }, { id: 'c', text: 'Sırıtmak' }, { id: 'd', text: 'Kahkaha atmak' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u11-l5-e4', type: 'multipleChoice', question: '"schreien" ne demek?', options: [{ id: 'a', text: 'Bağırmak' }, { id: 'b', text: 'Ağlamak' }, { id: 'c', text: 'Çığlık atmak' }, { id: 'd', text: 'Fısıldamak' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u11-l5-e5', type: 'multipleChoice', question: '"umarmen" ne demek?', options: [{ id: 'a', text: 'Sarılmak' }, { id: 'b', text: 'Öpmek' }, { id: 'c', text: 'Tutmak' }, { id: 'd', text: 'Kucaklamak' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u11-l5-e6', type: 'translate', prompt: 'Bebek ağlıyor.', correctAnswer: 'Das Baby weint', wordBank: ['Das', 'Baby', 'weint', 'lacht', 'lächelt', 'schreit'] },
@@ -1166,7 +1166,7 @@ export const TR_DE_A1: Course = {
           title: 'Tepkiler ve Ünlemler',
           xpReward: 100,
           exercises: [
-            { id: 'tr-de-a1-u11-l6-e1', type: 'multipleChoice', question: '"Wow!" ne demek?', options: [{ id: 'a', text: 'Vay! / Vov!' }, { id: 'b', text: 'Ah!' }, { id: 'c', text: 'Off!' }, { id: 'd', text: 'Hımm' }], correctOptionId: 'a' },
+            { id: 'tr-de-a1-u11-l6-e1', type: 'multipleChoice', question: '"Wow!" ne demek?', options: [{ id: 'a', text: 'Vay! / Vauv!' }, { id: 'b', text: 'Ah!' }, { id: 'c', text: 'Off!' }, { id: 'd', text: 'Hımm' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u11-l6-e2', type: 'multipleChoice', question: '"Toll!" ne demek?', options: [{ id: 'a', text: 'Harika!' }, { id: 'b', text: 'Tamam!' }, { id: 'c', text: 'Tabii!' }, { id: 'd', text: 'Olur!' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u11-l6-e3', type: 'multipleChoice', question: '"Ach so!" ne demek?', options: [{ id: 'a', text: 'Anladım! / Hah!' }, { id: 'b', text: 'Ah evet!' }, { id: 'c', text: 'Tabii!' }, { id: 'd', text: 'Vay!' }], correctOptionId: 'a' },
             { id: 'tr-de-a1-u11-l6-e4', type: 'multipleChoice', question: '"Wirklich?" ne demek?', options: [{ id: 'a', text: 'Gerçekten?' }, { id: 'b', text: 'Hadi ya?' }, { id: 'c', text: 'Sahi mi?' }, { id: 'd', text: 'Olur mu?' }], correctOptionId: 'a' },
