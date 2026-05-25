@@ -18,6 +18,11 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Android signing
+*.keystore
+android/app/vogel-release.keystore
+*.base64.txt
+
 # Metro
 .metro-health-check*
 
