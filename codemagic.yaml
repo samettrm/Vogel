@@ -40,10 +40,10 @@ workflows:
           keychain initialize
 
           app-store-connect fetch-signing-files \
-            "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --certificate-key "@env:IOS_DIST_PRIVATE_KEY" \
-           
+  "$BUNDLE_ID" \
+  --type IOS_APP_STORE \
+  --certificate-key "@env:IOS_DIST_PRIVATE_KEY" \
+  --create
 
           keychain add-certificates
 
