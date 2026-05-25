@@ -9,8 +9,6 @@ workflows:
         - appstore_credentials
       vars:
         BUNDLE_ID: "com.yenipc002.Vogel"
-        XCODE_WORKSPACE: "ios/Vogel.xcworkspace"
-        XCODE_SCHEME: "Vogel"
         APP_STORE_APPLE_ID: "6771534635"
         SENTRY_DISABLE_AUTO_UPLOAD: "true"
         EAS_BUILD_NO_EXPO_GO_WARNING: "true"
@@ -18,7 +16,6 @@ workflows:
       xcode: latest
       cocoapods: default
 
-    # main'e her push'ta otomatik tetiklenir
     triggering:
       events:
         - push
@@ -33,7 +30,7 @@ workflows:
       - name: Expo prebuild iOS
         script: npx expo prebuild --platform ios --clean
 
-            - name: Set up iOS code signing
+      - name: Set up iOS code signing
         script: |
           set -euo pipefail
 
