@@ -254,15 +254,15 @@ export function LessonHeader({
         ) : null}
       </View>
 
-      {/* 🔊 Ses aç/kapa — BÜYÜK ve belirgin (kapalıyken kırmızı dolu, açıkken altın) */}
+      {/* 🔊 Ses aç/kapa — açıkken yeşil neon, kapalıyken kırmızı + slash */}
       <Pressable
         onPress={() => setSoundEnabled(!soundEnabled)}
         style={({ pressed }) => [
           styles.muteButton,
           {
-            backgroundColor: soundEnabled ? c.goldBg : c.redBg,
-            borderColor: soundEnabled ? c.gold : c.red,
-            shadowColor: soundEnabled ? c.gold : c.red,
+            backgroundColor: soundEnabled ? c.neonBg : c.redBg,
+            borderColor: soundEnabled ? c.neon : c.red,
+            shadowColor: soundEnabled ? c.neon : c.red,
             opacity: pressed ? 0.7 : 1,
           },
         ]}
@@ -273,7 +273,7 @@ export function LessonHeader({
         <Ionicons
           name={soundEnabled ? 'volume-high' : 'volume-mute'}
           size={22}
-          color={soundEnabled ? c.gold : c.red}
+          color={soundEnabled ? c.neon : c.red}
         />
         {!soundEnabled && (
           <View style={styles.muteSlash} pointerEvents="none" />

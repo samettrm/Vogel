@@ -7,7 +7,8 @@ import {
 } from 'react-native';
 import Animated, {
   FadeInRight, ZoomIn, ZoomOut,
-  useAnimatedStyle, useSharedValue, withSequence, withTiming,
+  Easing, useAnimatedStyle, useSharedValue, withDelay,
+  withRepeat, withSequence, withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -242,6 +243,117 @@ function adaptiveOrder(
   });
 
   return [...teaching, ...sortedPractice];
+}
+
+// ─────────────────────────────────────────────────────────────────
+// COMBO FLAME — Sürekli "yaşıyor" gibi nefes + sallanma + parıltı
+// ─────────────────────────────────────────────────────────────────
+
+function AnimatedFlame() {
+  const wobble = useSharedValue(0);
+  const breath = useSharedValue(1);
+  const glowOpacity = useSharedValue(0.8);
+
+  useEffect(() => {
+    // Sallama: sağa-sola hafif rotasyon
+    wobble.value = withRepeat(
+      withSequence(
+        withTiming(-4, { duration: 220, easing: Easing.inOut(Easing.quad) }),
+        withTiming(4, { duration: 220, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1,
+      true,
+    );
+    // Nefes: scale yukarı-aşağı
+    breath.value = withRepeat(
+      withSequence(
+        withTiming(1.1, { duration: 380, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0.92, { duration: 380, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+      true,
+    );
+    // Glow titrek alev gibi parlasın
+    glowOpacity.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 180 }),
+        withTiming(0.55, { duration: 200 }),
+        withTiming(0.9, { duration: 160 }),
+      ),
+      -1,
+      true,
+    );
+  }, [wobble, breath, glowOpacity]);
+
+  const style = useAnimatedStyle(() => ({
+    transform: [
+      { rotate: `${wobble.value}deg` },
+      { scale: breath.value },
+    ],
+    textShadowColor: `rgba(255, 140, 0, ${glowOpacity.value})`,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
+  }));
+
+  return (
+    <Animated.Text
+      style={[
+        { fontSize: 24, color: '#FFD56B' },
+        style,
+      ]}
+    >
+      🔥
+    </Animated.Text>
+  );
+}
+
+function AnimatedSparkle({
+  delay,
+  style: positionStyle,
+  char,
+}: {
+  delay: number;
+  style: { position: 'absolute'; [key: string]: any };
+  char: string;
+}) {
+  const opacity = useSharedValue(0.3);
+  const scale = useSharedValue(0.6);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 350 }),
+          withTiming(0.2, { duration: 450 }),
+        ),
+        -1,
+        true,
+      ),
+    );
+    scale.value = withDelay(
+      delay,
+      withRepeat(
+        withSequence(
+          withTiming(1.35, { duration: 350 }),
+          withTiming(0.6, { duration: 450 }),
+        ),
+        -1,
+        true,
+      ),
+    );
+  }, [opacity, scale, delay]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.Text style={[positionStyle, animStyle]} pointerEvents="none">
+      {char}
+    </Animated.Text>
+  );
 }
 
 export default function LessonScreen() {
@@ -730,11 +842,12 @@ export default function LessonScreen() {
               exiting={ZoomOut.duration(160)}
             >
               <Animated.View style={[styles.comboBadge, comboStyle]}>
-                {/* Parıltı yıldızları — alev etrafında */}
-                <Text style={styles.comboSparkleL} pointerEvents="none">✦</Text>
-                <Text style={styles.comboSparkleR} pointerEvents="none">✦</Text>
-                <Text style={styles.comboSparkleT} pointerEvents="none">✧</Text>
-                <Text style={styles.comboEmoji}>🔥</Text>
+                {/* Pırıldayan yıldızlar — farklı tempo ile sürekli twinkle */}
+                <AnimatedSparkle delay={0}   style={styles.comboSparkleL} char="✦" />
+                <AnimatedSparkle delay={250} style={styles.comboSparkleR} char="✦" />
+                <AnimatedSparkle delay={120} style={styles.comboSparkleT} char="✧" />
+                {/* Canlı alev — nefes alıyor, sallanıyor, parlıyor */}
+                <AnimatedFlame />
                 <Text style={styles.comboText}>x{currentCombo}</Text>
               </Animated.View>
             </Animated.View>
