@@ -15,6 +15,8 @@
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Konuşma alıştırmasında mikrofonla cevap verebilmek için",
         "NSSpeechRecognitionUsageDescription": "Konuşma alıştırmasında verdiğin cevabı yazıya dökmek için",
+        "NSPhotoLibraryUsageDescription": "Profil resmini ya da alıştırma notlarına eklemek istediğin görseli seçebilmen için galeriye erişim isteyebilir.",
+        "NSPhotoLibraryAddUsageDescription": "Alıştırma sonuçlarını veya başarı rozetlerini telefonuna kaydedebilmen için galeriye yazma izni isteyebilir.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
