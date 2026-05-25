@@ -509,7 +509,7 @@ export const TR_DE_C1: Course = {
             { id: 'tr-de-c1-u5-l5-e3', type: 'multipleChoice', question: 'Konjunktiv I Perfekt nasıl oluşur?', options: [{ id: 'a', text: 'habe/sei + Partizip II' }, { id: 'b', text: 'hatte + Partizip II' }, { id: 'c', text: 'wurde + Partizip II' }, { id: 'd', text: 'wird + Partizip II' }], correctOptionId: 'a' },
             { id: 'tr-de-c1-u5-l5-e4', type: 'multipleChoice', question: '"sie sei verreist" ne demek?', options: [{ id: 'a', text: 'seyahate çıktığını (dolaylı)' }, { id: 'b', text: 'seyahat ediyor' }, { id: 'c', text: 'seyahat edecek' }, { id: 'd', text: 'seyahatten döndü' }], correctOptionId: 'a' },
             { id: 'tr-de-c1-u5-l5-e5', type: 'multipleChoice', question: '"er werde kommen" ne demek?', options: [{ id: 'a', text: 'geleceğini (dolaylı gelecek)' }, { id: 'b', text: 'geliyor' }, { id: 'c', text: 'geldi' }, { id: 'd', text: 'gelmek istiyor' }], correctOptionId: 'a' },
-            { id: 'tr-de-c1-u5-l5-e6', type: 'translate', prompt: 'Geçen hafta tatildeyim, dedi.', correctAnswer: 'Er sagte, er sei letzte Woche im Urlaub gewesen', wordBank: ['Er', 'sagte', 'er', 'sei', 'letzte', 'Woche', 'im', 'Urlaub', 'gewesen'] },
+            { id: 'tr-de-c1-u5-l5-e6', type: 'translate', prompt: 'Geçen hafta tatildeydim, dedi.', correctAnswer: 'Er sagte, er sei letzte Woche im Urlaub gewesen', wordBank: ['Er', 'sagte', 'er', 'sei', 'letzte', 'Woche', 'im', 'Urlaub', 'gewesen'] },
             { id: 'tr-de-c1-u5-l5-e7', type: 'fillBlank', prompt: 'Sie sagte, sie ___ gegessen. (yediğini - dolaylı)', correctAnswer: 'habe', wordBank: ['habe', 'hat', 'hätte', 'hatte'] },
           ],
         },
