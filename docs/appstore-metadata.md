@@ -76,7 +76,7 @@ https://samettrm.github.io/Vogel
 
 ### Privacy Policy URL ← ZORUNLU
 ```
-https://samettrm.github.io/Vogel/privacy-policy.html
+https://samettrm.github.io/Vogel/privacy.html
 ```
 > ⚠️ Bu URL'in çalışması için GitHub Pages aktif olmalı (aşağıya bak).
 
@@ -163,7 +163,7 @@ Sonuç: **4+**
 2. Source: **Deploy from a branch**
 3. Branch: **main** / Folder: **/docs**
 4. Save → birkaç dakika bekle
-5. URL: `https://samettrm.github.io/Vogel/privacy-policy.html` ✅
+5. URL: `https://samettrm.github.io/Vogel/privacy.html` ✅
 
 ---
 
