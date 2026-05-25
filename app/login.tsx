@@ -98,7 +98,9 @@ export default function LoginScreen() {
     }
     // Onaylı login: cloud'u indir ve local'i değiştir (cloud = master)
     await downloadAndReplaceProgress(result.user.uid);
-    router.back();
+    // AuthGuard router.replace('/login') ile yönlendirdi → back() çalışmaz.
+    // Doğru hareket: ana sayfaya replace et.
+    router.replace('/');
   };
 
   // ─── Google ─────────────────────────────────────────────────────
@@ -112,7 +114,7 @@ export default function LoginScreen() {
       useUserStore.setState({ hasEverSignedIn: true });
       // Google sign-in: emailVerified=true otomatik. Cloud master.
       await downloadAndReplaceProgress(result.user.uid);
-      router.back();
+      router.replace('/');
     } else if (result.code !== 'cancelled') {
       Alert.alert('Hata', result.message);
     }
@@ -129,7 +131,7 @@ export default function LoginScreen() {
       useUserStore.setState({ hasEverSignedIn: true });
       // Apple sign-in: emailVerified=true otomatik. Cloud master.
       await downloadAndReplaceProgress(result.user.uid);
-      router.back();
+      router.replace('/');
     } else if (result.code !== 'cancelled') {
       Alert.alert('Hata', result.message);
     }
