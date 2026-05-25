@@ -254,19 +254,30 @@ export function LessonHeader({
         ) : null}
       </View>
 
-      {/* 🔊 Ses aç/kapa — sadece ders sesleri etkilenir, haptik devam eder */}
+      {/* 🔊 Ses aç/kapa — BÜYÜK ve belirgin (kapalıyken kırmızı dolu, açıkken altın) */}
       <Pressable
         onPress={() => setSoundEnabled(!soundEnabled)}
-        style={styles.muteButton}
-        hitSlop={8}
+        style={({ pressed }) => [
+          styles.muteButton,
+          {
+            backgroundColor: soundEnabled ? c.goldBg : c.redBg,
+            borderColor: soundEnabled ? c.gold : c.red,
+            shadowColor: soundEnabled ? c.gold : c.red,
+            opacity: pressed ? 0.7 : 1,
+          },
+        ]}
+        hitSlop={10}
         accessibilityRole="button"
         accessibilityLabel={soundEnabled ? 'Sesi kapat' : 'Sesi aç'}
       >
         <Ionicons
           name={soundEnabled ? 'volume-high' : 'volume-mute'}
-          size={20}
-          color={soundEnabled ? c.textHigh : c.textLow}
+          size={22}
+          color={soundEnabled ? c.gold : c.red}
         />
+        {!soundEnabled && (
+          <View style={styles.muteSlash} pointerEvents="none" />
+        )}
       </Pressable>
 
       <View style={styles.hearts}>
@@ -296,14 +307,25 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       justifyContent: 'center',
     },
     muteButton: {
-      width: 36,
-      height: 36,
+      width: 44,
+      height: 44,
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: 18,
-      backgroundColor: c.glassBg,
-      borderWidth: 1,
-      borderColor: c.glassBorder,
+      borderRadius: 22,
+      borderWidth: 2,
+      // Glow effect — dikkat çekici
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.55,
+      shadowRadius: 8,
+      elevation: 6,
+    },
+    muteSlash: {
+      position: 'absolute',
+      width: 30,
+      height: 2.5,
+      backgroundColor: c.red,
+      transform: [{ rotate: '-45deg' }],
+      borderRadius: 2,
     },
     barWrap: {
       flex: 1,

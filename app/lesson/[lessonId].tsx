@@ -722,17 +722,21 @@ export default function LessonScreen() {
         <View style={styles.statusRow} pointerEvents="none">
           <Text style={styles.xpStatusText}>+{earnedXp} XP</Text>
           {currentCombo >= 2 ? (
+            // DIŞ wrapper → layout animation (entering/exiting)
+            // İÇ wrapper → manuel scale transform (combo pulse)
+            // Reanimated transform conflict'ini önlemek için ayrı.
             <Animated.View
               entering={ZoomIn.springify().damping(12).stiffness(180)}
               exiting={ZoomOut.duration(160)}
-              style={[styles.comboBadge, comboStyle]}
             >
-              {/* Parıltı yıldızları — alev etrafında */}
-              <Text style={styles.comboSparkleL} pointerEvents="none">✦</Text>
-              <Text style={styles.comboSparkleR} pointerEvents="none">✦</Text>
-              <Text style={styles.comboSparkleT} pointerEvents="none">✧</Text>
-              <Text style={styles.comboEmoji}>🔥</Text>
-              <Text style={styles.comboText}>x{currentCombo}</Text>
+              <Animated.View style={[styles.comboBadge, comboStyle]}>
+                {/* Parıltı yıldızları — alev etrafında */}
+                <Text style={styles.comboSparkleL} pointerEvents="none">✦</Text>
+                <Text style={styles.comboSparkleR} pointerEvents="none">✦</Text>
+                <Text style={styles.comboSparkleT} pointerEvents="none">✧</Text>
+                <Text style={styles.comboEmoji}>🔥</Text>
+                <Text style={styles.comboText}>x{currentCombo}</Text>
+              </Animated.View>
             </Animated.View>
           ) : null}
         </View>
