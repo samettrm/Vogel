@@ -99,6 +99,10 @@ interface UserState {
 
   // ONBOARDING
   onboardingCompleted: boolean;
+  // Kullanıcı bir kere giriş yaptıysa true. Logout sonrası clearLocalProgress
+  // bunu BOZMAZ → AuthGuard misafir mod yerine login zorlar.
+  // (Duolingo paterni: bir kere hesap açtın mı, artık geri dönemezsin.)
+  hasEverSignedIn: boolean;
   dailyXpGoal: number;
   // Kullanıcının motivasyonları (çoklu seçim, 1-3 arası).
   // Öneri algoritması, bildirim mesajları ve kutlama tonlarını etkiler.
@@ -367,6 +371,7 @@ export const useUserStore = create<UserState>()(
       isPremium: false,
       activePlanId: null,
       onboardingCompleted: false,
+      hasEverSignedIn: false,
       dailyXpGoal: 30,
       learningMotivations: [],
       selectedLevel: 'A1',
@@ -930,6 +935,7 @@ export const useUserStore = create<UserState>()(
         leagueEndDate: state.leagueEndDate,
         isPremium: state.isPremium,
         onboardingCompleted: state.onboardingCompleted,
+        hasEverSignedIn: state.hasEverSignedIn,
         dailyXpGoal: state.dailyXpGoal,
         learningMotivations: state.learningMotivations,
         selectedLevel: state.selectedLevel,

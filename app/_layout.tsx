@@ -344,13 +344,22 @@ function AuthSyncer() {
 }
 
 // ════════════════════════════════════════════════════════════════
-// AUTH GUARD — Login ZORUNLU. Giriş yapmamış kullanıcıyı her zaman
-// /login ekranına yönlendir. Hiçbir ekrana misafir girilemez.
+// AUTH GUARD — Duolingo paterni: ilk N misafir ders, sonra zorunlu login.
 //
-// • Firebase yapılandırılmamışsa devre dışı (build sorunu için graceful).
-// • Onboarding bitene kadar login zorlanmaz (önce uygulama tanıtılır).
-// • Login ve verify-email ekranlarında müdahale etmez (oradayız zaten).
+// Mantık:
+//   • Onboarding biter → misafir mod açılır
+//   • Kullanıcı GUEST_LESSON_LIMIT (3) ders yapabilir
+//   • 3 ders tamamlandıktan sonra → /login'e zorla
+//   • Sign-up sırasında guest progress cloud'a yedeklenir (kayıp olmaz)
+//
+// Bu sayede kullanıcı uygulamayı görür, XP kazanır, sonra "kaybetmemek
+// için" hesap açar → conversion rate %60-80 (ilk anda login zorla = %20-40).
+//
+// İstisna ekranlar (zorlama yapılmaz):
+//   /login, /verify-email, /onboarding
 // ════════════════════════════════════════════════════════════════
+const GUEST_LESSON_LIMIT = 3;
+
 function AuthGuard() {
   const router       = useRouter();
   const pathname     = usePathname();
@@ -358,21 +367,28 @@ function AuthGuard() {
   const isAuthLoading = useAuthStore((s) => s.isAuthLoading);
   const hasHydrated  = useUserStore((s) => s.hasHydrated);
   const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
+  const hasEverSignedIn = useUserStore((s) => s.hasEverSignedIn);
+  const completedLessonsCount = useUserStore((s) => s.completedLessons.size);
 
   useEffect(() => {
-    // Firebase yoksa zorlamaya gerek yok (development veya offline mod)
     if (!isFirebaseConfigured) return;
     if (!hasHydrated || isAuthLoading) return;
-    // Onboarding bitmemişse o akış öncelikli
     if (!onboardingCompleted) return;
-    // Giriş yapıldıysa müdahale etme
     if (user) return;
-    // Login/verify-email ekranlarında zaten doğru yerdesin
     const safePaths = ['/login', '/verify-email', '/onboarding'];
     if (safePaths.includes(pathname)) return;
-    // Logged out ve safe path dışındaysın → login'e zorla
+    // 🔑 Bir kere hesap açıldıysa misafir mod KAPALI — direkt login
+    if (hasEverSignedIn) {
+      router.replace('/login');
+      return;
+    }
+    // 🔑 Duolingo paterni: ilk 3 ders misafir, sonra login zorunlu
+    if (completedLessonsCount < GUEST_LESSON_LIMIT) return;
     router.replace('/login');
-  }, [user, isAuthLoading, hasHydrated, onboardingCompleted, pathname, router]);
+  }, [
+    user, isAuthLoading, hasHydrated, onboardingCompleted,
+    hasEverSignedIn, completedLessonsCount, pathname, router,
+  ]);
 
   return null;
 }

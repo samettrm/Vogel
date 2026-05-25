@@ -32,6 +32,7 @@ import {
   downloadAndReplaceProgress,
   uploadProgress,
 } from '@/src/services/sync';
+import { useUserStore } from '@/src/store/useUserStore';
 
 // ════════════════════════════════════════════════════════════════
 // GİRİŞ EKRANI — Email · Google · Apple
@@ -48,8 +49,11 @@ export default function LoginScreen() {
   const c       = useThemeColors();
   const insets  = useSafeAreaInsets();
   const setUser = useAuthStore((s) => s.setUser);
+  const xp                   = useUserStore((s) => s.xp);
+  const completedLessonsSize = useUserStore((s) => s.completedLessons.size);
+  const hasGuestProgress     = completedLessonsSize > 0 || xp > 0;
 
-  const [mode, setMode]         = useState<Mode>('login');
+  const [mode, setMode]         = useState<Mode>(hasGuestProgress ? 'register' : 'login');
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading]   = useState(false);
@@ -75,6 +79,8 @@ export default function LoginScreen() {
     }
 
     setUser(result.user);
+    // Bir kere hesap açıldı → AuthGuard misafir mod'a geri dönmesin
+    useUserStore.setState({ hasEverSignedIn: true });
 
     if (mode === 'register') {
       // SIGN-UP: Önce mevcut guest progress'i cloud'a yükle (kayıp önleme).
@@ -103,6 +109,7 @@ export default function LoginScreen() {
     setLoading(false);
     if (result.ok) {
       setUser(result.user);
+      useUserStore.setState({ hasEverSignedIn: true });
       // Google sign-in: emailVerified=true otomatik. Cloud master.
       await downloadAndReplaceProgress(result.user.uid);
       router.back();
@@ -119,6 +126,7 @@ export default function LoginScreen() {
     setLoading(false);
     if (result.ok) {
       setUser(result.user);
+      useUserStore.setState({ hasEverSignedIn: true });
       // Apple sign-in: emailVerified=true otomatik. Cloud master.
       await downloadAndReplaceProgress(result.user.uid);
       router.back();
@@ -154,9 +162,21 @@ export default function LoginScreen() {
           <View style={styles.hero}>
             <Text style={styles.birdEmoji}>🐦</Text>
             <Text style={styles.appName}>Vogel</Text>
-            <Text style={styles.tagline}>
-              İlerlemenizi tüm cihazlarınızda{'\n'}otomatik olarak saklayın
-            </Text>
+            {hasGuestProgress ? (
+              <>
+                <Text style={[styles.tagline, { color: '#fbbf24', fontWeight: '700' }]}>
+                  🔥 İlerlemeni kaybetme!
+                </Text>
+                <Text style={styles.tagline}>
+                  {completedLessonsSize} ders + {xp} XP topladın.{'\n'}
+                  Hesap aç, hiçbir şey kaybolmasın.
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.tagline}>
+                İlerlemenizi tüm cihazlarınızda{'\n'}otomatik olarak saklayın
+              </Text>
+            )}
           </View>
 
           {/* Sosyal giriş butonları */}
