@@ -18,6 +18,7 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
+import { useUserStore } from '../../store/useUserStore';
 
 // ════════════════════════════════════════════════════════════════
 // LESSON HEADER — Parlak Neon Bar + Her Zaman Aktif Efektler
@@ -86,6 +87,8 @@ export function LessonHeader({
   isPremium = false,
 }: LessonHeaderProps) {
   const c = useThemeColors();
+  const soundEnabled = useUserStore((s) => s.soundEnabled);
+  const setSoundEnabled = useUserStore((s) => s.setSoundEnabled);
 
   const fill = useSharedValue(0);
   const barWidthSV = useSharedValue(0);
@@ -251,6 +254,21 @@ export function LessonHeader({
         ) : null}
       </View>
 
+      {/* 🔊 Ses aç/kapa — sadece ders sesleri etkilenir, haptik devam eder */}
+      <Pressable
+        onPress={() => setSoundEnabled(!soundEnabled)}
+        style={styles.muteButton}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={soundEnabled ? 'Sesi kapat' : 'Sesi aç'}
+      >
+        <Ionicons
+          name={soundEnabled ? 'volume-high' : 'volume-mute'}
+          size={20}
+          color={soundEnabled ? c.textHigh : c.textLow}
+        />
+      </Pressable>
+
       <View style={styles.hearts}>
         <Ionicons name="heart" size={18} color={isPremium ? c.neon : c.red} />
         <Text style={[styles.heartText, isPremium && { color: c.neon }]}>
@@ -276,6 +294,16 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       height: 32,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    muteButton: {
+      width: 36,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 18,
+      backgroundColor: c.glassBg,
+      borderWidth: 1,
+      borderColor: c.glassBorder,
     },
     barWrap: {
       flex: 1,

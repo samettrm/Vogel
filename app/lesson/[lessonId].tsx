@@ -289,11 +289,20 @@ export default function LessonScreen() {
   }, [shakeX]);
 
   const celebrateComboMilestone = useCallback(() => {
+    // Büyük kutlama — milestone'larda (3, 5, 10)
     comboScale.value = withSequence(
-      withTiming(1.55, { duration: 140 }),
-      withTiming(0.92, { duration: 90 }),
-      withTiming(1.12, { duration: 90 }),
+      withTiming(1.75, { duration: 140 }),
+      withTiming(0.88, { duration: 90 }),
+      withTiming(1.18, { duration: 90 }),
       withTiming(1, { duration: 110 }),
+    );
+  }, [comboScale]);
+
+  const pulseCombo = useCallback(() => {
+    // Küçük puls — her combo artışında dikkat çekmek için
+    comboScale.value = withSequence(
+      withTiming(1.35, { duration: 110 }),
+      withTiming(1, { duration: 140 }),
     );
   }, [comboScale]);
 
@@ -538,15 +547,21 @@ export default function LessonScreen() {
         incrementQuestProgress('earnXp', totalXp);
         incrementQuestProgress('correctAnswers', 1);
 
-        // 📳 Haptic SADECE kombo milestone'larında (3, 5, 10) titreyecek
-        // Normal doğru cevaplarda titreme YOK (kullanıcı her hamlede titreme istemiyor)
+        // 🎯 SES + ANİMASYON HİYERARŞİSİ
+        //   - newCombo >= 2 → combo sesi + pulse animasyon (her combo dikkat çekiyor)
+        //   - newCombo < 2 → normal correct sesi (ilk doğru cevap)
+        //   - Milestone (3, 5, 10) → BÜYÜK kutlama + heavy haptic
         if (bonusXp > 0) {
           celebrateComboMilestone();
           playSound('comboUp').catch(() => {});
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+        } else if (newCombo >= 2) {
+          pulseCombo();
+          playSound('comboUp').catch(() => {});
+          // Hafif haptic — combo enerjisini desteklesin ama yormasın
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
         } else {
           playSound('correct').catch(() => {});
-          // Haptic kaldırıldı — sadece kombolarda titresin
         }
       }, 0);
     } else {
@@ -566,7 +581,7 @@ export default function LessonScreen() {
     lesson, currentExercise, canCheck, isAnswered, selectedOptionId, selectedWords,
     currentCombo, getCurrentAnswer, lessonCourseId, setExerciseResult,
     recordReviewResult, addXp, incrementQuestProgress, loseHeart,
-    celebrateComboMilestone, triggerWrongShake,
+    celebrateComboMilestone, pulseCombo, triggerWrongShake,
   ]);
 
   const continueLesson = useCallback(() => {
@@ -712,6 +727,10 @@ export default function LessonScreen() {
               exiting={ZoomOut.duration(160)}
               style={[styles.comboBadge, comboStyle]}
             >
+              {/* Parıltı yıldızları — alev etrafında */}
+              <Text style={styles.comboSparkleL} pointerEvents="none">✦</Text>
+              <Text style={styles.comboSparkleR} pointerEvents="none">✦</Text>
+              <Text style={styles.comboSparkleT} pointerEvents="none">✧</Text>
               <Text style={styles.comboEmoji}>🔥</Text>
               <Text style={styles.comboText}>x{currentCombo}</Text>
             </Animated.View>
@@ -858,15 +877,25 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     },
     xpStatusText: { ...textStyles.bodyBold, color: c.neonLight, fontSize: 14 },
     comboBadge: {
-      flexDirection: 'row', alignItems: 'center', gap: 4,
+      flexDirection: 'row', alignItems: 'center', gap: 6,
       backgroundColor: c.gold,
-      paddingHorizontal: spacing.sm, paddingVertical: 4,
+      paddingHorizontal: spacing.md, paddingVertical: 6,
       borderRadius: radius.pill,
+      borderWidth: 1.5, borderColor: '#FFE082',
       shadowColor: c.gold, shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.6, shadowRadius: 10, elevation: 6,
+      shadowOpacity: 0.95, shadowRadius: 18, elevation: 12,
     },
-    comboEmoji: { fontSize: 14 },
-    comboText: { ...textStyles.bodyBold, color: c.bg, fontSize: 14 },
+    comboEmoji: {
+      fontSize: 24,
+      // Alev kendisi için ekstra glow
+      textShadowColor: 'rgba(255, 165, 0, 0.95)',
+      textShadowOffset: { width: 0, height: 0 },
+      textShadowRadius: 8,
+    },
+    comboText: { ...textStyles.bodyBold, color: c.bg, fontSize: 18, fontWeight: '900' as const },
+    comboSparkleL: { position: 'absolute', left: -2, top: -4, fontSize: 10, color: '#FFF8E1', opacity: 0.9 },
+    comboSparkleR: { position: 'absolute', right: -2, bottom: -4, fontSize: 10, color: '#FFF8E1', opacity: 0.9 },
+    comboSparkleT: { position: 'absolute', left: 14, top: -8, fontSize: 9, color: '#FFFFFF', opacity: 0.85 },
     exerciseArea: { flex: 1 },
     exerciseScrollContent: { flexGrow: 1, paddingBottom: spacing.xl },
     bottomArea: {
