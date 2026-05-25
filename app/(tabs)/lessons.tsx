@@ -1,5 +1,6 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Animated,
   FlatList,
@@ -81,6 +82,43 @@ export default function LessonsScreen() {
   const lessonExerciseProgress = useUserStore((s) => s.lessonExerciseProgress);
   const learningMotivations = useUserStore((s) => s.learningMotivations);
   const isPremium = useUserStore((s) => s.isPremium);
+
+  // ✨ Goethe·TELC kart — şimşek ışıltısı
+  const examShineAnim = useRef(new Animated.Value(-100)).current;
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.delay(3500),
+        Animated.timing(examShineAnim, { toValue: 420, duration: 700, useNativeDriver: true }),
+        Animated.timing(examShineAnim, { toValue: -100, duration: 0, useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [examShineAnim]);
+
+  // ⭐ Yıldız ışıltısı
+  const examStar1 = useRef(new Animated.Value(0)).current;
+  const examStar2 = useRef(new Animated.Value(0)).current;
+  const examStar3 = useRef(new Animated.Value(0)).current;
+  const examStar4 = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const sparkle = (v: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(v, { toValue: 1, duration: 400, useNativeDriver: true }),
+          Animated.timing(v, { toValue: 0, duration: 400, useNativeDriver: true }),
+          Animated.delay(2800),
+        ]),
+      );
+    const a1 = sparkle(examStar1, 700);
+    const a2 = sparkle(examStar2, 1500);
+    const a3 = sparkle(examStar3, 2200);
+    const a4 = sparkle(examStar4, 2900);
+    a1.start(); a2.start(); a3.start(); a4.start();
+    return () => { a1.stop(); a2.stop(); a3.stop(); a4.stop(); };
+  }, [examStar1, examStar2, examStar3, examStar4]);
 
   const [search, setSearch] = useState('');
   const [levelFilter, setLevelFilter] = useState<CEFRLevel | 'all'>('all');
@@ -253,29 +291,64 @@ export default function LessonsScreen() {
         </Text>
       </View>
 
-      {/* ── Goethe · TELC — kompakt pill ── */}
+      {/* ── Goethe · TELC — sınav kartı (glow) ── */}
       <Pressable
         onPress={() => isPremium ? router.push('/exam-map') : router.push('/(tabs)/shop')}
-        style={({ pressed }) => [styles.examPill, pressed && styles.examPillPressed]}
+        style={({ pressed }) => [styles.examCard, pressed && styles.examCardPressed]}
       >
-        <Text style={styles.examPillEmoji}>🎓</Text>
-        <View style={styles.examPillText}>
-          <Text style={styles.examPillTitle}>Goethe · TELC Sınavı</Text>
-          <Text style={styles.examPillSub}>
-            {isPremium ? 'Sınav hazırlığı' : 'A1 · A2 · B1 · B2 · C1  🔒'}
-          </Text>
-        </View>
-        <Ionicons
-          name={isPremium ? 'chevron-forward' : 'lock-closed'}
-          size={14}
-          color={c.gold}
+        <LinearGradient
+          colors={[c.goldGlow, 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
         />
+        <Animated.View
+          style={{
+            position: 'absolute', top: 0, bottom: 0, width: 45,
+            backgroundColor: 'rgba(255,215,0,0.22)',
+            transform: [{ translateX: examShineAnim }],
+          }}
+          pointerEvents="none"
+        />
+        <Animated.Text style={{ position: 'absolute', top: 7, right: 10, fontSize: 14, color: '#FFD700', opacity: examStar1, transform: [{ scale: examStar1.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 1.9, 0.3] }) }] }} pointerEvents="none">✦</Animated.Text>
+        <Animated.Text style={{ position: 'absolute', top: 16, left: 68, fontSize: 12, color: '#FFD700', opacity: examStar2, transform: [{ scale: examStar2.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 1.8, 0.3] }) }] }} pointerEvents="none">★</Animated.Text>
+        <Animated.Text style={{ position: 'absolute', bottom: 12, right: 28, fontSize: 13, color: '#FFD700', opacity: examStar3, transform: [{ scale: examStar3.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 1.8, 0.3] }) }] }} pointerEvents="none">✦</Animated.Text>
+        <Animated.Text style={{ position: 'absolute', bottom: 8, left: 18, fontSize: 12, color: '#FFD700', opacity: examStar4, transform: [{ scale: examStar4.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 1.7, 0.3] }) }] }} pointerEvents="none">★</Animated.Text>
+        <View style={styles.examCardHeader}>
+          <Text style={styles.examCardEmoji}>🎓</Text>
+          <View style={{ flex: 1 }}>
+            <View style={styles.examCardTitleRow}>
+              <Ionicons name="ribbon" size={11} color={c.gold} />
+              <Text style={styles.examCardTitle}>Goethe · TELC Sınavı</Text>
+              <Ionicons name="ribbon" size={11} color={c.gold} />
+            </View>
+            <Text style={styles.examCardSub}>
+              {isPremium ? 'Sınav hazırlığı — Tüm seviyeler' : 'Premium ile tüm seviyelere erişin 🔒'}
+            </Text>
+          </View>
+          <Ionicons
+            name={isPremium ? 'chevron-forward' : 'lock-closed'}
+            size={18}
+            color={c.gold}
+          />
+        </View>
+        <View style={styles.examCardLevels}>
+          {AVAILABLE_LEVELS.map((lvl) => {
+            const llc = getLevelColor(lvl, c);
+            return (
+              <View key={lvl} style={[styles.examLevelChip, { backgroundColor: llc.bg, borderColor: llc.main }]}>
+                <Text style={[styles.examLevelChipText, { color: llc.light }]}>{lvl}</Text>
+              </View>
+            );
+          })}
+        </View>
       </Pressable>
 
       {/* ── Önerilen ders — tek satır kompakt ── */}
       {recommended ? (
         <Pressable
-          onPress={() => router.push(`/lesson/${recommended.lesson.id}`)}
+          onPress={() => router.push({ pathname: `/lesson/${recommended.lesson.id}`, params: { returnTo: '/(tabs)/lessons' } })}
           style={({ pressed }) => [styles.recommendedCard, pressed && styles.recommendedCardPressed]}
         >
           <View style={styles.recommendedIconBox}>
@@ -338,7 +411,7 @@ export default function LessonsScreen() {
       </View>
 
     </View>
-  ), [c, t, styles, stats, recommended, search, levelFilter, statusFilter, setStatusFilter, setLevelFilter, isPremium]);
+  ), [c, t, styles, stats, recommended, search, levelFilter, statusFilter, setStatusFilter, setLevelFilter, isPremium, examShineAnim, examStar1, examStar2, examStar3, examStar4]);
 
   const ListEmpty = useMemo(() => {
     // Sınav filtresi aktif + premium değil → özel premium gate
@@ -499,7 +572,7 @@ function LessonCardImpl({ item }: { item: LessonItem }) {
   const c = useThemeColors();
   const t = useT();
   const onPress = useCallback(() => {
-    if (!item.isLocked) router.push(`/lesson/${item.lesson.id}`);
+    if (!item.isLocked) router.push({ pathname: `/lesson/${item.lesson.id}`, params: { returnTo: '/(tabs)/lessons' } });
   }, [item.lesson.id, item.isLocked]);
 
   const statusMeta = item.isLocked
@@ -616,23 +689,34 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     title: { ...textStyles.display, color: c.textHigh },
     statsInline: { ...textStyles.body, color: c.textLow, fontSize: 13, marginTop: 3 },
 
-    // 🎓 Goethe · TELC — kompakt pill (eski büyük kart kaldırıldı)
-    examPill: {
-      flexDirection: 'row', alignItems: 'center',
+    // 🎓 Goethe · TELC — sınav kartı (glow)
+    examCard: {
+      overflow: 'hidden',
       backgroundColor: c.goldBg,
-      borderWidth: 1.5, borderColor: c.gold,
-      borderRadius: radius.pill,
-      paddingHorizontal: spacing.md, paddingVertical: spacing.sm + 1,
+      borderWidth: 2, borderColor: c.gold,
+      borderRadius: radius.lg,
+      padding: spacing.md,
       gap: spacing.sm,
       shadowColor: c.gold,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2, shadowRadius: 6, elevation: 3,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.55, shadowRadius: 18, elevation: 10,
     },
-    examPillPressed: { opacity: 0.82, transform: [{ scale: 0.97 }] },
-    examPillEmoji: { fontSize: 18 },
-    examPillText: { flex: 1, gap: 1 },
-    examPillTitle: { ...textStyles.bodyBold, color: c.gold, fontSize: 13 },
-    examPillSub: { ...textStyles.body, color: c.textMed, fontSize: 10 },
+    examCardPressed: { opacity: 0.82, transform: [{ scale: 0.99 }] },
+    examCardHeader: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    },
+    examCardEmoji: { fontSize: 22 },
+    examCardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+    examCardTitle: { ...textStyles.bodyBold, color: c.gold, fontSize: 14 },
+    examCardSub: { ...textStyles.body, color: c.textMed, fontSize: 11, marginTop: 2 },
+    examCardLevels: {
+      flexDirection: 'row', gap: 6, marginTop: 2,
+    },
+    examLevelChip: {
+      paddingHorizontal: 8, paddingVertical: 3,
+      borderRadius: radius.pill, borderWidth: 1.5,
+    },
+    examLevelChipText: { ...textStyles.bodyBold, fontSize: 10, letterSpacing: 0.5 },
 
     // ⭐ Önerilen ders — tek satır kompakt
     recommendedCard: {

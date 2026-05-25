@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,6 +43,41 @@ export default function HomeScreen() {
   const selectedLevel = useUserStore((s) => s.selectedLevel);
   const setSelectedLevel = useUserStore((s) => s.setSelectedLevel);
   const isPremium = useUserStore((s) => s.isPremium);
+
+  // ✨ Goethe·TELC chip — şimşek ışıltısı
+  const examShineAnim = useRef(new Animated.Value(-80)).current;
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.delay(3000),
+        Animated.timing(examShineAnim, { toValue: 260, duration: 600, useNativeDriver: true }),
+        Animated.timing(examShineAnim, { toValue: -80, duration: 0, useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [examShineAnim]);
+
+  // ⭐ Yıldız ışıltısı
+  const examStar1 = useRef(new Animated.Value(0)).current;
+  const examStar2 = useRef(new Animated.Value(0)).current;
+  const examStar3 = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const sparkle = (v: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(v, { toValue: 1, duration: 380, useNativeDriver: true }),
+          Animated.timing(v, { toValue: 0, duration: 380, useNativeDriver: true }),
+          Animated.delay(2600),
+        ]),
+      );
+    const a1 = sparkle(examStar1, 400);
+    const a2 = sparkle(examStar2, 1200);
+    const a3 = sparkle(examStar3, 2000);
+    a1.start(); a2.start(); a3.start();
+    return () => { a1.stop(); a2.stop(); a3.stop(); };
+  }, [examStar1, examStar2, examStar3]);
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -458,11 +494,29 @@ export default function HomeScreen() {
         />
 
         <View style={styles.mascotRow}>
-          {/* 🎓 Goethe · TELC — kompakt pill */}
+          {/* 🎓 Goethe · TELC — glowing chip */}
           <Pressable
             onPress={() => isPremium ? router.push('/exam-map') : router.push('/(tabs)/shop')}
             style={({ pressed }) => [styles.examChip, pressed && styles.examChipPressed]}
           >
+            <LinearGradient
+              colors={[c.goldGlow, 'transparent']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+            <Animated.View
+              style={{
+                position: 'absolute', top: 0, bottom: 0, width: 28,
+                backgroundColor: 'rgba(255,220,80,0.30)',
+                transform: [{ translateX: examShineAnim }],
+              }}
+              pointerEvents="none"
+            />
+            <Animated.Text style={{ position: 'absolute', top: 3, right: 22, fontSize: 12, color: '#FFD700', opacity: examStar1, transform: [{ scale: examStar1.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 1.8, 0.3] }) }] }} pointerEvents="none">✦</Animated.Text>
+            <Animated.Text style={{ position: 'absolute', top: 10, left: 48, fontSize: 11, color: '#FFD700', opacity: examStar2, transform: [{ scale: examStar2.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 1.7, 0.3] }) }] }} pointerEvents="none">★</Animated.Text>
+            <Animated.Text style={{ position: 'absolute', bottom: 2, right: 14, fontSize: 11, color: '#FFD700', opacity: examStar3, transform: [{ scale: examStar3.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 1.7, 0.3] }) }] }} pointerEvents="none">✦</Animated.Text>
             <Text style={styles.examChipEmoji}>🎓</Text>
             <View style={styles.examChipText}>
               <Text style={styles.examChipTitle}>Goethe · TELC</Text>
@@ -624,19 +678,20 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     levelPillText: { ...textStyles.bodyBold, fontSize: 11, letterSpacing: 1.5 },
     levelTitle: { ...textStyles.heading, fontSize: 22 },
     levelDescription: { ...textStyles.body, color: c.textLow, fontSize: 13, lineHeight: 18 },
-    // 🎓 Goethe · TELC chip — kompakt pill
+    // 🎓 Goethe · TELC chip — glowing pill
     examChip: {
       flexDirection: 'row', alignItems: 'center',
       backgroundColor: c.goldBg,
-      borderWidth: 1.5, borderColor: c.gold,
+      borderWidth: 2, borderColor: c.gold,
       borderRadius: radius.pill,
       paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
       gap: spacing.sm,
+      overflow: 'hidden',
       shadowColor: c.gold,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.22, shadowRadius: 6, elevation: 3,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.55, shadowRadius: 16, elevation: 8,
     },
-    examChipPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
+    examChipPressed: { opacity: 0.75, transform: [{ scale: 0.96 }] },
     examChipEmoji: { fontSize: 17 },
     examChipText: { gap: 1 },
     examChipTitle: { ...textStyles.bodyBold, color: c.gold, fontSize: 12 },

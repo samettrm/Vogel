@@ -248,7 +248,7 @@ export default function LessonScreen() {
   const router = useRouter();
   const c = useThemeColors();
   const t = useT();
-  const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
+  const { lessonId, returnTo } = useLocalSearchParams<{ lessonId: string; returnTo?: string }>();
   const safeInsets = useSafeAreaInsets();
   const bottomPad = Math.max(safeInsets.bottom, 12) + 20;
 
@@ -383,8 +383,10 @@ export default function LessonScreen() {
   // ─── Handler'lar (useCallback ile memoize) ───────────────────────
 
   const goHome = useCallback(() => {
-    router.replace('/');
-  }, [router]);
+    // returnTo parametresi varsa oraya dön (exam-map, lessons, vb.)
+    // yoksa ana haritaya dön
+    router.replace((returnTo as any) ?? '/');
+  }, [router, returnTo]);
 
   const closeLesson = useCallback(() => {
     if (isLocked) return;

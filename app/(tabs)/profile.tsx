@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 import { AvatarCard } from '../../src/components/profile/AvatarCard';
 import { StatRow } from '../../src/components/profile/StatRow';
@@ -10,9 +11,13 @@ import { StreakCalendar } from '../../src/components/profile/StreakCalendar';
 import { GoalsCard } from '../../src/components/profile/GoalsCard';
 import { AchievementsSummary } from '../../src/components/achievements/AchievementsSummary';
 import { useUserStore } from '../../src/store/useUserStore';
-import { spacing, textStyles, useThemeColors } from '../../src/theme';
+import { spacing, textStyles, useThemeColors, radius } from '../../src/theme';
 import { useT } from '../../src/i18n';
 import { SpinningDiamondGem } from '../../src/components/shared/SpinningDiamondGem';
+import { useAuthStore } from '../../src/store/useAuthStore';
+import { signOut } from '../../src/services/auth';
+import { uploadProgress } from '../../src/services/sync';
+import { isFirebaseConfigured } from '../../src/config/firebase';
 
 // ════════════════════════════════════════════════════════════════
 // PROFIL — Sadeleştirilmiş yapı
@@ -52,6 +57,28 @@ export default function ProfileScreen() {
   const streak = useUserStore((s) => s.streak);
   const completedLessons = useUserStore((s) => s.completedLessons);
   const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
+
+  const user = useAuthStore((s) => s.user);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSync = async () => {
+    if (!user || isSyncing) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsSyncing(true);
+    await uploadProgress(user.uid);
+    setIsSyncing(false);
+  };
+
+  const handleSignOut = () => {
+    Alert.alert(
+      'Çıkış Yap',
+      'Hesabından çıkmak istediğine emin misin? Veriler bu cihazda saklanmaya devam eder.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Çıkış Yap', style: 'destructive', onPress: () => signOut() },
+      ],
+    );
+  };
 
   const level = Math.floor(xp / XP_PER_LEVEL) + 1;
   const xpInLevel = xp % XP_PER_LEVEL;
@@ -158,6 +185,55 @@ export default function ProfileScreen() {
 
         <StreakCalendar streak={streak} />
 
+        {/* 🔐 HESAP KARTI */}
+        {isFirebaseConfigured ? (
+          user ? (
+            // Giriş yapılmış
+            <View style={styles.accountCard}>
+              <View style={styles.accountRow}>
+                <View style={styles.accountAvatar}>
+                  <Ionicons name="person" size={18} color={c.purple} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.accountEmail, { color: c.textHigh }]} numberOfLines={1}>
+                    {user.email ?? 'Giriş yapıldı'}
+                  </Text>
+                  <Text style={[styles.accountStatus, { color: c.neon }]}>
+                    ✓  Cihazlar arası senkronize
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={handleSync}
+                  disabled={isSyncing}
+                  style={({ pressed }) => [styles.syncBtn, { opacity: pressed ? 0.7 : 1, borderColor: c.glassBorderStrong }]}
+                >
+                  {isSyncing ? (
+                    <ActivityIndicator size={14} color={c.textLow} />
+                  ) : (
+                    <Ionicons name="sync-outline" size={16} color={c.textLow} />
+                  )}
+                </Pressable>
+              </View>
+              <Pressable onPress={handleSignOut} style={styles.signOutBtn}>
+                <Text style={[styles.signOutText, { color: c.textLow }]}>Çıkış yap</Text>
+              </Pressable>
+            </View>
+          ) : (
+            // Giriş yapılmamış
+            <Pressable
+              onPress={() => router.push('/login')}
+              style={({ pressed }) => [styles.loginCard, { borderColor: c.glassBorderStrong, opacity: pressed ? 0.8 : 1 }]}
+            >
+              <Ionicons name="cloud-outline" size={20} color={c.textLow} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.loginCardTitle, { color: c.textHigh }]}>Cihazlar arası senkronize et</Text>
+                <Text style={[styles.loginCardSub, { color: c.textLow }]}>Giriş yap — ilerleme her cihazda korunsun</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={c.textLow} />
+            </Pressable>
+          )
+        ) : null}
+
         <View style={{ height: spacing.xxl }} />
       </ScrollView>
     </SafeAreaView>
@@ -254,5 +330,36 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       alignItems: 'center', justifyContent: 'center',
     },
     premiumBannerPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
+    accountCard: {
+      backgroundColor: c.glassBg,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: c.glassBorderStrong,
+      padding: spacing.md,
+      gap: spacing.sm,
+    },
+    accountRow:   { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    accountAvatar: {
+      width: 36, height: 36, borderRadius: 18,
+      backgroundColor: c.purpleBg,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    accountEmail: { fontSize: 14, fontWeight: '600' },
+    accountStatus: { fontSize: 12, marginTop: 2, fontWeight: '600' },
+    syncBtn: {
+      width: 34, height: 34, borderRadius: 17,
+      backgroundColor: c.glassBg, borderWidth: 1,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    signOutBtn: { alignItems: 'center', paddingVertical: 6 },
+    signOutText: { fontSize: 13 },
+    loginCard: {
+      flexDirection: 'row', alignItems: 'center',
+      backgroundColor: c.glassBg,
+      borderRadius: radius.lg, borderWidth: 1,
+      padding: spacing.md, gap: spacing.md,
+    },
+    loginCardTitle: { fontSize: 14, fontWeight: '700' },
+    loginCardSub:   { fontSize: 12, marginTop: 2 },
   });
 }

@@ -10,7 +10,7 @@ import { Audio } from 'expo-av';
 import { Stack, useRouter, usePathname } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { LogBox } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -20,6 +20,9 @@ import { AchievementToast } from '../src/components/achievements/AchievementToas
 import { preloadAllSounds } from '../src/utils/sounds';
 import { SENTRY_DSN } from '../src/config/sentry';
 import { initPurchases } from '../src/services/purchases';
+import { subscribeToAuthState } from '../src/services/auth';
+import { downloadAndMergeProgress, uploadProgress } from '../src/services/sync';
+import { useAuthStore } from '../src/store/useAuthStore';
 
 // ════════════════════════════════════════════════════════════════
 // SENTRY — hata izleme
@@ -31,6 +34,8 @@ import { initPurchases } from '../src/services/purchases';
 // API key .env'de yoksa init atlanır, mock mod çalışır.
 // ════════════════════════════════════════════════════════════════
 initPurchases();
+// Google Sign-In artık lazy başlatılıyor — Expo Go'da native modül yok diye crash etmesin.
+// configureGoogleSignIn() ilk Google butonuna basıldığında signInWithGoogle içinde çağrılır.
 
 // Sentry.init her zaman çağrılmalı — aksi hâlde plugin'in native wrap'i önce çalışır
 // ve "App Start Span could not be finished" uyarısı oluşur.
@@ -201,6 +206,8 @@ function RootLayout() {
         <SmartReminderRefresher />
         {/* 💎 Premium senkronizasyonu — RC entitlement'ı store'a yazar */}
         <PremiumSyncer />
+        {/* 🔄 Auth senkronizasyonu — giriş/ilerleme senkronizasyonu */}
+        <AuthSyncer />
         {/* 🏆 Global achievement toast — her ekranın üstünde görünür */}
         <AchievementToast />
       </SafeAreaProvider>
@@ -271,10 +278,71 @@ function SmartReminderRefresher() {
 }
 
 // ════════════════════════════════════════════════════════════════
+// AUTH SYNCER — Firebase auth state'i izler ve senkronizasyonu tetikler.
+//
+// • Giriş yapıldığında bulut verisi indirilip yerel ile birleştirilir.
+// • completedLessons değiştiğinde (ders tamamlandığında) otomatik yüklenir.
+// • Her değişiklikte debounced upload — gereksiz yazma işlemi olmaz.
+// ════════════════════════════════════════════════════════════════
+function AuthSyncer() {
+  const setUser   = useAuthStore((s) => s.setUser);
+  const setAuthLoading = useAuthStore((s) => s.setAuthLoading);
+  const userRef   = useRef<import('firebase/auth').User | null>(null);
+  const uploadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auth state listener
+  useEffect(() => {
+    setAuthLoading(true);
+    const unsubscribe = subscribeToAuthState(async (user) => {
+      userRef.current = user;
+      setUser(user);
+
+      if (user) {
+        // Giriş yapıldı — bulut verisini indir ve birleştir
+        try {
+          await downloadAndMergeProgress(user.uid);
+        } catch {}
+      }
+    });
+    return unsubscribe;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // İlerleme değiştiğinde otomatik yükle (debounced, 3 saniye)
+  useEffect(() => {
+    const unsub = useUserStore.subscribe((state, prev) => {
+      const user = userRef.current;
+      if (!user) return;
+      if (state.completedLessons.size !== prev.completedLessons.size ||
+          state.xp !== prev.xp) {
+        if (uploadTimerRef.current) clearTimeout(uploadTimerRef.current);
+        uploadTimerRef.current = setTimeout(() => {
+          uploadProgress(user.uid).catch(() => {});
+        }, 3000);
+      }
+    });
+    return () => {
+      unsub();
+      if (uploadTimerRef.current) clearTimeout(uploadTimerRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════
 // PREMIUM SYNCER — App açılışında RC'den premium durumunu çeker.
 // Store'daki isPremium ile RC entitlement'ı arasındaki tutarsızlığı giderir
 // (abonelik iptal, cihaz değişimi, restore vb. durumlar için).
-// Yalnızca RC yapılandırıldığında çalışır; yoksa no-op.
+//
+// GÜVENLİ YAKLAŞIM: checkIsPremiumSafe() kullanılır.
+//   - RC "premium" → setPremium(true)
+//   - RC "premium değil" → setPremium(false)
+//   - RC yanıt vermedi (ağ hatası, offline) → mevcut değere DOKUNULMAZ
+//
+// Bu sayede kullanıcılar telefon değişimi + ağ yokken yanlışlıkla
+// premium'dan çıkarılmaz. Kasıtlı iptal → RC kesin "false" döner → güncellenir.
 // ════════════════════════════════════════════════════════════════
 function PremiumSyncer() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
@@ -283,8 +351,11 @@ function PremiumSyncer() {
   useEffect(() => {
     if (!hasHydrated) return;
     import('../src/services/purchases')
-      .then((mod) => mod.checkIsPremium())
-      .then((isPremium) => setPremium(isPremium))
+      .then((mod) => mod.checkIsPremiumSafe())
+      .then((result) => {
+        // result === null → RC cevap vermedi → mevcut AsyncStorage değerini koru
+        if (result !== null) setPremium(result);
+      })
       .catch(() => {});
     // sadece hydration değişiminde çalışsın
     // eslint-disable-next-line react-hooks/exhaustive-deps

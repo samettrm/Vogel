@@ -155,6 +155,27 @@ export async function checkIsPremium(): Promise<boolean> {
   }
 }
 
+/**
+ * Güvenli premium kontrolü — sadece RC kesin yanıt verirse store'u güncelle.
+ *
+ * Dönüş değerleri:
+ *   true  → RC "premium" dedi → store'u true yap
+ *   false → RC "premium değil" dedi → store'u false yap
+ *   null  → RC yanıt vermedi (ağ hatası, yapılandırılmamış) → mevcut değere dokunma
+ *
+ * Bu sayede telefon değişiminde yeni cihazda internet yoksa eski AsyncStorage
+ * değeri korunur; kullanıcı asla yanlışlıkla premium'dan çıkarılmaz.
+ */
+export async function checkIsPremiumSafe(): Promise<boolean | null> {
+  if (!isPurchasesConfigured()) return null; // RC yok → bilmiyoruz
+  try {
+    const info = await Purchases.getCustomerInfo();
+    return info.entitlements.active[ENTITLEMENT_PREMIUM] !== undefined;
+  } catch {
+    return null; // ağ hatası / timeout → kesin bilgi yok
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────
 // HATA YARDIMCISI
 // ─────────────────────────────────────────────────────────────────

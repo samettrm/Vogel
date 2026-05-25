@@ -149,7 +149,7 @@ function LevelCard({
   const progress = item.lessons.length > 0 ? item.completedCount / item.lessons.length : 0;
 
   const handleContinue = () => {
-    router.push(`/lesson/${item.nextLesson.id}`);
+    router.push({ pathname: `/lesson/${item.nextLesson.id}`, params: { returnTo: '/exam-map' } });
   };
 
   return (
@@ -200,7 +200,7 @@ function LevelCard({
           return (
             <Pressable
               key={lesson.id}
-              onPress={() => router.push(`/lesson/${lesson.id}`)}
+              onPress={() => router.push({ pathname: `/lesson/${lesson.id}`, params: { returnTo: '/exam-map' } })}
               style={({ pressed }) => [
                 styles.lessonNode,
                 isDone && { backgroundColor: c.neon, borderColor: c.neon },

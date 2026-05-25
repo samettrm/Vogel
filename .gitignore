@@ -45,5 +45,11 @@ app-example
 # Environment files
 .env
 
+# Firebase iOS config (contains client IDs)
+GoogleService-Info.plist
+
+# Claude Code session metadata
+.claude/
+
 # Validator ciktisi (validate-exercises.mjs her calistiginda yeniden uretilir)
 scripts/validator-report.txt

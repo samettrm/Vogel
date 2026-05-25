@@ -1,6 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
+  Animated,
   Platform,
   ScrollView,
   StyleSheet,
@@ -43,6 +45,11 @@ export default function ShopScreen() {
   const makePremium = useUserStore((s) => (s as { makePremium?: (planId?: PlanId) => void }).makePremium);
 
   const [premiumPackages, setPremiumPackages] = useState<PremiumPackage[] | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
+
+  // Restore butonu pulse animasyonu (yükleme sırasında)
+  const restorePulse = useRef(new Animated.Value(1)).current;
+  const pulseLoop = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
     if (!isPurchasesConfigured()) return;
@@ -68,23 +75,43 @@ export default function ShopScreen() {
 
   // ─── Satın almaları geri yükle ───────────────────────────────────
   const handleRestore = useCallback(async () => {
+    if (isRestoring) return;
+
     if (!isPurchasesConfigured()) {
       Alert.alert(t('shop.restoreNone'));
       return;
     }
-    const result = await rcRestorePurchases();
-    if (result.ok) {
-      const hasPremium = result.customerInfo.entitlements.active[ENTITLEMENT_PREMIUM] !== undefined;
-      if (hasPremium) {
-        if (typeof makePremium === 'function') makePremium();
-        Alert.alert(t('shop.restoreSuccess'));
-      } else {
-        Alert.alert(t('shop.restoreNone'));
+
+    // Yükleniyor animasyonu başlat
+    setIsRestoring(true);
+    pulseLoop.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(restorePulse, { toValue: 0.55, duration: 600, useNativeDriver: true }),
+        Animated.timing(restorePulse, { toValue: 1, duration: 600, useNativeDriver: true }),
+      ]),
+    );
+    pulseLoop.current.start();
+
+    try {
+      const result = await rcRestorePurchases();
+      if (result.ok) {
+        const hasPremium =
+          result.customerInfo.entitlements.active[ENTITLEMENT_PREMIUM] !== undefined;
+        if (hasPremium) {
+          if (typeof makePremium === 'function') makePremium();
+          Alert.alert('✅  ' + t('shop.restoreSuccess'));
+        } else {
+          Alert.alert(t('shop.restoreNone'));
+        }
+      } else if (!result.cancelled) {
+        Alert.alert(t('shop.restoreFailed'));
       }
-    } else if (!result.cancelled) {
-      Alert.alert(t('shop.restoreFailed'));
+    } finally {
+      pulseLoop.current?.stop();
+      restorePulse.setValue(1);
+      setIsRestoring(false);
     }
-  }, [makePremium, t]);
+  }, [isRestoring, makePremium, restorePulse, t]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -104,17 +131,22 @@ export default function ShopScreen() {
 
         {/* ── ALT ÇUBUK ─────────────────────────────────────────── */}
         <View style={styles.footer}>
-          {/* Satın almaları geri yükle — yalnızca iOS */}
-          {Platform.OS === 'ios' ? (
-            <TouchableOpacity
-              onPress={handleRestore}
-              style={styles.restoreBtn}
-              activeOpacity={0.6}
-            >
-              <Ionicons name="refresh-outline" size={12} color="rgba(255,255,255,0.25)" />
-              <Text style={styles.restoreText}>Satın almaları geri yükle</Text>
-            </TouchableOpacity>
-          ) : null}
+          {/* Satın almaları geri yükle — iOS + Android */}
+          <TouchableOpacity
+            onPress={handleRestore}
+            style={styles.restoreBtn}
+            activeOpacity={0.6}
+            disabled={isRestoring}
+          >
+            <Animated.View style={{ opacity: restorePulse, flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              {isRestoring ? (
+                <ActivityIndicator size={12} color="rgba(255,255,255,0.35)" />
+              ) : (
+                <Ionicons name="refresh-outline" size={12} color="rgba(255,255,255,0.25)" />
+              )}
+              <Text style={styles.restoreText}>{t('shop.restorePurchases')}</Text>
+            </Animated.View>
+          </TouchableOpacity>
 
           {/* Yalnızca mock modda göster */}
           {!isPurchasesConfigured() ? (

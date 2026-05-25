@@ -13,8 +13,8 @@
       "bundleIdentifier": "com.yenipc002.Vogel",
       "buildNumber": "1",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "Vogel, Almanca telaffuz alıştırmaları için mikrofona erişmek istiyor. Konuşma kaydı cihazınızda kalır, sunucuya gönderilmez.",
-        "NSSpeechRecognitionUsageDescription": "Vogel, Almanca telaffuzunuzu değerlendirmek için konuşma tanıma kullanır.",
+        "NSMicrophoneUsageDescription": "Konuşma alıştırmasında mikrofonla cevap verebilmek için",
+        "NSSpeechRecognitionUsageDescription": "Konuşma alıştırmasında verdiğin cevabı yazıya dökmek için",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -40,6 +40,13 @@
     "plugins": [
       "expo-router",
       "@sentry/react-native/expo",
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.701611291838-pk4iag10ibodcosrk0in98mainvpulta"
+        }
+      ],
       [
         "expo-splash-screen",
         {
