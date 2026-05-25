@@ -39,6 +39,7 @@ workflows:
           app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --certificate-key "@env:IOS_DIST_PRIVATE_KEY" \
             --create
 
           keychain add-certificates
@@ -59,7 +60,9 @@ workflows:
         script: |
           WORKSPACE=$(find "$CM_BUILD_DIR/ios" -name "*.xcworkspace" -maxdepth 1 -type d | head -1)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+
           echo "Using workspace: $WORKSPACE, scheme: $SCHEME"
+
           xcode-project build-ipa \
             --workspace "$WORKSPACE" \
             --scheme "$SCHEME" \
@@ -75,6 +78,7 @@ workflows:
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
+
       email:
         recipients:
           - sametrme@gmail.com
