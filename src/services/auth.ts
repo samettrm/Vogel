@@ -1,6 +1,8 @@
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
+  reload,
   signOut as firebaseSignOut,
   GoogleAuthProvider,
   OAuthProvider,
@@ -47,9 +49,44 @@ export async function signUpWithEmail(
     return _notConfigured();
   try {
     const cred = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+    // Doğrulama e-postasını hemen gönder — best-effort, başarısız olursa
+    // kullanıcı verify ekranındaki "Yeniden gönder" butonunu kullanabilir.
+    try { await sendEmailVerification(cred.user); } catch {}
     return { ok: true, user: cred.user };
   } catch (e: any) {
     return { ok: false, code: e.code ?? 'unknown', message: _mapError(e.code) };
+  }
+}
+
+// ─── Email Verification ────────────────────────────────────────────
+
+/**
+ * Aktif kullanıcıya doğrulama e-postası gönderir (resend).
+ * Rate-limit edilebilir (auth/too-many-requests) — UI cooldown ile kullansın.
+ */
+export async function sendVerificationEmail(): Promise<AuthResult> {
+  if (!isFirebaseConfigured || !firebaseAuth) return _notConfigured();
+  const user = firebaseAuth.currentUser;
+  if (!user) return { ok: false, code: 'no-user', message: 'Önce giriş yap.' };
+  try {
+    await sendEmailVerification(user);
+    return { ok: true, user };
+  } catch (e: any) {
+    return { ok: false, code: e.code ?? 'unknown', message: _mapError(e.code) };
+  }
+}
+
+/**
+ * Aktif kullanıcıyı sunucudan yeniden çeker ve emailVerified durumunu döner.
+ * Verify ekranı bunu polling ile çağırır — kullanıcı linke tıklayınca true döner.
+ */
+export async function reloadCurrentUser(): Promise<boolean> {
+  if (!firebaseAuth?.currentUser) return false;
+  try {
+    await reload(firebaseAuth.currentUser);
+    return firebaseAuth.currentUser.emailVerified;
+  } catch {
+    return firebaseAuth.currentUser?.emailVerified ?? false;
   }
 }
 

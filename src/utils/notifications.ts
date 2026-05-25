@@ -110,12 +110,23 @@ export async function scheduleNotificationAtDate(
   identifier: string,
   date: Date,
   body: string,
+  title?: string,
 ): Promise<boolean> {
   const N = getNotifications();
   if (!N) return false;
   await ensureInitialized();
 
   if (date.getTime() <= Date.now()) return false;
+
+  // Mesaj formatı: 'TITLE|BODY' veya sadece 'BODY'
+  // Pipe separator varsa solu title (kalın+büyük gösterilir), sağı body
+  let actualTitle = title ?? 'Vogel';
+  let actualBody = body;
+  if (!title && body.includes('|')) {
+    const pipeIdx = body.indexOf('|');
+    actualTitle = body.slice(0, pipeIdx).trim();
+    actualBody = body.slice(pipeIdx + 1).trim();
+  }
 
   try {
     const trigger = N.SchedulableTriggerInputTypes?.DATE !== undefined
@@ -125,8 +136,8 @@ export async function scheduleNotificationAtDate(
     await N.scheduleNotificationAsync({
       identifier,
       content: {
-        title: '🐦 Vogel',
-        body,
+        title: actualTitle,
+        body: actualBody,
         sound: 'default',
         ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
       },

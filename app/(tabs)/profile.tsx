@@ -16,7 +16,7 @@ import { useT } from '../../src/i18n';
 import { SpinningDiamondGem } from '../../src/components/shared/SpinningDiamondGem';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { signOut } from '../../src/services/auth';
-import { uploadProgress } from '../../src/services/sync';
+import { uploadProgress, clearLocalProgress } from '../../src/services/sync';
 import { isFirebaseConfigured } from '../../src/config/firebase';
 
 // ════════════════════════════════════════════════════════════════
@@ -72,10 +72,26 @@ export default function ProfileScreen() {
   const handleSignOut = () => {
     Alert.alert(
       'Çıkış Yap',
-      'Hesabından çıkmak istediğine emin misin? Veriler bu cihazda saklanmaya devam eder.',
+      'Bu cihazdaki ilerleme misafir moda dönecek. Hesabın bulutta saklı kalır — tekrar giriş yaptığında geri yüklenir.',
       [
         { text: 'İptal', style: 'cancel' },
-        { text: 'Çıkış Yap', style: 'destructive', onPress: () => signOut() },
+        {
+          text: 'Çıkış Yap',
+          style: 'destructive',
+          onPress: async () => {
+            // 1) Son state'i cloud'a yedekle (kullanıcının verileri güncel kalsın)
+            if (user?.uid) {
+              try { await uploadProgress(user.uid); } catch {}
+            }
+            // 2) Firebase çıkış
+            try { await signOut(); } catch {}
+            // 3) Local'i temizle (login zorunlu, misafir state'e döner)
+            try { await clearLocalProgress(); } catch {}
+            // 4) Login ekranına yönlendir — AuthGuard otomatik yapacak ama
+            //    açık olarak gönderelim (state yenilenmesi hızlansın)
+            router.replace('/login');
+          },
+        },
       ],
     );
   };

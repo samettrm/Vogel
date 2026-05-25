@@ -62,7 +62,9 @@ export async function uploadProgress(userId: string): Promise<void> {
   }
 }
 
-// ─── İndir ve birleştir: Firestore → yerel ────────────────────────
+// ─── İndir ve birleştir: Firestore → yerel (MERGE) ────────────────
+// SADECE sign-up sonrası kullanılır: kullanıcının var olan guest progress'i
+// ile cloud'daki (varsa) progress birleştirilir. Veri kaybı olmaz.
 
 export async function downloadAndMergeProgress(userId: string): Promise<void> {
   if (!isFirebaseConfigured || !firebaseDb) return;
@@ -129,6 +131,75 @@ export async function downloadAndMergeProgress(userId: string): Promise<void> {
       await setLearnedWords([...localWords, ...newWords]);
     }
   } catch (e) {
-    if (__DEV__) console.warn('[Sync] Download hatası:', e);
+    if (__DEV__) console.warn('[Sync] Download merge hatası:', e);
+  }
+}
+
+// ─── İndir ve REPLACE: Firestore → yerel (cloud authoritative) ────
+// SADECE LOGIN sonrası kullanılır. Local'i tamamen cloud'la değiştirir.
+// "Bu cihaza giriş yaptım" senaryosu: cloud'daki state ana state olur.
+// Eğer cloud boşsa local de boş guest state'e döner (= clearLocalProgress).
+
+export async function downloadAndReplaceProgress(userId: string): Promise<void> {
+  if (!isFirebaseConfigured || !firebaseDb) return;
+  try {
+    const snap = await getDoc(PROGRESS_PATH(userId));
+
+    if (!snap.exists()) {
+      // Cloud boş → bu kullanıcının ilk girişi → boş state'le başla
+      await clearLocalProgress();
+      return;
+    }
+
+    const cloud = snap.data() as ProgressDoc;
+
+    // Tüm progress alanlarını cloud'unkilerle değiştir
+    useUserStore.setState({
+      xp:                   cloud.xp ?? 0,
+      streak:               cloud.streak ?? 0,
+      completedLessons:     new Set(cloud.completedLessons ?? []),
+      achievementsUnlocked: new Set(cloud.achievementsUnlocked ?? []),
+      onboardingCompleted:  cloud.onboardingCompleted ?? false,
+      selectedLevel:        (cloud.selectedLevel as any) ?? 'A1',
+    });
+
+    // Storage alanları
+    await setLearnedWords(cloud.learnedWords ?? []);
+    await setExamScores(cloud.examScores ?? {});
+  } catch (e) {
+    if (__DEV__) console.warn('[Sync] Download replace hatası:', e);
+  }
+}
+
+// ─── Yerel'i temizle: logout / cloud-boş başlangıç ────────────────
+// Progress alanlarını sıfırlar ama kullanıcı tercihlerini (theme, dil,
+// onboarding, motivasyonlar, premium) korur.
+
+export async function clearLocalProgress(): Promise<void> {
+  try {
+    useUserStore.setState({
+      xp:                       0,
+      streak:                   0,
+      hearts:                   5,
+      lastStudyDate:            null,
+      nextHeartRefillAt:        null,
+      completedLessons:         new Set<string>(),
+      achievementsUnlocked:     new Set<string>(),
+      reviewItems:              {},
+      lessonExerciseProgress:   {},
+      seenWords:                [],
+      dailyQuests:              [],
+      dailyQuestsDate:          null,
+      recentlyUnlocked:         null,
+      hasFirstPurchase:         false,
+      hasPerfectLesson:         false,
+      lastShownLevel:           1,
+      pendingLevelUp:           null,
+      pendingStreakMilestone:   null,
+    });
+    await setLearnedWords([]);
+    await setExamScores({});
+  } catch (e) {
+    if (__DEV__) console.warn('[Sync] Clear hatası:', e);
   }
 }

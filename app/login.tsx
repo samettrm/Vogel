@@ -28,7 +28,10 @@ import {
 } from '@/src/services/auth';
 import { isFirebaseConfigured } from '@/src/config/firebase';
 import { useAuthStore } from '@/src/store/useAuthStore';
-import { downloadAndMergeProgress } from '@/src/services/sync';
+import {
+  downloadAndReplaceProgress,
+  uploadProgress,
+} from '@/src/services/sync';
 
 // ════════════════════════════════════════════════════════════════
 // GİRİŞ EKRANI — Email · Google · Apple
@@ -66,13 +69,30 @@ export default function LoginScreen() {
     const result = await fn(email.trim().toLowerCase(), password);
     setLoading(false);
 
-    if (result.ok) {
-      setUser(result.user);
-      await downloadAndMergeProgress(result.user.uid);
-      router.back();
-    } else if (result.code !== 'cancelled') {
-      Alert.alert('Hata', result.message);
+    if (!result.ok) {
+      if (result.code !== 'cancelled') Alert.alert('Hata', result.message);
+      return;
     }
+
+    setUser(result.user);
+
+    if (mode === 'register') {
+      // SIGN-UP: Önce mevcut guest progress'i cloud'a yükle (kayıp önleme).
+      // Sonra verify ekranı: kullanıcı linke tıklayınca doğrulanır.
+      await uploadProgress(result.user.uid);
+      router.replace('/verify-email');
+      return;
+    }
+
+    // SIGN-IN
+    if (!result.user.emailVerified) {
+      // Onaylanmamış (örn. typo email ile eski hesap) → verify ekranı
+      router.replace('/verify-email');
+      return;
+    }
+    // Onaylı login: cloud'u indir ve local'i değiştir (cloud = master)
+    await downloadAndReplaceProgress(result.user.uid);
+    router.back();
   };
 
   // ─── Google ─────────────────────────────────────────────────────
@@ -83,7 +103,8 @@ export default function LoginScreen() {
     setLoading(false);
     if (result.ok) {
       setUser(result.user);
-      await downloadAndMergeProgress(result.user.uid);
+      // Google sign-in: emailVerified=true otomatik. Cloud master.
+      await downloadAndReplaceProgress(result.user.uid);
       router.back();
     } else if (result.code !== 'cancelled') {
       Alert.alert('Hata', result.message);
@@ -98,7 +119,8 @@ export default function LoginScreen() {
     setLoading(false);
     if (result.ok) {
       setUser(result.user);
-      await downloadAndMergeProgress(result.user.uid);
+      // Apple sign-in: emailVerified=true otomatik. Cloud master.
+      await downloadAndReplaceProgress(result.user.uid);
       router.back();
     } else if (result.code !== 'cancelled') {
       Alert.alert('Hata', result.message);
@@ -113,13 +135,8 @@ export default function LoginScreen() {
         pointerEvents="none"
       />
 
-      {/* Geri / Şimdi değil */}
-      <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.skipBtn}>
-          <Text style={styles.skipText}>Şimdi değil</Text>
-          <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.4)" />
-        </Pressable>
-      </View>
+      {/* Login zorunlu — skip butonu yok */}
+      <View style={[styles.topBar, { paddingTop: insets.top + 8 }]} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}

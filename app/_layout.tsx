@@ -21,7 +21,8 @@ import { preloadAllSounds } from '../src/utils/sounds';
 import { SENTRY_DSN } from '../src/config/sentry';
 import { initPurchases } from '../src/services/purchases';
 import { subscribeToAuthState } from '../src/services/auth';
-import { downloadAndMergeProgress, uploadProgress } from '../src/services/sync';
+import { downloadAndReplaceProgress, uploadProgress } from '../src/services/sync';
+import { isFirebaseConfigured } from '../src/config/firebase';
 import { useAuthStore } from '../src/store/useAuthStore';
 
 // ════════════════════════════════════════════════════════════════
@@ -208,6 +209,10 @@ function RootLayout() {
         <PremiumSyncer />
         {/* 🔄 Auth senkronizasyonu — giriş/ilerleme senkronizasyonu */}
         <AuthSyncer />
+        {/* 🚪 Auth guard — login YOK ise her zaman /login'e yönlendir */}
+        <AuthGuard />
+        {/* ✉️ Email doğrulama guard — onaylanmamışsa verify ekranına yönlendir */}
+        <VerifyEmailGuard />
         {/* 🏆 Global achievement toast — her ekranın üstünde görünür */}
         <AchievementToast />
       </SafeAreaProvider>
@@ -297,10 +302,16 @@ function AuthSyncer() {
       userRef.current = user;
       setUser(user);
 
-      if (user) {
-        // Giriş yapıldı — bulut verisini indir ve birleştir
+      // Sadece e-posta doğrulanmışsa sync başlat.
+      // Apple/Google ile gelen user'lar emailVerified=true ile gelir → senkronize olur.
+      // Email/password sign-up'tan gelen unverified user'lar verify ekranına gider.
+      //
+      // ÖNEMLİ: Re-launch (app açılışı) senaryosunda cloud authoritative.
+      // login.tsx zaten ilk login'de replace yapıyor; burada da replace ki
+      // başka cihazda yapılan değişiklikler görünür olsun.
+      if (user && user.emailVerified) {
         try {
-          await downloadAndMergeProgress(user.uid);
+          await downloadAndReplaceProgress(user.uid);
         } catch {}
       }
     });
@@ -309,10 +320,11 @@ function AuthSyncer() {
   }, []);
 
   // İlerleme değiştiğinde otomatik yükle (debounced, 3 saniye)
+  // Sadece emailVerified=true ise upload yapar — onaylanmamış hesabın datası buluda gitmez.
   useEffect(() => {
     const unsub = useUserStore.subscribe((state, prev) => {
       const user = userRef.current;
-      if (!user) return;
+      if (!user || !user.emailVerified) return;
       if (state.completedLessons.size !== prev.completedLessons.size ||
           state.xp !== prev.xp) {
         if (uploadTimerRef.current) clearTimeout(uploadTimerRef.current);
@@ -327,6 +339,65 @@ function AuthSyncer() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// AUTH GUARD — Login ZORUNLU. Giriş yapmamış kullanıcıyı her zaman
+// /login ekranına yönlendir. Hiçbir ekrana misafir girilemez.
+//
+// • Firebase yapılandırılmamışsa devre dışı (build sorunu için graceful).
+// • Onboarding bitene kadar login zorlanmaz (önce uygulama tanıtılır).
+// • Login ve verify-email ekranlarında müdahale etmez (oradayız zaten).
+// ════════════════════════════════════════════════════════════════
+function AuthGuard() {
+  const router       = useRouter();
+  const pathname     = usePathname();
+  const user         = useAuthStore((s) => s.user);
+  const isAuthLoading = useAuthStore((s) => s.isAuthLoading);
+  const hasHydrated  = useUserStore((s) => s.hasHydrated);
+  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
+
+  useEffect(() => {
+    // Firebase yoksa zorlamaya gerek yok (development veya offline mod)
+    if (!isFirebaseConfigured) return;
+    if (!hasHydrated || isAuthLoading) return;
+    // Onboarding bitmemişse o akış öncelikli
+    if (!onboardingCompleted) return;
+    // Giriş yapıldıysa müdahale etme
+    if (user) return;
+    // Login/verify-email ekranlarında zaten doğru yerdesin
+    const safePaths = ['/login', '/verify-email', '/onboarding'];
+    if (safePaths.includes(pathname)) return;
+    // Logged out ve safe path dışındaysın → login'e zorla
+    router.replace('/login');
+  }, [user, isAuthLoading, hasHydrated, onboardingCompleted, pathname, router]);
+
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// VERIFY EMAIL GUARD — Onaylanmamış email/password kullanıcısı varsa
+// verify ekranına yönlendir. Onboarding ve login ekranlarında müdahale etmez.
+// Apple/Google user'lar emailVerified=true ile gelir, hiç burada takılmaz.
+// ════════════════════════════════════════════════════════════════
+function VerifyEmailGuard() {
+  const router    = useRouter();
+  const pathname  = usePathname();
+  const user      = useAuthStore((s) => s.user);
+  const isAuthLoading = useAuthStore((s) => s.isAuthLoading);
+
+  useEffect(() => {
+    if (isAuthLoading) return;
+    if (!user) return;
+    if (user.emailVerified) return;
+    // Onaylanmamış, login/onboarding/verify-email haricindeyse yönlendir
+    const safePaths = ['/verify-email', '/login', '/onboarding'];
+    if (!safePaths.includes(pathname)) {
+      router.replace('/verify-email');
+    }
+  }, [user, isAuthLoading, pathname, router]);
 
   return null;
 }
