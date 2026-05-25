@@ -91,12 +91,17 @@ export default function LoginScreen() {
     }
 
     // SIGN-IN
-    if (!result.user.emailVerified) {
+    // 🍎 Apple Review test account bypass — Spark plan'da emailVerified toggle yok,
+    // bu özel hesap için doğrulama atlanır. Sadece bu email ile çalışır.
+    const APPLE_REVIEW_EMAIL = 'apple-reviewer@vogel-app.com';
+    const isAppleReviewer = result.user.email === APPLE_REVIEW_EMAIL;
+
+    if (!result.user.emailVerified && !isAppleReviewer) {
       // Onaylanmamış (örn. typo email ile eski hesap) → verify ekranı
       router.replace('/verify-email');
       return;
     }
-    // Onaylı login: cloud'u indir ve local'i değiştir (cloud = master)
+    // Onaylı login (veya Apple Review): cloud'u indir ve local'i değiştir
     await downloadAndReplaceProgress(result.user.uid);
     // AuthGuard router.replace('/login') ile yönlendirdi → back() çalışmaz.
     // Doğru hareket: ana sayfaya replace et.

@@ -344,8 +344,9 @@ function AuthSyncer() {
         uploadTimerRef.current = null;
       }
 
-      // Sadece e-posta doğrulanmışsa sync başlat.
-      if (user && user.emailVerified) {
+      // Sadece e-posta doğrulanmışsa (veya Apple Reviewer) sync başlat.
+      const canSync = user && (user.emailVerified || user.email === APPLE_REVIEW_EMAIL);
+      if (canSync) {
         try {
           await downloadAndReplaceProgress(user.uid);
         } catch {}
@@ -360,15 +361,17 @@ function AuthSyncer() {
   useEffect(() => {
     const unsub = useUserStore.subscribe((state, prev) => {
       const user = userRef.current;
-      if (!user || !user.emailVerified) return;
+      const canUpload = user && (user.emailVerified || user.email === APPLE_REVIEW_EMAIL);
+      if (!canUpload) return;
       if (state.completedLessons.size !== prev.completedLessons.size ||
           state.xp !== prev.xp) {
         if (uploadTimerRef.current) clearTimeout(uploadTimerRef.current);
         uploadTimerRef.current = setTimeout(() => {
           // 🛡 RACE FIX: Timer ateşlendiğinde kullanıcı hâlâ giriş yapmış mı kontrol et.
-          // Çıkış yaptıysa closure'daki eski user'la cloud'u BOŞ state'le ezme.
           const currentUser = userRef.current;
-          if (currentUser && currentUser.emailVerified && currentUser.uid === user.uid) {
+          const stillAllowed = currentUser && currentUser.uid === user.uid &&
+            (currentUser.emailVerified || currentUser.email === APPLE_REVIEW_EMAIL);
+          if (stillAllowed) {
             uploadProgress(currentUser.uid).catch(() => {});
           }
           uploadTimerRef.current = null;
@@ -441,6 +444,9 @@ function AuthGuard() {
 // verify ekranına yönlendir. Onboarding ve login ekranlarında müdahale etmez.
 // Apple/Google user'lar emailVerified=true ile gelir, hiç burada takılmaz.
 // ════════════════════════════════════════════════════════════════
+// 🍎 Apple Review test account — Spark plan email-verified toggle yok, bypass
+const APPLE_REVIEW_EMAIL = 'apple-reviewer@vogel-app.com';
+
 function VerifyEmailGuard() {
   const router    = useRouter();
   const pathname  = usePathname();
@@ -451,6 +457,8 @@ function VerifyEmailGuard() {
     if (isAuthLoading) return;
     if (!user) return;
     if (user.emailVerified) return;
+    // Apple Review bypass
+    if (user.email === APPLE_REVIEW_EMAIL) return;
     // Onaylanmamış, login/onboarding/verify-email haricindeyse yönlendir
     const safePaths = ['/verify-email', '/login', '/onboarding'];
     if (!safePaths.includes(pathname)) {
