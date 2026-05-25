@@ -33,17 +33,16 @@ workflows:
       - name: Expo prebuild iOS
         script: npx expo prebuild --platform ios --clean
 
-      - name: Set up iOS code signing
+            - name: Set up iOS code signing
         script: |
           set -euo pipefail
 
           keychain initialize
 
           app-store-connect fetch-signing-files \
-  "$BUNDLE_ID" \
-  --type IOS_APP_STORE \
-  --certificate-key "@env:IOS_DIST_PRIVATE_KEY" \
-  --create
+            "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
 
           keychain add-certificates
 
