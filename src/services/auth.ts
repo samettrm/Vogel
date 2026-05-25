@@ -152,7 +152,14 @@ export async function signInWithGoogle(): Promise<AuthResult> {
       e.code === '12501' || // Android cancelled
       e.message?.includes('cancelled');
     if (cancelled) return { ok: false, code: 'cancelled', message: '' };
-    return { ok: false, code: e.code ?? 'unknown', message: 'Google girişi başarısız.' };
+    // Hata kodunu ve gerçek mesajı geçir — debug için
+    const code = String(e.code ?? 'unknown');
+    const rawMsg = e.message ?? e.toString?.() ?? 'bilinmeyen';
+    return {
+      ok: false,
+      code,
+      message: `Google girişi başarısız.\n${rawMsg.slice(0, 120)}`,
+    };
   }
 }
 

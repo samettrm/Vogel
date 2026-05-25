@@ -14,6 +14,8 @@ import { useEffect, useRef } from 'react';
 import { LogBox } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Application from 'expo-application';
 import * as Sentry from '@sentry/react-native';
 import { useUserStore } from '../src/store/useUserStore';
 import { AchievementToast } from '../src/components/achievements/AchievementToast';
@@ -231,11 +233,42 @@ export default Sentry.wrap(RootLayout);
 // Stack mount edildikten sonra çalıştırır (child → parent sıralaması).
 // Yani router.replace çağrıldığında navigator garantili olarak hazırdır.
 // ════════════════════════════════════════════════════════════════
+const INSTALL_TIME_KEY = 'vogel:install-time';
+
 function OnboardingGuard() {
   const router = useRouter();
   const pathname = usePathname();
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
+
+  // 🔍 Fresh install / reinstall detection
+  // Cihazdaki gerçek install zamanını (OS-level) AsyncStorage'da sakladığımız
+  // değerle karşılaştır. Farklıysa = uninstall + reinstall yapılmış demektir
+  // (iCloud/Google Backup yerel veriyi geri yüklemiş olabilir ama install time
+  // OS seviyesinden yeni gelir). Bu durumda onboarding'i ve oturumu sıfırla.
+  useEffect(() => {
+    if (!hasHydrated) return;
+    (async () => {
+      try {
+        const installTime = await Application.getInstallationTimeAsync();
+        const currentMs = installTime.getTime();
+        const stored = await AsyncStorage.getItem(INSTALL_TIME_KEY);
+
+        if (stored === null) {
+          // İlk kayıt — set et, sıfırlama yok
+          await AsyncStorage.setItem(INSTALL_TIME_KEY, String(currentMs));
+        } else if (Number(stored) !== currentMs) {
+          // Reinstall tespit edildi — onboarding ve oturumu sıfırla
+          useUserStore.setState({
+            onboardingCompleted: false,
+            hasEverSignedIn: false,
+            learningMotivations: [],
+          });
+          await AsyncStorage.setItem(INSTALL_TIME_KEY, String(currentMs));
+        }
+      } catch {}
+    })();
+  }, [hasHydrated]);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -358,7 +391,8 @@ function AuthSyncer() {
 // İstisna ekranlar (zorlama yapılmaz):
 //   /login, /verify-email, /onboarding
 // ════════════════════════════════════════════════════════════════
-const GUEST_LESSON_LIMIT = 3;
+// 2 misafir ders → 3. dersten önce login zorunlu
+const GUEST_LESSON_LIMIT = 2;
 
 function AuthGuard() {
   const router       = useRouter();

@@ -116,7 +116,8 @@ export default function LoginScreen() {
       await downloadAndReplaceProgress(result.user.uid);
       router.replace('/');
     } else if (result.code !== 'cancelled') {
-      Alert.alert('Hata', result.message);
+      // Debug: hata kodunu da göster, root cause anlaşılsın
+      Alert.alert('Google Hatası', `${result.message}\n\nKod: ${result.code}`);
     }
   };
 
