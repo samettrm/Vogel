@@ -41,7 +41,14 @@
     },
     "plugins": [
       "expo-router",
-      "@sentry/react-native/expo",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "bbb25011e61c",
+          "project": "react-native",
+          "url": "https://sentry.io/"
+        }
+      ],
       "expo-apple-authentication",
       [
         "@react-native-google-signin/google-signin",

@@ -178,13 +178,14 @@ Play Store'a yüklenmez ama sideload (Drive/USB/adb) ile telefona kurulur.
 |---|---|---|
 | Workflow | `codemagic.yaml` | Repo kökünde mevcut |
 | Tetikleyici | push to `main` | Otomatik |
-| Signing | **Manuel** — `IOS_DIST_PRIVATE_KEY` env var | `appstore_credentials` grubunda, Codemagic → Vogel → Env vars |
+| Signing | **Lexora ile paylaşımlı cert** — `IOS_DIST_PRIVATE_KEY` env var | `appstore_credentials` grubunda, Codemagic → Vogel → Env vars (Lexora ile **aynı PEM**) |
 | ASC API Key | `appstore_credentials` grubu | APP_STORE_CONNECT_PRIVATE_KEY + KEY_IDENTIFIER (C4Z2AK6JRF) + ISSUER_ID |
-| Dist Private Key dosyası | `C:\Users\i9pc\Desktop\codemagic AppConnect\vogel_dist_key.pem` | **SİLME** — silersan Apple 409 hatası (cert limit dolu, yeni cert oluşturulamaz) |
+| Firebase / RC / Google env vars | `codemagic.yaml` → `environment.vars` | `EXPO_PUBLIC_*` değerleri inline (commit'lidir, public bundle'a embed olur) |
+| `--create` flag | `codemagic.yaml` | **KALDIRILDI** — paylaşımlı cert zaten Apple'da kayıtlı |
 
 > ⚠️ **ÖNEMLİ:** `codemagic.yaml`'a asla `ios_signing:` bloğu ekleme!
 > Bu blok Codemagic'in pre-build profile check'ini tetikler → "No matching profiles" hatası.
-> Signing tamamen script adımlarında `app-store-connect fetch-signing-files --certificate-key "@env:IOS_DIST_PRIVATE_KEY" --create` ile yapılıyor.
+> Signing tamamen script adımlarında `app-store-connect fetch-signing-files --certificate-key "@env:IOS_DIST_PRIVATE_KEY"` ile yapılıyor (--create flag YOK).
 
 ---
 
@@ -199,12 +200,16 @@ ASC App ID:      6771534635
 ASC API Key ID:  C4Z2AK6JRF (Admin — Codemagic APP_STORE_CONNECT_KEY_IDENTIFIER)
 ```
 
-**Distribution cert durumu (2026-05):**
-- Apple hesabında max **2 Distribution All** cert var (limit dolu)
-- Cert 1: Lexora için (Lexora projesinin IOS_DIST_PRIVATE_KEY'i ile oluşturuldu)
-- Cert 2: Vogel için (`C:\Users\i9pc\Desktop\codemagic AppConnect\vogel_dist_key.pem` ile oluşturuldu)
-- Her build sırasında Codemagic mevcut cert'i yeniden kullanır; aynı private key varsa 409 olmaz
-- Private key **kaybolursa**: Apple'dan o cert'i revoke et, yeni key ile yeni cert oluştur (1 slot serbest kalır)
+**Distribution cert durumu (2026-05, güncel):**
+- Apple hesabında **1 adet aktif iOS Distribution cert** (Lexora ile **ORTAK**, expires 2027/05/20)
+- Codemagic Vogel'in `IOS_DIST_PRIVATE_KEY` env var'ı = Lexora'nın PEM'iyle **AYNI**
+- Yeni cert oluşturulmuyor — `fetch-signing-files` mevcut cert'i bulup kullanıyor
+- Eski iki Distribution cert'i (`vogel_dist_key.pem` dahil) **revoke edildi** — Apple cert limit'i temizlendi
+
+**Cert kaybolursa yapılacaklar:**
+1. Apple Developer → eski cert'i revoke et (boş slot açmak için)
+2. Lexora ile aynı PEM'i tekrar oluştur veya Codemagic'in `--create` flag'i ile yeniden ürettir
+3. `IOS_DIST_PRIVATE_KEY` env var'ını her iki projede güncelle (Vogel + Lexora)
 
 Apple cred'ler keychain'de cache'lendi, build sırasında sormaz.
 
@@ -218,5 +223,6 @@ Apple cred'ler keychain'de cache'lendi, build sırasında sormaz.
 - Aynı build'i tekrar submit etme → "Build already submitted" hatası
 - iOS için `eas build --platform ios` çalıştırma → iOS Codemagic'e geçti, EAS quota'yı boşa harcar
 - `codemagic.yaml`'a `ios_signing:` bloğu ekleme → "No matching profiles found" hatası (13 build bu yüzden başarısız oldu!)
-- `vogel_dist_key.pem` dosyasını silme/kaybetme → Apple cert limit 2/2 dolu, yeni cert oluşturulamaz
-- Codemagic'te Vogel'in `IOS_DIST_PRIVATE_KEY`'ini Lexora'nın key'i ile değiştirme → farklı cert'ler, karışır
+- `codemagic.yaml`'a `--create` flag'i geri ekleme → Apple "409 cert limit dolu" döner (paylaşımlı cert zaten var)
+- Vogel'in `IOS_DIST_PRIVATE_KEY` env var'ını Lexora'nınkinden FARKLI bir değerle değiştirme → eski yanlış senaryo; artık her ikisi de **aynı PEM** olmalı (paylaşımlı cert)
+- `EXPO_PUBLIC_*` env vars'ları sadece `.env`'e koyma → Codemagic .env'i okumaz! `codemagic.yaml > environment.vars` içine de inline ekle
