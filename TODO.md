@@ -8,34 +8,30 @@ Format: `- [ ] başlık` + altta gerekirse `**Why:**` / **referans dosya** / ris
 
 ## 🔴 Yüksek öncelik (release blocker / yakın vade)
 
-### App Store Connect — "Add for Review" blocker'ları (2026-05-26 tespit)
+### App Store Connect — Submit öncesi kalan 4 ufak iş (2026-05-26)
 
-> ⚠️ ASC v1.0 submission slot'unda 3 eksik var, **App Store yayını için blocker**. Bunlar tamamlanmadan "Add for Review" tıklanamıyor.
+> Tüm release blocker'lar çözüldü. Banking/Tax/Pricing/Privacy/Screenshots tamam. Bu 4 madde **bitince Submit for Review** tıklanabilir.
 
-- [ ] **1. Privacy Policy URL ASC'de eksik**
-  - **Nerede:** ASC → Vogel → App Privacy → "Privacy Policy URL" field
-  - **Çözüm:** GitHub Pages'teki `privacy.html` URL'sini gir (samettrm/Vogel repo'sundan)
-  - Muhtemel URL: `https://samettrm.github.io/Vogel/privacy.html` *(doğrula)*
-  - App içi `app/privacy-policy.tsx` route'u zaten tamam, **ASC tarafı eksik**
+- [ ] **1. App Review notes "3 lessons" → "2 lessons" düzelt**
+  - ASC → Distribution → App Review Information → Notes textarea
+  - Eski metin "3 lessons" geçiyordu, kodda `GUEST_LESSON_LIMIT = 2`
+  - Reviewer kafa karışıklığı önleme
 
-- [ ] **2. 13-inch iPad screenshot eksik**
-  - **Nerede:** ASC → Previews and Screenshots → iPad sekmesi → 13"
-  - **Cihaz:** Yeni iPad Pro M4 13" (2024) — display 2064 x 2752 (portrait)
-  - **Çözüm seçenekleri:**
-    - a) Xcode simulator'da iPad Pro 13" boot et, ekran çek
-    - b) Mevcut iPhone screenshot'lardan yola çıkarak Figma/PS'te 2064x2752'lik kompozisyon üret
-    - c) En az 3 screenshot lazım (Apple zorunlu kılıyorsa)
-  - Önceki rapor: 5.png + 10.png 1284x2778 reject — o **ayrı bir mesele** (iPhone tarafı), bu ekstra
+- [ ] **2. App Privacy "Data Types You Collect" tablosu doldur**
+  - ASC → App Privacy → Data Types
+  - Firebase Auth → Email, Name (eğer kullanıcı girerse)
+  - Firestore → Identifiers (uid)
+  - Sentry → Crash data, Performance data
+  - Apple Reviewer otomatik reject sebebi olabilir, mutlaka
 
-- [ ] **3. Pricing tier seçilmemiş**
-  - **Nerede:** ASC → Pricing and Availability
-  - **Çözüm:** "Free" tier seç (uygulama ücretsiz, gelir RC IAP'larından)
-  - 30 saniyelik iş
+- [ ] **3. Age Rating set et**
+  - ASC → App Information → Age Rating → Edit
+  - ~12 soru, hepsine "None" işaretle → 4+ çıkar
 
-- [ ] **Sürüm uyumsuzluğu kontrolü**
-  - ASC v1.0 slot açık, ama `app.json` v1.0.2 — TestFlight build'leri 1.0.2
-  - Karar: bu slot'u 1.0.2'ye yükselt (Edit Version) ya da 1.0'la submit edip sonra 1.0.2 update push et
-  - Birinci yol daha temiz
+- [ ] **4. Codemagic build (1.0.2 (11)) TestFlight'a düşmesini bekle**
+  - Commit: 1906bde (Goethe/TELC trademark removal)
+  - Dashboard: https://codemagic.io/apps → Vogel → ios-production
+  - Bitince ASC submission'da `1.0.2 (10)` yerine `1.0.2 (11)` seç
 
 ---
 
@@ -138,8 +134,16 @@ Format: `- [ ] başlık` + altta gerekirse `**Why:**` / **referans dosya** / ris
 ## ✅ Yakın zamanda tamamlananlar (referans için)
 
 - ✅ **TestFlight build f341b31 cihazda test edildi — crash yok** (2026-05-26)
-- ✅ **Privacy Policy app içi route + sayfa** — privacy-policy.tsx tamam (ASC URL field hâlâ eksik, blocker'da)
+- ✅ **Privacy Policy app içi + ASC URL** (https://samettrm.github.io/Vogel/privacy.html) (2026-05-26)
 - ✅ **App Store Connect IAP onayı — 3 ürün de onaylı** (monthly/yearly/family) (2026-05-26)
+- ✅ **ASC Pricing tier (Free) + Availability (175 ülke)** (2026-05-26)
+- ✅ **ASC 13" iPad screenshots (5 adet) yüklendi** (2026-05-26)
+- ✅ **App Review Information — demo hesap + notes doldurulu** (apple-reviewer@vogel-app.com / VogelReview2026!) (2026-05-26)
+- ✅ **Goethe/TELC trademark temizliği** — 22 dosya, commit 1906bde (2026-05-26)
+- ✅ **Apple Paid Apps Agreement → Active** (2026-05-26)
+- ✅ **Banking (Halkbank IBAN + Account)** → Active (2026-05-26)
+- ✅ **Tax Forms (W-8BEN + Certificate of Foreign Status)** → Active, Article 12 / 10% royalty (2026-05-26)
+- ✅ **AuthGuard yorumlarında "3 ders" → "2 ders" tutarlılığı** (commit 7ed7de9, 2026-05-26)
 - ✅ **expo-secure-store SDK 54 uyumsuzluğu crash fix** (f341b31, 2026-05-26)
 - ✅ **Cihaz-bağlı onboarding bypass** — secureStore ile (c9f921e)
 - ✅ **Sync race condition fix** — logout'ta upload timer iptal (12d776d)
