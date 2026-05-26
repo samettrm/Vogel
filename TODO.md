@@ -8,30 +8,44 @@ Format: `- [ ] başlık` + altta gerekirse `**Why:**` / **referans dosya** / ris
 
 ## 🔴 Yüksek öncelik (release blocker / yakın vade)
 
-### App Store Connect — Submit öncesi kalan 4 ufak iş (2026-05-26)
+### App Store Connect — Submit öncesi kalan işler (2026-05-26)
 
-> Tüm release blocker'lar çözüldü. Banking/Tax/Pricing/Privacy/Screenshots tamam. Bu 4 madde **bitince Submit for Review** tıklanabilir.
+> Tüm release blocker'lar + AdMob entegrasyonu tamam. Aşağıdaki işler bitince **Submit for Review** tıklanabilir.
 
 - [ ] **1. App Review notes "3 lessons" → "2 lessons" düzelt**
   - ASC → Distribution → App Review Information → Notes textarea
   - Eski metin "3 lessons" geçiyordu, kodda `GUEST_LESSON_LIMIT = 2`
   - Reviewer kafa karışıklığı önleme
 
-- [ ] **2. App Privacy "Data Types You Collect" tablosu doldur**
-  - ASC → App Privacy → Data Types
-  - Firebase Auth → Email, Name (eğer kullanıcı girerse)
-  - Firestore → Identifiers (uid)
-  - Sentry → Crash data, Performance data
-  - Apple Reviewer otomatik reject sebebi olabilir, mutlaka
+- [ ] **2. App Privacy "Data Types You Collect" — AdMob için güncelleme şart**
+  - ASC → App Privacy → Data Types → Edit
+  - AdMob aktif olduğu için aşağıdaki data types işaretlenmeli:
+    - **Identifiers → Device ID (IDFA)** — Tracked: **YES**, Purpose: 3rd-party advertising
+    - **Identifiers → User ID** — Tracked: No, Purpose: App functionality (Firebase uid)
+    - **Contact Info → Email Address** — Tracked: No, Purpose: App functionality (Firebase Auth)
+    - **Usage Data → Product Interaction** — Tracked: No, Purpose: App functionality
+    - **Usage Data → Advertising Data** — Tracked: **YES**, Purpose: 3rd-party advertising
+    - **Diagnostics → Crash Data** — Tracked: No, Purpose: App functionality (Sentry)
+    - **Diagnostics → Performance Data** — Tracked: No, Purpose: App functionality (Sentry)
+    - **Purchases → Purchase History** — Tracked: No, Purpose: App functionality (RC IAP)
+  - Apple Reviewer otomatik reject sebebi olabilir, **mutlaka doldur**
 
 - [ ] **3. Age Rating set et**
   - ASC → App Information → Age Rating → Edit
   - ~12 soru, hepsine "None" işaretle → 4+ çıkar
 
-- [ ] **4. Codemagic build (1.0.2 (11)) TestFlight'a düşmesini bekle**
-  - Commit: 1906bde (Goethe/TELC trademark removal)
+- [ ] **4. Codemagic build TestFlight'a düşmesini bekle**
+  - En yeni commit: cb589b8 (AdMob Interstitial + Rewarded)
   - Dashboard: https://codemagic.io/apps → Vogel → ios-production
-  - Bitince ASC submission'da `1.0.2 (10)` yerine `1.0.2 (11)` seç
+  - Bitince TestFlight'ta yeni build numarasını gör (1.0.2 (22+) olur muhtemelen)
+  - ASC submission'da eski build'i kaldır, yeni build'i seç
+
+- [ ] **5. AdSense banking bilgisi (gelir akışı için)**
+  - admob.google.com → Settings → Payments → Add payment method
+  - Bank Account: Halkbank IBAN (Apple ile aynı) — `TR85 0001 2009 2140 0001 0514 12`
+  - Account holder: Samet Terme
+  - Tax info: TC Kimlik No
+  - **Onay 1-2 gün sürer**, ilk ödeme $100 threshold'a ulaşınca
 
 ---
 
@@ -144,6 +158,14 @@ Format: `- [ ] başlık` + altta gerekirse `**Why:**` / **referans dosya** / ris
 - ✅ **Banking (Halkbank IBAN + Account)** → Active (2026-05-26)
 - ✅ **Tax Forms (W-8BEN + Certificate of Foreign Status)** → Active, Article 12 / 10% royalty (2026-05-26)
 - ✅ **AuthGuard yorumlarında "3 ders" → "2 ders" tutarlılığı** (commit 7ed7de9, 2026-05-26)
+- ✅ **AdMob entegrasyonu** (Banner + Interstitial + Rewarded + ATT prompt) — commits c91a173 + cb589b8 (2026-05-26)
+  - bsdigitalapp@gmail.com hesabıyla AdMob hesabı
+  - Publisher: pub-7904978237837219
+  - Banner → lesson screen alt (free user)
+  - Interstitial → ders bitince ~%33 (free user, 90sn min interval)
+  - Rewarded → NoHeartsScreen "Reklam İzle, 1 Can Kazan" (free user)
+  - ATT prompt → onboarding sonrası iOS 14.5+
+  - Privacy Policy + STORE_LISTING gerçeklikle uyumlu
 - ✅ **expo-secure-store SDK 54 uyumsuzluğu crash fix** (f341b31, 2026-05-26)
 - ✅ **Cihaz-bağlı onboarding bypass** — secureStore ile (c9f921e)
 - ✅ **Sync race condition fix** — logout'ta upload timer iptal (12d776d)
