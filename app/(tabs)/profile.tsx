@@ -178,7 +178,7 @@ export default function ProfileScreen() {
             <Text style={styles.pSpark4} pointerEvents="none">✦</Text>
             {/* Üst rozet çubuğu */}
             <View style={styles.pBannerTopBadge} pointerEvents="none">
-              <Text style={styles.pBannerTopBadgeText}>✦ 3 GÜN ÜCRETSİZ DENEMELİ ✦</Text>
+              <Text style={styles.pBannerTopBadgeText}>✦ VOGEL PLUS PREMIUM ✦</Text>
             </View>
             {/* İçerik */}
             <View style={styles.pBannerContent}>

@@ -17,7 +17,7 @@ import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 // ════════════════════════════════════════════════════════════════
 // PREMIUM CARD
 // Vogel Plus banner. Aktifse "Aktif Üye" görünür. Değilse "Yükselt"
-// → makePremium store fonksiyonunu çağırır (mock, gerçek ödeme yok).
+// → makePremium store fonksiyonunu çağırır (RC purchase'ından sonra).
 // ════════════════════════════════════════════════════════════════
 
 interface PremiumCardProps {
@@ -75,11 +75,11 @@ export function PremiumCard({ isPremium, onUpgrade }: PremiumCardProps) {
     Haptics.selectionAsync().catch(() => {});
     Alert.alert(
       '👑 Vogel Plus',
-      'Aylık ₺199 — sınırsız can, reklamsız deneyim, özel dersler.\n\n(Mock satın alma — gerçek ödeme yok)',
+      'Aylık ₺199 — sınırsız can, reklamsız deneyim, özel dersler.\nAboneliği istediğin zaman iptal edebilirsin.',
       [
         { text: 'Vazgeç', style: 'cancel' },
         {
-          text: 'Yükselt (mock)',
+          text: 'Devam Et',
           onPress: () => {
             onUpgrade();
             Haptics.notificationAsync(

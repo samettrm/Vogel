@@ -22,8 +22,8 @@ export function XPPackageCard({
   const handlePress = () => {
     Haptics.selectionAsync().catch(() => {});
     Alert.alert(
-      t('shop.mockNote'),
-      `${title} (${amount} XP)`,
+      title,
+      `${amount} XP satın al?`,
       [
         { text: t('common.cancel'), style: 'cancel' },
         {

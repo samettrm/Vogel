@@ -40,8 +40,8 @@ export default function NoHeartsScreen() {
   const handleHeartRefillPress = () => {
     if (xp < 450) {
       Alert.alert(
-        t('shop.full'),
-        t('shop.mockNote'),
+        'Yetersiz Kupa',
+        'Canları yenilemek için 450 kupa gerekli.\nMağazadan kupa satın alabilirsin.',
         [
           { text: t('common.cancel'), style: 'cancel' },
           { text: t('noHearts.goShop'), onPress: () => router.replace('/(tabs)/shop') },

@@ -34,8 +34,8 @@ export const OFFERING_DEFAULT = 'default';
 export const PRODUCT_IDS = {
   // ── ABONELİKLER (Subscriptions > Auto-Renewable Subscription) ──
   premiumMonthly:  'vogel_premium_monthly',   // ₺199 / ay
-  premiumYearly:   'vogel_premium_yearly',    // ₺969.99 / yıl (%42 indirim)
-  premiumFamily:   'vogel_premium_family',    // ₺1199.99 / yıl (2-6 üye)
+  premiumYearly:   'vogel_premium_yearly',    // ₺999.99 / yıl (%58 indirim)
+  premiumFamily:   'vogel_premium_family',    // ₺1499.99 / yıl (2-6 üye)
 } as const;
 
 // RevenueCat Dashboard'da "premium" entitlement'ını şu 3 ürünle bağla:

@@ -24,7 +24,7 @@ import type { PremiumPackage, PlanId } from '../../services/purchases';
 // Duolingo-ilham: koyu gradient hero + bulut dalgası + plan kartları
 // Holografik çizgiler, mor/mavi glow, cam efekti kartlar
 // Seçili kart: mor gradient border (wrapper trick ile)
-// Tüm planlar: 3 gün ücretsiz deneme
+// Subscription planları (trial yok — direkt abonelik)
 // Aile planı: 2–5 üye
 // ════════════════════════════════════════════════════════════════
 
@@ -50,9 +50,9 @@ const PLANS: PlanDef[] = [
   {
     id: 'yearly',
     label: '12 Aylık',
-    price: '₺969,99',
-    perMonth: '₺80,83 / ay',
-    savings: '%42',
+    price: '₺999,99',
+    perMonth: '₺83,33 / ay',
+    savings: '%58',
     badgeText: '⭐ En Popüler',
     badgeColor: '#a855f7',
   },
@@ -60,8 +60,8 @@ const PLANS: PlanDef[] = [
     id: 'family',
     label: 'Aile Planı',
     sublabel: '2–6 üye',
-    price: '₺1.199,99',
-    perMonth: '₺99,99 / ay',
+    price: '₺1.499,99',
+    perMonth: '₺124,99 / ay',
     badgeText: '👨‍👩‍👧 Aile',
     badgeColor: '#3b82f6',
   },
@@ -172,11 +172,11 @@ export function PremiumPlansCard({
     Haptics.selectionAsync().catch(() => {});
     Alert.alert(
       `Vogel Plus — ${plan.label}`,
-      `${plan.price}\n3 gün ücretsiz, sonra otomatik yenilenir.\n\n(Mock satın alma — gerçek ödeme yok)`,
+      `${plan.price}\nOtomatik yenilenir, istediğin zaman iptal edebilirsin.`,
       [
         { text: 'Vazgeç', style: 'cancel' },
         {
-          text: '3 Günü Ücretsiz Başlat',
+          text: 'Aboneliği Başlat',
           onPress: () => {
             Haptics.notificationAsync(
               Haptics.NotificationFeedbackType.Success,
@@ -339,7 +339,7 @@ export function PremiumPlansCard({
             <Text style={styles.heroTitleEm}>hiç durma</Text>
           </Text>
           <Text style={styles.heroSub}>
-            3 gün ücretsiz dene — istersen iptal et
+            Sınırsız öğrenmenin keyfini çıkar — istediğin zaman iptal et
           </Text>
 
           {/* Mini fiyat özetleri */}
@@ -388,10 +388,10 @@ export function PremiumPlansCard({
       {/* ── PLAN KARTLARI ───────────────────────────────────────── */}
       <View style={styles.cardsArea}>
 
-        {/* "3 GÜN ÜCRETSİZ DENEMELİ" etiketi */}
+        {/* "VOGEL PLUS" etiketi */}
         <View style={styles.trialRow}>
           <View style={styles.trialLine} />
-          <Text style={styles.trialLabel}>3 GÜN ÜCRETSİZ DENEMELİ</Text>
+          <Text style={styles.trialLabel}>VOGEL PLUS PREMIUM</Text>
           <View style={styles.trialLine} />
         </View>
 

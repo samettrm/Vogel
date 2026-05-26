@@ -186,11 +186,7 @@ export const messages = {
     full: { tr: 'DOLU', en: 'FULL' },
     premium: { tr: 'Premium', en: 'Premium' },
     extraHearts: { tr: '5 Ekstra Can', en: '5 Extra Hearts' },
-    extraHeartsDesc: { tr: 'Tek seferlik mock satın alma', en: 'One-time mock purchase' },
-    mockNote: {
-      tr: 'Tüm satın almalar mock — gerçek ödeme yok, demo amaçlı.',
-      en: 'All purchases are mock — no real payment, demo only.',
-    },
+    extraHeartsDesc: { tr: 'Tek seferlik satın alma', en: 'One-time purchase' },
     monthly: { tr: 'Aylık', en: 'Monthly' },
     yearly: { tr: 'Yıllık', en: 'Yearly' },
     lifetime: { tr: 'Ömür Boyu', en: 'Lifetime' },
