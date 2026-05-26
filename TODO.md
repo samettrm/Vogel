@@ -8,44 +8,28 @@ Format: `- [ ] başlık` + altta gerekirse `**Why:**` / **referans dosya** / ris
 
 ## 🔴 Yüksek öncelik (release blocker / yakın vade)
 
-### App Store Connect — Submit öncesi kalan işler (2026-05-26)
+### 🎊 App Store Connect — SUBMIT EDİLDİ (2026-05-26, 22:28)
 
-> Tüm release blocker'lar + AdMob entegrasyonu tamam. Aşağıdaki işler bitince **Submit for Review** tıklanabilir.
+> Submission ID: `4d701347-d0bd-43b8-855f-708b8ba2e67c`
+> Build: `1.0.2 (21)` (AdMob + Goethe/TELC fix + "Reklamsız" mantıklı vaad)
+> Status: **Waiting for Review**
 
-- [ ] **1. App Review notes "3 lessons" → "2 lessons" düzelt**
-  - ASC → Distribution → App Review Information → Notes textarea
-  - Eski metin "3 lessons" geçiyordu, kodda `GUEST_LESSON_LIMIT = 2`
-  - Reviewer kafa karışıklığı önleme
+Tüm submit öncesi maddeler tamamlandı. Şu an Apple inceleme bekleniyor (24-48 saat).
 
-- [ ] **2. App Privacy "Data Types You Collect" — AdMob için güncelleme şart**
-  - ASC → App Privacy → Data Types → Edit
-  - AdMob aktif olduğu için aşağıdaki data types işaretlenmeli:
-    - **Identifiers → Device ID (IDFA)** — Tracked: **YES**, Purpose: 3rd-party advertising
-    - **Identifiers → User ID** — Tracked: No, Purpose: App functionality (Firebase uid)
-    - **Contact Info → Email Address** — Tracked: No, Purpose: App functionality (Firebase Auth)
-    - **Usage Data → Product Interaction** — Tracked: No, Purpose: App functionality
-    - **Usage Data → Advertising Data** — Tracked: **YES**, Purpose: 3rd-party advertising
-    - **Diagnostics → Crash Data** — Tracked: No, Purpose: App functionality (Sentry)
-    - **Diagnostics → Performance Data** — Tracked: No, Purpose: App functionality (Sentry)
-    - **Purchases → Purchase History** — Tracked: No, Purpose: App functionality (RC IAP)
-  - Apple Reviewer otomatik reject sebebi olabilir, **mutlaka doldur**
+- [ ] **Apple inceleme sonucu bekle**
+  - Email: `sametrme@gmail.com`
+  - "We are now reviewing your app" → In Review
+  - "Your app has been approved" ✅ → Release this version → App Store yayın
+  - VEYA "Your app needs changes" → gerekçeli reject, düzelt + resubmit
+  - Sonuç gelince TODO.md'yi güncelle
 
-- [ ] **3. Age Rating set et**
-  - ASC → App Information → Age Rating → Edit
-  - ~12 soru, hepsine "None" işaretle → 4+ çıkar
-
-- [ ] **4. Codemagic build TestFlight'a düşmesini bekle**
-  - En yeni commit: cb589b8 (AdMob Interstitial + Rewarded)
-  - Dashboard: https://codemagic.io/apps → Vogel → ios-production
-  - Bitince TestFlight'ta yeni build numarasını gör (1.0.2 (22+) olur muhtemelen)
-  - ASC submission'da eski build'i kaldır, yeni build'i seç
-
-- [ ] **5. AdSense banking bilgisi (gelir akışı için)**
+- [ ] **AdSense banking (post-launch, gelir akışı için)**
   - admob.google.com → Settings → Payments → Add payment method
-  - Bank Account: Halkbank IBAN (Apple ile aynı) — `TR85 0001 2009 2140 0001 0514 12`
+  - Bank Account: Halkbank IBAN `TR85 0001 2009 2140 0001 0514 12`
   - Account holder: Samet Terme
   - Tax info: TC Kimlik No
-  - **Onay 1-2 gün sürer**, ilk ödeme $100 threshold'a ulaşınca
+  - **Onay 1-2 gün**, ilk ödeme $100 threshold'a ulaşınca otomatik
+  - Aciliyeti yok, App Store yayınlandıktan sonra halledilebilir
 
 ---
 
@@ -158,7 +142,7 @@ Format: `- [ ] başlık` + altta gerekirse `**Why:**` / **referans dosya** / ris
 - ✅ **Banking (Halkbank IBAN + Account)** → Active (2026-05-26)
 - ✅ **Tax Forms (W-8BEN + Certificate of Foreign Status)** → Active, Article 12 / 10% royalty (2026-05-26)
 - ✅ **AuthGuard yorumlarında "3 ders" → "2 ders" tutarlılığı** (commit 7ed7de9, 2026-05-26)
-- ✅ **AdMob entegrasyonu** (Banner + Interstitial + Rewarded + ATT prompt) — commits c91a173 + cb589b8 (2026-05-26)
+- ✅ **AdMob entegrasyonu** (Banner + Interstitial + Rewarded + ATT prompt) — commits c91a173 + cb589b8 + 6773def (2026-05-26)
   - bsdigitalapp@gmail.com hesabıyla AdMob hesabı
   - Publisher: pub-7904978237837219
   - Banner → lesson screen alt (free user)
@@ -166,6 +150,13 @@ Format: `- [ ] başlık` + altta gerekirse `**Why:**` / **referans dosya** / ris
   - Rewarded → NoHeartsScreen "Reklam İzle, 1 Can Kazan" (free user)
   - ATT prompt → onboarding sonrası iOS 14.5+
   - Privacy Policy + STORE_LISTING gerçeklikle uyumlu
+- ✅ **ASC App Privacy 8 Data Type tam** (2026-05-26)
+  - Tracked: Device ID (IDFA) + Advertising Data
+  - Linked to identity: Email + User ID + Device ID + Purchase History
+  - App Functionality only: User ID, Product Interaction, Crash Data, Performance Data, Email, Purchase History
+- ✅ **ASC Age Rating 4+** (Not Made for Kids, no override) (2026-05-26)
+- ✅ **ASC App Review notes "3 lessons" → "2 lessons"** düzeltme (2026-05-26)
+- ✅ **iOS Submission tamamlandı** — Build 1.0.2 (21), Submission ID 4d701347-d0bd-43b8-855f-708b8ba2e67c, "Waiting for Review" (2026-05-26 22:28)
 - ✅ **expo-secure-store SDK 54 uyumsuzluğu crash fix** (f341b31, 2026-05-26)
 - ✅ **Cihaz-bağlı onboarding bypass** — secureStore ile (c9f921e)
 - ✅ **Sync race condition fix** — logout'ta upload timer iptal (12d776d)
