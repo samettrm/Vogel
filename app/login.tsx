@@ -33,6 +33,7 @@ import {
   uploadProgress,
 } from '@/src/services/sync';
 import { useUserStore } from '@/src/store/useUserStore';
+import { markDeviceAsLoggedIn } from '@/src/utils/secureStore';
 
 // ════════════════════════════════════════════════════════════════
 // GİRİŞ EKRANI — Email · Google · Apple
@@ -81,6 +82,8 @@ export default function LoginScreen() {
     setUser(result.user);
     // Bir kere hesap açıldı → AuthGuard misafir mod'a geri dönmesin
     useUserStore.setState({ hasEverSignedIn: true });
+    // 🔐 Cihaz-bağlı flag: uninstall sonrası bu cihazda onboarding atlanır.
+    await markDeviceAsLoggedIn();
 
     if (mode === 'register') {
       // SIGN-UP: Önce mevcut guest progress'i cloud'a yükle (kayıp önleme).
@@ -117,6 +120,8 @@ export default function LoginScreen() {
     if (result.ok) {
       setUser(result.user);
       useUserStore.setState({ hasEverSignedIn: true });
+      // 🔐 Cihaz-bağlı flag: uninstall sonrası bu cihazda onboarding atlanır.
+      await markDeviceAsLoggedIn();
       // Google sign-in: emailVerified=true otomatik. Cloud master.
       await downloadAndReplaceProgress(result.user.uid);
       router.replace('/');
@@ -135,6 +140,8 @@ export default function LoginScreen() {
     if (result.ok) {
       setUser(result.user);
       useUserStore.setState({ hasEverSignedIn: true });
+      // 🔐 Cihaz-bağlı flag: uninstall sonrası bu cihazda onboarding atlanır.
+      await markDeviceAsLoggedIn();
       // Apple sign-in: emailVerified=true otomatik. Cloud master.
       await downloadAndReplaceProgress(result.user.uid);
       router.replace('/');

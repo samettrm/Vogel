@@ -10,7 +10,7 @@ import { Audio } from 'expo-av';
 import { Stack, useRouter, usePathname } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LogBox } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -26,6 +26,7 @@ import { subscribeToAuthState } from '../src/services/auth';
 import { downloadAndReplaceProgress, uploadProgress } from '../src/services/sync';
 import { isFirebaseConfigured } from '../src/config/firebase';
 import { useAuthStore } from '../src/store/useAuthStore';
+import { hasDeviceEverLoggedIn } from '../src/utils/secureStore';
 
 // ════════════════════════════════════════════════════════════════
 // SENTRY — hata izleme
@@ -241,11 +242,33 @@ function OnboardingGuard() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
 
-  // 🔍 Fresh install / reinstall detection
-  // Cihazdaki gerçek install zamanını (OS-level) AsyncStorage'da sakladığımız
-  // değerle karşılaştır. Farklıysa = uninstall + reinstall yapılmış demektir
-  // (iCloud/Google Backup yerel veriyi geri yüklemiş olabilir ama install time
-  // OS seviyesinden yeni gelir). Bu durumda onboarding'i ve oturumu sıfırla.
+  // Secure-store cihaz kontrolü tamamlandı mı? Bu bitmeden navigation
+  // kararı verilemez (timing yarışı önleme).
+  const [deviceCheckDone, setDeviceCheckDone] = useState(false);
+
+  // 🔑 ADIM 5 (aynı cihazda silip yeniden yükleme) tespiti
+  // SecureStore (iOS Keychain / Android EncryptedSharedPreferences) cihaz-bağlı,
+  // iCloud/Google Backup'a dahil DEĞİL. Uninstall sonrası kalır.
+  //   • Flag var → cihazda daha önce login yapıldı → onboarding bypass +
+  //                hasEverSignedIn true → AuthGuard direkt /login'e gönderir.
+  //   • Flag yok → yeni cihaz veya hiç login yapılmamış → ADIM 1-3 normal akış.
+  useEffect(() => {
+    if (!hasHydrated) return;
+    (async () => {
+      const deviceHadUser = await hasDeviceEverLoggedIn();
+      if (deviceHadUser) {
+        useUserStore.setState({
+          onboardingCompleted: true,
+          hasEverSignedIn: true,
+        });
+      }
+      setDeviceCheckDone(true);
+    })();
+  }, [hasHydrated]);
+
+  // 🔍 Fresh install / reinstall detection (eski mekanizma — yedek olarak duruyor)
+  // SecureStore yoksa (Expo Go gibi senaryolar) bu install-time karşılaştırması
+  // hâlâ AsyncStorage'ı temizleyerek koruma sağlar.
   useEffect(() => {
     if (!hasHydrated) return;
     (async () => {
@@ -258,7 +281,9 @@ function OnboardingGuard() {
           // İlk kayıt — set et, sıfırlama yok
           await AsyncStorage.setItem(INSTALL_TIME_KEY, String(currentMs));
         } else if (Number(stored) !== currentMs) {
-          // Reinstall tespit edildi — onboarding ve oturumu sıfırla
+          // Reinstall tespit edildi (yedek mekanizma)
+          // NOT: SecureStore flag varsa onboardingCompleted yukarıdaki effect'te
+          // tekrar true yapılır — yani bu reset aynı cihaz reinstall'da etki etmez.
           useUserStore.setState({
             onboardingCompleted: false,
             hasEverSignedIn: false,
@@ -271,13 +296,13 @@ function OnboardingGuard() {
   }, [hasHydrated]);
 
   useEffect(() => {
-    if (!hasHydrated) return;
+    if (!hasHydrated || !deviceCheckDone) return;
     if (!onboardingCompleted && pathname !== '/onboarding') {
       router.replace('/onboarding');
     } else if (onboardingCompleted && pathname === '/onboarding') {
       router.replace('/');
     }
-  }, [hasHydrated, onboardingCompleted, pathname, router]);
+  }, [hasHydrated, deviceCheckDone, onboardingCompleted, pathname, router]);
 
   return null;
 }
