@@ -418,8 +418,8 @@ function AuthSyncer() {
 //
 // Mantık:
 //   • Onboarding biter → misafir mod açılır
-//   • Kullanıcı GUEST_LESSON_LIMIT (3) ders yapabilir
-//   • 3 ders tamamlandıktan sonra → /login'e zorla
+//   • Kullanıcı GUEST_LESSON_LIMIT (2) ders yapabilir
+//   • 2 ders tamamlandıktan sonra → /login'e zorla
 //   • Sign-up sırasında guest progress cloud'a yedeklenir (kayıp olmaz)
 //
 // Bu sayede kullanıcı uygulamayı görür, XP kazanır, sonra "kaybetmemek
@@ -453,7 +453,7 @@ function AuthGuard() {
       router.replace('/login');
       return;
     }
-    // 🔑 Duolingo paterni: ilk 3 ders misafir, sonra login zorunlu
+    // 🔑 Duolingo paterni: ilk 2 ders misafir, sonra login zorunlu
     if (completedLessonsCount < GUEST_LESSON_LIMIT) return;
     router.replace('/login');
   }, [
