@@ -17,6 +17,7 @@
         "NSSpeechRecognitionUsageDescription": "Konuşma alıştırmasında verdiğin cevabı yazıya dökmek için",
         "NSPhotoLibraryUsageDescription": "Profil resmini ya da alıştırma notlarına eklemek istediğin görseli seçebilmen için galeriye erişim isteyebilir.",
         "NSPhotoLibraryAddUsageDescription": "Alıştırma sonuçlarını veya başarı rozetlerini telefonuna kaydedebilmen için galeriye yazma izni isteyebilir.",
+        "NSUserTrackingUsageDescription": "Reklamların daha alakalı olması için izin verirsen, seçtiğin ilgilere göre reklam göstermemize yardımcı olur. İzin vermesen de uygulama tamamen normal çalışır.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -77,7 +78,21 @@
           "defaultChannel": "vogel-reminders"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "Reklamların daha alakalı olması için izin verirsen, seçtiğin ilgilere göre reklam göstermemize yardımcı olur. İzin vermesen de uygulama tamamen normal çalışır."
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-7904978237837219~4005235328",
+          "iosAppId": "ca-app-pub-7904978237837219~9019404228",
+          "userTrackingUsageDescription": "Reklamların daha alakalı olması için izin verirsen, seçtiğin ilgilere göre reklam göstermemize yardımcı olur. İzin vermesen de uygulama tamamen normal çalışır."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false,

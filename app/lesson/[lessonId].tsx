@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AdBanner } from '../../src/components/ads/AdBanner';
 import { FillBlankExercise } from '../../src/components/exercises/FillBlankExercise';
 import { ListenExercise } from '../../src/components/exercises/ListenExercise';
 import { MatchPairsExercise } from '../../src/components/exercises/MatchPairsExercise';
@@ -939,6 +940,9 @@ export default function LessonScreen() {
             <CheckButton c={c} label={t('common.check')} onPress={checkAnswer} enabled={canCheck} />
           ) : null}
         </View>
+
+        {/* 📺 Banner reklam — sadece free user'da görünür (AdBanner içinde premium check) */}
+        <AdBanner />
       </View>
     </SafeAreaView>
   );

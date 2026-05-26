@@ -22,6 +22,7 @@ import { AchievementToast } from '../src/components/achievements/AchievementToas
 import { preloadAllSounds } from '../src/utils/sounds';
 import { SENTRY_DSN } from '../src/config/sentry';
 import { initPurchases } from '../src/services/purchases';
+import { initMobileAds, requestTrackingPermission } from '../src/services/ads';
 import { subscribeToAuthState } from '../src/services/auth';
 import { downloadAndReplaceProgress, uploadProgress } from '../src/services/sync';
 import { isFirebaseConfigured } from '../src/config/firebase';
@@ -38,6 +39,13 @@ import { hasDeviceEverLoggedIn } from '../src/utils/secureStore';
 // API key .env'de yoksa init atlanır, mock mod çalışır.
 // ════════════════════════════════════════════════════════════════
 initPurchases();
+
+// ════════════════════════════════════════════════════════════════
+// ADMOB — Google Mobile Ads SDK başlatılır.
+// Native modül yoksa (Expo Go) graceful no-op.
+// ATT prompt onboarding sonrası AdsInitializer'da çağrılır.
+// ════════════════════════════════════════════════════════════════
+initMobileAds();
 // Google Sign-In artık lazy başlatılıyor — Expo Go'da native modül yok diye crash etmesin.
 // configureGoogleSignIn() ilk Google butonuna basıldığında signInWithGoogle içinde çağrılır.
 
@@ -210,6 +218,8 @@ function RootLayout() {
         <SmartReminderRefresher />
         {/* 💎 Premium senkronizasyonu — RC entitlement'ı store'a yazar */}
         <PremiumSyncer />
+        {/* 📺 AdMob ATT prompt — onboarding bitince bir kez göster */}
+        <AdsInitializer />
         {/* 🔄 Auth senkronizasyonu — giriş/ilerleme senkronizasyonu */}
         <AuthSyncer />
         {/* 🚪 Auth guard — login YOK ise her zaman /login'e yönlendir */}
@@ -523,6 +533,40 @@ function PremiumSyncer() {
     // sadece hydration değişiminde çalışsın
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasHydrated]);
+
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// ADS INITIALIZER — AdMob SDK init zaten top-level'da yapıldı.
+// Bu component sadece App Tracking Transparency prompt'unu
+// onboarding bittikten SONRA göstermek için kullanılır (Apple
+// HIG önerisi: ATT prompt'unu context'le birlikte göster).
+//
+// iOS 14.5+ için zorunlu. Kullanıcı izin vermezse contextual ads;
+// izin verirse personalized ads. Ya öyle ya böyle reklam yine de
+// gösterilir — sadece targeting kalitesi değişir.
+// ════════════════════════════════════════════════════════════════
+function AdsInitializer() {
+  const hasHydrated = useUserStore((s) => s.hasHydrated);
+  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
+  const isPremium = useUserStore((s) => s.isPremium);
+  const promptShownRef = useRef(false);
+
+  useEffect(() => {
+    // Henüz hidrasyon yoksa veya onboarding bitmediyse ATT prompt gösterme
+    if (!hasHydrated || !onboardingCompleted) return;
+    // Premium kullanıcıya gereksiz prompt gösterme (yine de reklam görmeyecek)
+    if (isPremium) return;
+    // Bir kere göster
+    if (promptShownRef.current) return;
+    promptShownRef.current = true;
+    // 600ms gecikme — map ekranı render olsun, prompt context'le otursun
+    const t = setTimeout(() => {
+      requestTrackingPermission().catch(() => {});
+    }, 600);
+    return () => clearTimeout(t);
+  }, [hasHydrated, onboardingCompleted, isPremium]);
 
   return null;
 }
