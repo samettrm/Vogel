@@ -35,7 +35,7 @@ Master German with bite-sized lessons, speaking practice, and a streak system th
 Vogel makes learning German enjoyable and effective — clean lessons, no ads, focused on real progress.
 
 STRUCTURED LEARNING PATH
-Work through A1, A2, B1, and B2 levels with carefully crafted lessons covering vocabulary, grammar, and pronunciation. Each lesson is short enough to complete in a few minutes, making it easy to learn on the go.
+Work through A1, A2, B1, B2, and C1 levels with carefully crafted lessons covering vocabulary, grammar, and pronunciation. Each lesson is short enough to complete in a few minutes, making it easy to learn on the go.
 
 GOETHE & TELC EXAM PREP
 Dedicated exam preparation units from A1 to C1 — practice with question formats modeled on Goethe-Zertifikat and TELC exams.
@@ -67,7 +67,7 @@ Start your German journey today — Viel Erfolg! 🐦
 
 ### Keywords (100 chars, comma-separated — spaces after commas count!)
 ```
-german,learn,deutsch,language,lessons,vocabulary,grammar,pronunciation,education,A1,A2,B1,B2
+german,learn,deutsch,language,lessons,vocabulary,grammar,pronunciation,A1,A2,B1,B2,C1
 ```
 
 ### Support URL
@@ -102,7 +102,7 @@ Almancayı Adım Adım Öğren
 
 ### Promotional Text
 ```
-Her gün birkaç dakika ile A1'den B2'ye Almanca öğren. Konuşma pratiği, seri sistemi ve kişiselleştirilmiş ilerleme.
+Her gün birkaç dakika ile A1'den C1'e Almanca öğren. Konuşma pratiği, seri sistemi ve kişiselleştirilmiş ilerleme.
 ```
 
 ### Description
@@ -110,7 +110,7 @@ Her gün birkaç dakika ile A1'den B2'ye Almanca öğren. Konuşma pratiği, ser
 Vogel, Almancayı eğlenceli ve etkili hale getirir — temiz dersler, reklam yok, gerçek ilerlemeye odaklı.
 
 YAPILANDIRILMIŞ ÖĞRENME YOLU
-A1, A2, B1 ve B2 seviyelerinde kelime, dilbilgisi ve telaffuz konularını kapsayan derslerle çalışın. Her ders birkaç dakikada tamamlanacak kadar kısa — her yerde öğrenin.
+A1, A2, B1, B2 ve C1 seviyelerinde kelime, dilbilgisi ve telaffuz konularını kapsayan derslerle çalışın. Her ders birkaç dakikada tamamlanacak kadar kısa — her yerde öğrenin.
 
 GOETHE & TELC SINAV HAZIRLIĞI
 A1'den C1'e kadar özel sınav hazırlık üniteleri — Goethe-Zertifikat ve TELC sınav formatlarına uyumlu sorularla pratik yapın.
@@ -142,7 +142,7 @@ Almanca yolculuğuna başla — Viel Erfolg! 🐦
 
 ### Keywords (TR)
 ```
-almanca,öğren,dil,dersler,kelime,gramer,telaffuz,eğitim,seri,yabancı dil
+almanca,öğren,dil,dersler,kelime,gramer,telaffuz,A1,A2,B1,B2,C1,goethe,telc
 ```
 
 ---

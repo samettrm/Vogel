@@ -473,7 +473,7 @@ export function PremiumPlansCard({
               pressed && styles.ctaBtnPressed,
             ]}
           >
-            <Text style={styles.ctaBtnText}>₺0,00 ÖDEYEREK DENE</Text>
+            <Text style={styles.ctaBtnText}>VOGEL PLUS'A GEÇ</Text>
           </Pressable>
         </View>
 

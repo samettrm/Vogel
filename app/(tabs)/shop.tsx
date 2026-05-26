@@ -32,7 +32,7 @@ import type { PurchasesPackage } from 'react-native-purchases';
 // SHOP SCREEN — Full-Screen Paywall (Y Cosmic)
 //
 // XP ve can paketleri kaldırıldı — sadece premium abonelik.
-// Tam ekran koyu uzay teması, plan seçimi + ücretsiz deneme CTA.
+// Tam ekran koyu uzay teması, plan seçimi + Vogel Plus CTA.
 // ════════════════════════════════════════════════════════════════
 
 // Kozmik arka plan renkleri (PremiumPlansCard ile eşleştirilmiş)
