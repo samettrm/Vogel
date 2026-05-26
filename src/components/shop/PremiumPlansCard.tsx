@@ -86,7 +86,7 @@ const PERKS: {
 }[] = [
   { icon: 'school-outline',   color: '#14b8a6', label: 'Yeterlilik Sınavı',    desc: 'Sınav hazırlığına sınırsız erişim' },
   { icon: 'heart',            color: '#ef4444', label: 'Sınırsız Can',         desc: 'Hiç can endişesi olmadan öğren' },
-  { icon: 'cloud-outline',    color: '#f59e0b', label: 'Cihazlar Arası Senkron', desc: 'İlerlemen tüm cihazlarında korunur' },
+  { icon: 'eye-off-outline',  color: '#f59e0b', label: 'Reklamsız',             desc: 'Kesintisiz öğrenme deneyimi' },
   { icon: 'star',             color: '#a855f7', label: 'Özel Dersler',          desc: 'Premium içeriklere tam erişim' },
 ];
 

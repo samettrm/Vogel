@@ -80,10 +80,9 @@ Streak (seri) takibi, XP puanları, lig sistemi, başarım rozetleri. Her gün b
 
 PREMIUM ÜYELİK
 • Sınırsız can (hearts) — yarım kalan dersi tamamla
-• Tüm seviyelere (A1-C1) sınırsız erişim
-• Yeterlilik sınavı simülasyonu modülleri
+• Reklamsız öğrenme deneyimi
+• Goethe ve TELC sınav simülasyonu modülleri
 • Sprechen (konuşma) modüllerinin tamamı
-• Cihazlar arası senkronizasyon
 • Aile paylaşımı desteği
 
 Premium üyelik otomatik yenilenen aboneliktir. Apple ID hesabından istediğin zaman iptal edebilirsin.
@@ -167,10 +166,9 @@ Streak tracking, XP points, leagues, achievement badges. A few minutes a day rea
 
 PREMIUM MEMBERSHIP
 • Unlimited hearts — finish a lesson without interruption
-• Unlimited access to all levels (A1-C1)
-• Full proficiency exam simulator modules
+• Ad-free learning experience
+• Full Goethe and TELC exam simulator modules
 • Complete Sprechen (speaking) modules
-• Cross-device sync
 • Family sharing supported
 
 Premium is an auto-renewable subscription. Cancel anytime in your Apple ID settings.
@@ -266,10 +264,9 @@ Streak, XP, lig sistemi ve başarım rozetleri.
 
 ⭐ PREMIUM ÜYELİK
 • Sınırsız can
-• Tüm seviyelere erişim (A1-C1)
-• Yeterlilik sınavı simülasyonu
+• Reklamsız
+• Goethe & TELC sınav simülasyonu
 • Sprechen modüllerinin tamamı
-• Cihazlar arası senkron
 
 Premium üyelik otomatik yenilenen aboneliktir. Google Play hesabından istediğin zaman iptal edebilirsin.
 
@@ -340,10 +337,9 @@ Streak, XP, leagues, achievement badges.
 
 ⭐ PREMIUM
 • Unlimited hearts
-• Access to all levels (A1-C1)
-• Proficiency exam simulator
+• Ad-free
+• Goethe & TELC exam simulator
 • Full Sprechen modules
-• Cross-device sync
 
 Premium is an auto-renewable subscription. Cancel anytime in Google Play settings.
 
