@@ -76,7 +76,8 @@
           "color": "#39FF14",
           "defaultChannel": "vogel-reminders"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": false,
