@@ -196,9 +196,10 @@ export default function HomeScreen() {
     return () => clearTimeout(tt);
   }, [hasHydrated, currentUnitIndex, currentLessonId, course.units]);
 
-  // 📜 Tab focus → current lesson'a anlık snap
-  // Başka sekmeden (Dersler, Mağaza) haritaya geçilince dersin tam görünür olmasını sağlar.
-  // animated: false — geçiş anında sert jump istemiyoruz, ama animasyonlu kayma da yok.
+  // 📜 Tab focus → current lesson'a smooth scroll
+  // Başka sekmeden (Dersler, Mağaza) haritaya geçilince current ders'in
+  // tam görünür olmasını sağlar. animated: true → smooth kayma, sert jump değil.
+  // 200ms delay → FlatList render edip layout hazır olunca animation başlar.
   useFocusEffect(
     useCallback(() => {
       if (!hasHydrated || currentUnitIndex < 0 || !currentLessonId) return;
@@ -207,18 +208,21 @@ export default function HomeScreen() {
       const lessonIndexInUnit = currentUnit.lessons.findIndex((l) => l.id === currentLessonId);
       if (lessonIndexInUnit < 0) return;
       const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
+      isProgrammaticScrollRef.current = true;
       const tid = setTimeout(() => {
         try {
           listRef.current?.scrollToIndex({
             index: currentUnitIndex,
-            animated: false,
+            animated: true,  // ✨ Smooth focus restore
             viewPosition: 0,
             viewOffset: viewOffsetValue,
           });
         } catch {
           // FlatList henüz hazır değilse sustur
         }
-      }, 80);
+        // Animasyon bittikten sonra sticky güncellemesini aç (~700ms yeterli)
+        setTimeout(() => { isProgrammaticScrollRef.current = false; }, 700);
+      }, 200);
       return () => clearTimeout(tid);
     }, [hasHydrated, currentUnitIndex, currentLessonId, course.units]),
   );

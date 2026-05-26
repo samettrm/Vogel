@@ -1,12 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from '../../utils/haptics';
 import { useUserStore } from '../../store/useUserStore';
 import {
   isNotificationsAvailable,
   requestNotificationPermission,
-  sendTestNotification,
 } from '../../utils/notifications';
 import {
   disableSmartReminders,
@@ -24,7 +23,6 @@ import { useT } from '../../i18n';
 //
 // İçerir:
 //   - Tek switch (Aç/Kapa)
-//   - Test bildirimi butonu (5 sn sonra)
 //   - Bilgi kutusu (Expo Go uyarısı veya paket eksikliği)
 // ════════════════════════════════════════════════════════════════
 
@@ -37,7 +35,6 @@ export function ReminderCard() {
   const setLastReminderScheduledAt = useUserStore((s) => s.setLastReminderScheduledAt);
 
   const [packageAvailable] = useState(() => isNotificationsAvailable());
-  const [testingSent, setTestingSent] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Uyarı mesajı: SADECE paket gerçekten kurulu değilse göster.
@@ -82,28 +79,6 @@ export function ReminderCard() {
     }
   };
 
-  const handleTest = async () => {
-    if (!packageAvailable) {
-      Alert.alert(t('reminder.title'), t('reminder.notInstalled'));
-      return;
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-
-    const granted = await requestNotificationPermission();
-    if (!granted) {
-      Alert.alert(t('reminder.title'), t('reminder.permissionDenied'));
-      return;
-    }
-
-    const ok = await sendTestNotification();
-    if (ok) {
-      setTestingSent(true);
-      setTimeout(() => setTestingSent(false), 6000);
-    } else {
-      Alert.alert(t('reminder.title'), t('reminder.testFailed'));
-    }
-  };
-
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
@@ -133,21 +108,6 @@ export function ReminderCard() {
       {/* Aktif durum mesajı */}
       {enabled ? (
         <Text style={styles.statusText}>{t('reminder.activeStatus')}</Text>
-      ) : null}
-
-      {/* Test butonu — paket varsa her zaman göster */}
-      {packageAvailable ? (
-        <Pressable
-          onPress={handleTest}
-          style={({ pressed }) => [
-            styles.testButton,
-            pressed && styles.testButtonPressed,
-          ]}
-        >
-          <Text style={styles.testButtonText}>
-            {testingSent ? '✓ ' + t('reminder.testSent') : t('reminder.testButton')}
-          </Text>
-        </Pressable>
       ) : null}
 
       {/* Uyarı kutusu — sadece paket yoksa */}
@@ -199,24 +159,6 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       fontSize: 12,
       textAlign: 'center',
       paddingVertical: spacing.xs,
-    },
-    testButton: {
-      minHeight: 44,
-      borderRadius: radius.md,
-      backgroundColor: c.purpleBg,
-      borderWidth: 1, borderColor: c.purple,
-      alignItems: 'center', justifyContent: 'center',
-      paddingHorizontal: spacing.md,
-      shadowColor: c.purple,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.4, shadowRadius: 8, elevation: 3,
-    },
-    testButtonPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-    testButtonText: {
-      ...textStyles.bodyBold,
-      color: c.purpleLight,
-      fontSize: 13,
-      textAlign: 'center',
     },
     infoBox: {
       flexDirection: 'row',
