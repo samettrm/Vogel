@@ -12,8 +12,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import * as Haptics from '../../utils/haptics';
 import { radius, shadows, spacing, textStyles, useThemeColors } from '../../theme';
 import { useUserStore } from '../../store/useUserStore';
+import { showRewardedAd } from '../../services/ads';
 import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 
 // ─── Animasyonlu altın yıldız ─────────────────────────────────────────────────
@@ -145,8 +147,27 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
   // Store'dan motivasyon verileri — kayıp korkusu için
   const streak = useUserStore((s) => s.streak);
   const completedCount = useUserStore((s) => s.completedLessons.size);
+  const addHearts = useUserStore((s) => s.addHearts);
+  const isPremium = useUserStore((s) => s.isPremium);
 
   const [now, setNow] = useState(() => Date.now());
+  const [isWatchingAd, setIsWatchingAd] = useState(false);
+
+  // 📺 Rewarded ad handler — kullanıcı reklam izlerse 1 can kazanır
+  const handleWatchAd = async () => {
+    if (isWatchingAd) return;
+    setIsWatchingAd(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    try {
+      const earned = await showRewardedAd();
+      if (earned) {
+        addHearts(1);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      }
+    } finally {
+      setIsWatchingAd(false);
+    }
+  };
   useEffect(() => {
     if (!nextHeartAt) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -281,7 +302,40 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
         ))}
       </View>
 
-      {/* ⑦ SECONDARY — küçük, kasıtlı sönük */}
+      {/* ⑦ REWARDED AD — Reklam izle 1 can kazan
+          Sadece free kullanıcıda görünür. Native modül yoksa
+          (Expo Go) showRewardedAd false döner, buton da hala
+          tıklanabilir ama reklam yüklenmez. Premium user'da hiç render edilmez. */}
+      {!isPremium && (
+        <Pressable
+          onPress={handleWatchAd}
+          disabled={isWatchingAd}
+          style={({ pressed }) => [
+            styles.rewardedBtn,
+            pressed && { opacity: 0.85, transform: [{ scale: 0.99 }] },
+            isWatchingAd && { opacity: 0.6 },
+          ]}
+        >
+          <View style={styles.rewardedIconBox}>
+            <Ionicons
+              name={isWatchingAd ? 'hourglass-outline' : 'play-circle'}
+              size={24}
+              color={c.cyan}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rewardedTitle}>
+              {isWatchingAd ? 'Reklam yükleniyor…' : 'Reklam İzle, 1 Can Kazan'}
+            </Text>
+            <Text style={styles.rewardedSub}>
+              Kısa bir reklam izle, oyuna devam et
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={c.cyan} />
+        </Pressable>
+      )}
+
+      {/* ⑧ SECONDARY — küçük, kasıtlı sönük */}
       <Pressable
         onPress={onGoHome}
         style={({ pressed }) => [styles.ghostBtn, pressed && { opacity: 0.6 }]}
@@ -450,6 +504,37 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     benefitLabel: { ...textStyles.bodyBold, fontSize: 11, textAlign: 'center' },
 
     // İkincil buton — kasıtlı soluk (kullanıcıyı premium'a yönlendir)
+    // 📺 Rewarded ad button — cyan, mid-priority secondary CTA
+    rewardedBtn: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: c.cyanBg,
+      borderWidth: 1.5,
+      borderColor: c.cyan,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.base,
+      paddingVertical: spacing.md,
+      marginTop: spacing.xs,
+    },
+    rewardedIconBox: {
+      width: 40, height: 40, borderRadius: 20,
+      backgroundColor: 'rgba(0,0,0,0.25)',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    rewardedTitle: {
+      ...textStyles.bodyBold,
+      color: c.cyan,
+      fontSize: 14,
+    },
+    rewardedSub: {
+      ...textStyles.body,
+      color: c.textMed,
+      fontSize: 11,
+      marginTop: 1,
+    },
+
     ghostBtn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.base },
     ghostBtnText: { ...textStyles.body, color: c.textLow, fontSize: 12 },
   });

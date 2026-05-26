@@ -13,6 +13,7 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AdBanner } from '../../src/components/ads/AdBanner';
+import { showInterstitialAd } from '../../src/services/ads';
 import { FillBlankExercise } from '../../src/components/exercises/FillBlankExercise';
 import { ListenExercise } from '../../src/components/exercises/ListenExercise';
 import { MatchPairsExercise } from '../../src/components/exercises/MatchPairsExercise';
@@ -772,7 +773,16 @@ export default function LessonScreen() {
               totalExercises={exercises.length}
               heartsRemaining={hearts}
               maxHearts={maxHearts}
-              onContinue={goHome}
+              onContinue={async () => {
+                // 📺 Free kullanıcıya ~1/3 olasılıkla interstitial göster.
+                // Premium kullanıcıda hiç reklam yok.
+                // showInterstitialAd kendisi probability + premium gating yapıyor;
+                // burada sadece açıkça `!isPremium` kontrolü ile fazladan emniyet ekledik.
+                if (!isPremium) {
+                  try { await showInterstitialAd(); } catch {}
+                }
+                goHome();
+              }}
               isUnitComplete={isUnitComplete}
               isPremium={isPremium}
             />
