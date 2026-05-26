@@ -271,7 +271,7 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
       <View style={styles.benefitRow}>
         {([
           { icon: 'infinite-outline', label: 'Sınırsız can',   color: c.neon,   bg: c.neonBg   },
-          { icon: 'school-outline',   label: 'Yeterlilik sınavı', color: c.purple, bg: c.purpleBg },
+          { icon: 'ban-outline',      label: 'Reklamsız',       color: c.purple, bg: c.purpleBg },
           { icon: 'trophy-outline',   label: 'Tüm üniteler',   color: c.gold,   bg: c.goldBg   },
         ] as const).map((b) => (
           <View key={b.label} style={[styles.benefitItem, { backgroundColor: b.bg, borderColor: b.color }]}>
