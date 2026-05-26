@@ -185,7 +185,7 @@ export default function ProfileScreen() {
               <SpinningDiamondGem size={46} />
               <View style={{ flex: 1, gap: 5 }}>
                 <Text style={styles.premiumBannerTitle}>Vogel Plus'a Geç</Text>
-                <Text style={styles.premiumBannerSub}>Sınırsız can · Reklamsız · Yeterlilik sınavı</Text>
+                <Text style={styles.premiumBannerSub}>Sınırsız can · Tüm seviyeler · Yeterlilik sınavı</Text>
               </View>
               <View style={styles.premiumBannerArrow}>
                 <Ionicons name="chevron-forward" size={16} color={c.gold} />

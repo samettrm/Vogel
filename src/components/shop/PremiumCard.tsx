@@ -75,7 +75,7 @@ export function PremiumCard({ isPremium, onUpgrade }: PremiumCardProps) {
     Haptics.selectionAsync().catch(() => {});
     Alert.alert(
       '👑 Vogel Plus',
-      'Aylık ₺199 — sınırsız can, reklamsız deneyim, özel dersler.\nAboneliği istediğin zaman iptal edebilirsin.',
+      'Aylık ₺199 — sınırsız can, tüm seviyeler, özel dersler.\nAboneliği istediğin zaman iptal edebilirsin.',
       [
         { text: 'Vazgeç', style: 'cancel' },
         {
@@ -124,8 +124,8 @@ export function PremiumCard({ isPremium, onUpgrade }: PremiumCardProps) {
           </View>
           <Text style={styles.description} numberOfLines={2}>
             {isPremium
-              ? 'Sınırsız can, reklamsız, özel dersler.'
-              : 'Sınırsız can, reklamsız, aylık ₺199.'}
+              ? 'Sınırsız can, tüm seviyeler, özel dersler.'
+              : 'Sınırsız can, tüm seviyeler, aylık ₺199.'}
           </Text>
         </View>
       </View>
