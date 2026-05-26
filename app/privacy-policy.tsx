@@ -41,7 +41,7 @@ const POLICY_TR: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '6. Üçüncü Taraf Hizmetler',
-      body: 'Vogel, ücretsiz kullanıcılara reklam gösterebilir. Reklamlar Google tarafından sunulur ve genel demografik bilgilere göre hedeflenebilir; ancak uygulama içindeki öğrenme verileriniz reklam hedefleme amacıyla kullanılmaz.',
+      body: 'Vogel; abonelik işlemleri için Apple In-App Purchase ve RevenueCat, kullanıcı doğrulama için Firebase Authentication, hata izleme için Sentry hizmetlerinden yararlanır. Bu servisler kendi gizlilik politikaları çerçevesinde teknik veri (cihaz tipi, uygulama sürümü, hata kayıtları) toplayabilir. Vogel herhangi bir reklam göstermez ve kullanıcı verilerini reklam amacıyla kullanmaz.',
     },
     {
       title: '7. Çocukların Gizliliği',
@@ -83,7 +83,7 @@ const POLICY_EN: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '6. Third-Party Services',
-      body: 'Vogel may display advertisements to free users. Ads are served by Google and may be targeted based on general demographic information; however, your in-app learning data is not used for ad targeting purposes.',
+      body: 'Vogel uses Apple In-App Purchase and RevenueCat for subscription management, Firebase Authentication for user sign-in, and Sentry for error monitoring. These services may collect technical data (device type, app version, crash reports) under their own privacy policies. Vogel does not display any advertisements and does not use user data for ad targeting.',
     },
     {
       title: "7. Children's Privacy",

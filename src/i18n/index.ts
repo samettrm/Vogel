@@ -137,7 +137,7 @@ export const messages = {
   // Profile
   profile: {
     title: { tr: 'Profil', en: 'Profile' },
-    upgradeBanner: { tr: '💎 Vogel Plus\'a geç — sınırsız can, reklamsız öğrenme', en: '💎 Upgrade to Vogel Plus — unlimited hearts, ad-free' },
+    upgradeBanner: { tr: '💎 Vogel Plus\'a geç — sınırsız can ve tüm seviyeler', en: '💎 Upgrade to Vogel Plus — unlimited hearts and all levels' },
     upgradeCta: { tr: 'İNCELE', en: 'VIEW' },
     level: { tr: 'SEVİYE', en: 'LEVEL' },
     xp: { tr: 'XP', en: 'XP' },
@@ -169,8 +169,8 @@ export const messages = {
     subtitlePremium: { tr: 'Premium üyelik aktif', en: 'Premium membership active' },
     vogelPlus: { tr: 'Vogel Plus', en: 'Vogel Plus' },
     vogelPlusDesc: {
-      tr: 'Sınırsız can, reklamsız, özel dersler',
-      en: 'Unlimited hearts, ad-free, special lessons',
+      tr: 'Sınırsız can, tüm seviyeler, özel dersler',
+      en: 'Unlimited hearts, all levels, special lessons',
     },
     vogelPlusActive: { tr: 'Premium üyeliğin aktif', en: 'Your premium is active' },
     active: { tr: 'AKTİF', en: 'ACTIVE' },
@@ -201,7 +201,7 @@ export const messages = {
     perMonth: { tr: '/ay', en: '/mo' },
     perYear: { tr: '/yıl', en: '/yr' },
     unlimitedHearts: { tr: 'Sınırsız can', en: 'Unlimited hearts' },
-    noAds: { tr: 'Reklamsız', en: 'Ad-free' },
+    noAds: { tr: 'Cihazlar arası senkron', en: 'Cross-device sync' },
     specialLessons: { tr: 'Özel dersler', en: 'Special lessons' },
     allFeatures: { tr: 'Tüm özellikler', en: 'All features' },
     oneTime: { tr: 'Tek seferlik', en: 'One-time' },
@@ -453,7 +453,7 @@ export const messages = {
     goShop: { tr: 'Markete Git', en: 'Go to Shop' },
     backHome: { tr: 'Ana Ekrana Dön', en: 'Back to Home' },
     getPlus: { tr: '💎 VOGEL PLUS — Sınırsız Can', en: '💎 VOGEL PLUS — Unlimited Hearts' },
-    plusBenefit: { tr: 'Sınırsız can · Reklamsız · Tüm seviyeler', en: 'Unlimited hearts · No ads · All levels' },
+    plusBenefit: { tr: 'Sınırsız can · Tüm seviyeler · Yeterlilik sınavı', en: 'Unlimited hearts · All levels · Proficiency exam' },
   },
 
   // Paywall (3. ders sonrası modal)
@@ -461,11 +461,11 @@ export const messages = {
     badge: { tr: '🎉 3. dersinizi bitirdiniz!', en: '🎉 You finished your 3rd lesson!' },
     title: { tr: 'Gerçek öğrenme başlıyor', en: 'Real learning starts here' },
     subtitle: {
-      tr: 'Sınırsız can, reklamsız öğrenme. Durmak yok.',
-      en: 'Unlimited hearts, no ads. Never stop learning.',
+      tr: 'Sınırsız can, tüm seviyeler. Durmak yok.',
+      en: 'Unlimited hearts, all levels. Never stop learning.',
     },
     feature1: { tr: '♾️  Sınırsız can', en: '♾️  Unlimited hearts' },
-    feature2: { tr: '🚫  Reklam yok', en: '🚫  No ads' },
+    feature2: { tr: '☁️  Cihazlar arası senkron', en: '☁️  Cross-device sync' },
     feature3: { tr: '📚  Tüm seviyelere erişim', en: '📚  Access to all levels' },
     feature4: { tr: '⚡  Öncelikli destek', en: '⚡  Priority support' },
     cta: { tr: 'VOGEL PLUS\'I GÖR', en: 'SEE VOGEL PLUS' },

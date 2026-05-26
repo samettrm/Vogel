@@ -117,7 +117,7 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
               Durmak zorunda değilsin
             </Animated.Text>
             <Animated.View entering={FadeIn.delay(240).duration(300)} style={styles.subtitleRow}>
-              <Text style={styles.subtitle}>Sınırsız can, reklamsız öğrenme. </Text>
+              <Text style={styles.subtitle}>Sınırsız can, tüm seviyeler. </Text>
               <Text style={styles.subtitleAccent}>Günde yalnızca ₺3.3.</Text>
             </Animated.View>
 
