@@ -9,7 +9,7 @@ import { useUserStore } from '../src/store/useUserStore';
 import type { CEFRLevel, Lesson } from '../src/types';
 
 // ════════════════════════════════════════════════════════════════
-// SINAV HARİTASI — Goethe · TELC hazırlık ekranı
+// SINAV HARİTASI — Yeterlilik sınav hazırlık ekranı
 //
 // Her seviye (A1-C1) için exam unit'i gösterir.
 // Seviye kartına dokun → o seviyenin kaldığı yerden devam et.
@@ -64,7 +64,7 @@ export default function ExamMapScreen() {
             </View>
             <Text style={styles.premiumGateTitle}>Premium İçerik</Text>
             <Text style={styles.premiumGateSub}>
-              Goethe · TELC sınav hazırlık derslerine{'\n'}erişmek için Vogel Plus gerekiyor.
+              Yeterlilik sınav hazırlık derslerine{'\n'}erişmek için Vogel Plus gerekiyor.
             </Text>
             <Pressable
               onPress={() => router.replace('/(tabs)/shop')}
@@ -97,7 +97,7 @@ export default function ExamMapScreen() {
         </Pressable>
         <View style={styles.topBarCenter}>
           <Text style={styles.topBarTitle}>Sınav Haritası</Text>
-          <Text style={styles.topBarSub}>Goethe · TELC</Text>
+          <Text style={styles.topBarSub}>Yeterlilik Sınavı</Text>
         </View>
         <View style={{ width: 38 }} />
       </View>

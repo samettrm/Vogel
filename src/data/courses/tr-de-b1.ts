@@ -1039,13 +1039,13 @@ export const TR_DE_B1: Course = {
       ],
     },
 
-    // ═════════════ ÜNİTE 12: GOETHE B1 / ZERTİFİKAT DEUTSCH SINAV HAZIRLIĞI ═════════════
+    // ═════════════ ÜNİTE 12: B1 YETERLİLİK SINAV HAZIRLIĞI ═════════════
     {
       id: 'tr-de-b1-u12',
       order: 12,
-      title: 'Goethe B1 Sınav Hazırlık',
-      description: 'Goethe-Zertifikat B1 / Zertifikat Deutsch sınavına özel: görüş bildirme, resmi mektup kalıpları, bağlaçlar ve medya-teknoloji konuları.',
-      tags: ['exam', 'goethe'],
+      title: 'B1 Yeterlilik Sınavı',
+      description: 'B1 yeterlilik sınavına özel: görüş bildirme, resmi mektup kalıpları, bağlaçlar ve medya-teknoloji konuları.',
+      tags: ['exam'],
       lessons: [
         {
           id: 'tr-de-b1-u12-l1',

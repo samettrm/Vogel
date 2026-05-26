@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // A2 Sprechen exam simulator screen.
 //
-// Mirrors the official Goethe / telc A2 oral-exam format with three flow types:
+// Mirrors the standard A2 Sprechen (oral) exam format with three flow types:
 //   - Teil 2 / monolog     : learner gives a monologue; grader checks word count
 //                            + keywords + Perfekt + weil-style subordinates.
 //   - Teil 2 / followup    : the jury asks one short question right after.

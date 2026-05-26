@@ -77,7 +77,7 @@ function MapPathInner({ unit, unitOrder, getLessonInfo, onLessonPress }: MapPath
             </Text>
             <Text style={[styles.headerTitle, isExamUnit && styles.headerTitleExam]}>{unit.title}</Text>
             {isExamUnit && (
-              <Text style={styles.examSubtitle}>Goethe · TELC · Her seviyeden erişilebilir</Text>
+              <Text style={styles.examSubtitle}>Yeterlilik Sınavı · Her seviyeden erişilebilir</Text>
             )}
           </View>
           <View style={[styles.headerBadge, isExamUnit && styles.headerBadgeExam]}>

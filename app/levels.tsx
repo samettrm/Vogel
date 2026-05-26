@@ -70,11 +70,11 @@ export default function LevelsScreen() {
           paddingBottom: insets.bottom + 40,
         }}
       >
-        {/* GOETHE · TELC hero badge */}
+        {/* Yeterlilik sınavı hero badge */}
         <View style={[styles.heroBadge, { backgroundColor: c.purpleBg, borderColor: c.purpleGlow, borderWidth: 1 }]}>
           <Ionicons name="ribbon" size={16} color={c.purpleLight} />
           <Text style={[styles.heroBadgeText, { color: c.purpleLight }]}>
-            GOETHE · TELC  SINAV SİSTEMİ
+            YETERLİLİK SINAV SİSTEMİ
           </Text>
           <Ionicons name="ribbon" size={16} color={c.purpleLight} />
         </View>

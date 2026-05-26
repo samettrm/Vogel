@@ -689,7 +689,7 @@ export const messages = {
     },
     homeCard: {
       badge: { tr: 'SINAVA HAZIRLIK', en: 'EXAM PREP' },
-      title: { tr: 'Goethe & telc Sınavlarına Hazırlan', en: 'Prepare for the Goethe & telc Exams' },
+      title: { tr: 'Yeterlilik Sınavlarına Hazırlan', en: 'Prepare for Proficiency Exams' },
       subtitle: { tr: 'Gerçek sınav formatında pratik yap, seviyeni yükselt', en: 'Practise in real exam format and level up' },
       cta: { tr: 'Başla', en: 'Start' },
     },
@@ -753,7 +753,7 @@ export const messages = {
       quota: { tr: '{used}/{total} seans tamamlandı', en: '{used}/{total} sessions completed' },
       benefitsTitle: { tr: 'PREMIUM İLE AÇILIR', en: 'PREMIUM UNLOCKS' },
       benefit1: { tr: 'Sınırsız kart pratiği', en: 'Unlimited flashcard practice' },
-      benefit2: { tr: 'Goethe & telc sınav hazırlığı', en: 'Goethe & telc exam prep' },
+      benefit2: { tr: 'Yeterlilik sınav hazırlığı', en: 'Proficiency exam prep' },
       benefit3: { tr: 'Sınırsız AI açıklaması', en: 'Unlimited AI explanations' },
       cta: { tr: "Premium'a Geç", en: 'Go Premium' },
       back: { tr: 'Yarın tekrar dene', en: 'Come back tomorrow' },
@@ -810,7 +810,7 @@ export const messages = {
   // ── A1 Konuşma Simülatörü ─────────────────────────────────────
   sprechen: {
     title: { tr: 'A1 Konuşma Simülatörü', en: 'A1 Speaking Simulator' },
-    subtitle: { tr: 'Goethe & telc A1 Sprechen sınavının üç bölümünü gerçek formatta dene.', en: 'Practise all three parts of the Goethe & telc A1 Sprechen exam in real format.' },
+    subtitle: { tr: 'A1 Sprechen sınavının üç bölümünü gerçek formatta dene.', en: 'Practise all three parts of the A1 Sprechen exam in real format.' },
     intro: {
       badge: { tr: 'AI EXAMINER', en: 'AI EXAMINER' },
       title: { tr: 'A1 Sprechen prova zamanı', en: 'Time to rehearse A1 Sprechen' },

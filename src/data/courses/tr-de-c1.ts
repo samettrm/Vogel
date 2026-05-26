@@ -1152,9 +1152,9 @@ export const TR_DE_C1: Course = {
     {
       id: 'tr-de-c1-u12',
       order: 12,
-      title: 'Goethe C1 Sınavı',
-      description: 'Goethe-Zertifikat C1 için akademik yazı, deyimler, resmi dil ve karmaşık yapılar.',
-      tags: ['exam', 'goethe'],
+      title: 'C1 Yeterlilik Sınavı',
+      description: 'C1 yeterlilik sınavı için akademik yazı, deyimler, resmi dil ve karmaşık yapılar.',
+      tags: ['exam'],
       lessons: [
         {
           id: 'tr-de-c1-u12-l1',

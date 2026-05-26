@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Goethe & telc A1 Sprechen (Speaking) exam simulator — content pool.
+// Standard A1 Sprechen (Speaking) exam simulator — content pool.
 //
 // Three parts, matching the official A1 oral-exam format:
 //   Teil 1: Sich vorstellen     — 7 personal-info categories + Buchstabieren
@@ -271,8 +271,8 @@ export const TEIL1_PROMPTS: SprechenTeil1Prompt[] = [
     category: 'wohnort',
     question: { de: 'Wie ist Ihre Adresse?', tr: 'Adresiniz nedir?' },
     modelAnswer: {
-      de: 'Meine Adresse ist Goethestraße 10.',
-      tr: 'Adresim Goethestraße 10.',
+      de: 'Meine Adresse ist Hauptstraße 10.',
+      tr: 'Adresim Hauptstraße 10.',
     },
     acceptKeywords: ['meine adresse', 'straße', 'platz', 'weg'],
     hint: {
@@ -750,7 +750,7 @@ export const TEIL3_CARDS: SprechenTeil3Card[] = [
     acceptKeywords: ['salz', 'bitte', 'können sie', 'reichen'],
   },
   {
-    // Goethe's most classic A1 Bildkarte: a "no smoking" sign asking the
+    // Classic A1 Bildkarte: a "no smoking" sign asking the
     // candidate to politely tell someone to stop or to confirm the rule.
     id: 'rauchen-verboten',
     emoji: '🚭',

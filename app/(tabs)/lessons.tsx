@@ -83,7 +83,7 @@ export default function LessonsScreen() {
   const learningMotivations = useUserStore((s) => s.learningMotivations);
   const isPremium = useUserStore((s) => s.isPremium);
 
-  // ✨ Goethe·TELC kart — şimşek ışıltısı
+  // ✨ Yeterlilik sınavı kart — şimşek ışıltısı
   const examShineAnim = useRef(new Animated.Value(-100)).current;
   useEffect(() => {
     const anim = Animated.loop(
@@ -291,7 +291,7 @@ export default function LessonsScreen() {
         </Text>
       </View>
 
-      {/* ── Goethe · TELC — sınav kartı (glow) ── */}
+      {/* ── Yeterlilik Sınavı — sınav kartı (glow) ── */}
       <Pressable
         onPress={() => isPremium ? router.push('/exam-map') : router.push('/(tabs)/shop')}
         style={({ pressed }) => [styles.examCard, pressed && styles.examCardPressed]}
@@ -320,7 +320,7 @@ export default function LessonsScreen() {
           <View style={{ flex: 1 }}>
             <View style={styles.examCardTitleRow}>
               <Ionicons name="ribbon" size={11} color={c.gold} />
-              <Text style={styles.examCardTitle}>Goethe · TELC Sınavı</Text>
+              <Text style={styles.examCardTitle}>Yeterlilik Sınavı</Text>
               <Ionicons name="ribbon" size={11} color={c.gold} />
             </View>
             <Text style={styles.examCardSub}>
@@ -423,7 +423,7 @@ export default function LessonsScreen() {
           </View>
           <Text style={styles.examGateTitle}>Premium İçerik</Text>
           <Text style={styles.examGateSub}>
-            Goethe · TELC sınav hazırlık derslerine{'\n'}erişmek için Vogel Plus gerekiyor.
+            Yeterlilik sınav hazırlık derslerine{'\n'}erişmek için Vogel Plus gerekiyor.
           </Text>
           <Pressable
             onPress={() => router.push('/(tabs)/shop')}
@@ -689,7 +689,7 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     title: { ...textStyles.display, color: c.textHigh },
     statsInline: { ...textStyles.body, color: c.textLow, fontSize: 13, marginTop: 3 },
 
-    // 🎓 Goethe · TELC — sınav kartı (glow)
+    // 🎓 Yeterlilik sınavı — sınav kartı (glow)
     examCard: {
       overflow: 'hidden',
       backgroundColor: c.goldBg,

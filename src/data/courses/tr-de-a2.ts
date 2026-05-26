@@ -1135,13 +1135,13 @@ export const TR_DE_A2: Course = {
       ],
     },
 
-    // ═════════════ ÜNİTE 12: GOETHE A2 SINAV HAZIRLIĞI ═════════════
+    // ═════════════ ÜNİTE 12: A2 YETERLİLİK SINAV HAZIRLIĞI ═════════════
     {
       id: 'tr-de-a2-u12',
       order: 12,
-      title: 'Goethe A2 Sınav Hazırlık',
-      description: 'Goethe-Zertifikat A2 sınavına özel: iş ve meslek, günlük yazışma kalıpları, ilan okuma ve boş zaman konuları.',
-      tags: ['exam', 'goethe'],
+      title: 'A2 Yeterlilik Sınavı',
+      description: 'A2 yeterlilik sınavına özel: iş ve meslek, günlük yazışma kalıpları, ilan okuma ve boş zaman konuları.',
+      tags: ['exam'],
       lessons: [
         {
           id: 'tr-de-a2-u12-l1',

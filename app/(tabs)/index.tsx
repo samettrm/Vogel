@@ -44,7 +44,7 @@ export default function HomeScreen() {
   const setSelectedLevel = useUserStore((s) => s.setSelectedLevel);
   const isPremium = useUserStore((s) => s.isPremium);
 
-  // ✨ Goethe·TELC chip — şimşek ışıltısı
+  // ✨ Yeterlilik sınavı chip — şimşek ışıltısı
   const examShineAnim = useRef(new Animated.Value(-80)).current;
   useEffect(() => {
     const anim = Animated.loop(
@@ -498,7 +498,7 @@ export default function HomeScreen() {
         />
 
         <View style={styles.mascotRow}>
-          {/* 🎓 Goethe · TELC — glowing chip */}
+          {/* 🎓 Yeterlilik Sınavı — glowing chip */}
           <Pressable
             onPress={() => isPremium ? router.push('/exam-map') : router.push('/(tabs)/shop')}
             style={({ pressed }) => [styles.examChip, pressed && styles.examChipPressed]}
@@ -523,7 +523,7 @@ export default function HomeScreen() {
             <Animated.Text style={{ position: 'absolute', bottom: 2, right: 14, fontSize: 11, color: '#FFD700', opacity: examStar3, transform: [{ scale: examStar3.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.3, 1.7, 0.3] }) }] }} pointerEvents="none">✦</Animated.Text>
             <Text style={styles.examChipEmoji}>🎓</Text>
             <View style={styles.examChipText}>
-              <Text style={styles.examChipTitle}>Goethe · TELC</Text>
+              <Text style={styles.examChipTitle}>Yeterlilik Sınavı</Text>
               <Text style={styles.examChipSub}>
                 {isPremium ? 'Sınav hazırlığı' : 'A1 · A2 · B1 · B2 · C1 🔒'}
               </Text>
@@ -682,7 +682,7 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     levelPillText: { ...textStyles.bodyBold, fontSize: 11, letterSpacing: 1.5 },
     levelTitle: { ...textStyles.heading, fontSize: 22 },
     levelDescription: { ...textStyles.body, color: c.textLow, fontSize: 13, lineHeight: 18 },
-    // 🎓 Goethe · TELC chip — glowing pill
+    // 🎓 Yeterlilik sınavı chip — glowing pill
     examChip: {
       flexDirection: 'row', alignItems: 'center',
       backgroundColor: c.goldBg,

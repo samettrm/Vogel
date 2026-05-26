@@ -8,11 +8,34 @@ Format: `- [ ] başlık` + altta gerekirse `**Why:**` / **referans dosya** / ris
 
 ## 🔴 Yüksek öncelik (release blocker / yakın vade)
 
-### App Store Connect
-- [ ] **Screenshot 5.png + 10.png reject sorunu**
-  - 1284x2778 olarak yüklenmişti, Apple bazı device class'larda strict
-  - Çözüm: 1242x2688'e resize (sharp ile script ekle veya manuel)
-  - **publish blocker DEĞİL ama temizlenmeli**
+### App Store Connect — "Add for Review" blocker'ları (2026-05-26 tespit)
+
+> ⚠️ ASC v1.0 submission slot'unda 3 eksik var, **App Store yayını için blocker**. Bunlar tamamlanmadan "Add for Review" tıklanamıyor.
+
+- [ ] **1. Privacy Policy URL ASC'de eksik**
+  - **Nerede:** ASC → Vogel → App Privacy → "Privacy Policy URL" field
+  - **Çözüm:** GitHub Pages'teki `privacy.html` URL'sini gir (samettrm/Vogel repo'sundan)
+  - Muhtemel URL: `https://samettrm.github.io/Vogel/privacy.html` *(doğrula)*
+  - App içi `app/privacy-policy.tsx` route'u zaten tamam, **ASC tarafı eksik**
+
+- [ ] **2. 13-inch iPad screenshot eksik**
+  - **Nerede:** ASC → Previews and Screenshots → iPad sekmesi → 13"
+  - **Cihaz:** Yeni iPad Pro M4 13" (2024) — display 2064 x 2752 (portrait)
+  - **Çözüm seçenekleri:**
+    - a) Xcode simulator'da iPad Pro 13" boot et, ekran çek
+    - b) Mevcut iPhone screenshot'lardan yola çıkarak Figma/PS'te 2064x2752'lik kompozisyon üret
+    - c) En az 3 screenshot lazım (Apple zorunlu kılıyorsa)
+  - Önceki rapor: 5.png + 10.png 1284x2778 reject — o **ayrı bir mesele** (iPhone tarafı), bu ekstra
+
+- [ ] **3. Pricing tier seçilmemiş**
+  - **Nerede:** ASC → Pricing and Availability
+  - **Çözüm:** "Free" tier seç (uygulama ücretsiz, gelir RC IAP'larından)
+  - 30 saniyelik iş
+
+- [ ] **Sürüm uyumsuzluğu kontrolü**
+  - ASC v1.0 slot açık, ama `app.json` v1.0.2 — TestFlight build'leri 1.0.2
+  - Karar: bu slot'u 1.0.2'ye yükselt (Edit Version) ya da 1.0'la submit edip sonra 1.0.2 update push et
+  - Birinci yol daha temiz
 
 ---
 
@@ -115,7 +138,7 @@ Format: `- [ ] başlık` + altta gerekirse `**Why:**` / **referans dosya** / ris
 ## ✅ Yakın zamanda tamamlananlar (referans için)
 
 - ✅ **TestFlight build f341b31 cihazda test edildi — crash yok** (2026-05-26)
-- ✅ **Privacy Policy app içi entegrasyonu tamamlandı** — privacy-policy.tsx + Settings link + ASC URL (2026-05-26)
+- ✅ **Privacy Policy app içi route + sayfa** — privacy-policy.tsx tamam (ASC URL field hâlâ eksik, blocker'da)
 - ✅ **App Store Connect IAP onayı — 3 ürün de onaylı** (monthly/yearly/family) (2026-05-26)
 - ✅ **expo-secure-store SDK 54 uyumsuzluğu crash fix** (f341b31, 2026-05-26)
 - ✅ **Cihaz-bağlı onboarding bypass** — secureStore ile (c9f921e)

@@ -1180,13 +1180,13 @@ export const TR_DE_A1: Course = {
       ],
     },
 
-    // ═════════════ ÜNİTE 12: GOETHE / START DEUTSCH 1 SINAV HAZIRLIĞI ═════════════
+    // ═════════════ ÜNİTE 12: A1 YETERLİLİK SINAV HAZIRLIĞI ═════════════
     {
       id: 'tr-de-a1-u12',
       order: 12,
-      title: 'Goethe A1 Sınav Hazırlık',
-      description: 'Start Deutsch 1 / Goethe A1 sınavına özel: kendini tanıtma, form kelimeleri, kısa mesaj yazma ve tabela okuma.',
-      tags: ['exam', 'goethe'],
+      title: 'A1 Yeterlilik Sınavı',
+      description: 'A1 yeterlilik sınavına özel: kendini tanıtma, form kelimeleri, kısa mesaj yazma ve tabela okuma.',
+      tags: ['exam'],
       lessons: [
         {
           id: 'tr-de-a1-u12-l1',

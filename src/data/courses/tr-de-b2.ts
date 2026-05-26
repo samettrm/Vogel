@@ -1150,13 +1150,13 @@ export const TR_DE_B2: Course = {
       ],
     },
 
-    // ═════════════ ÜNİTE 12: GOETHE B2 SINAV HAZIRLIĞI ═════════════
+    // ═════════════ ÜNİTE 12: B2 YETERLİLİK SINAV HAZIRLIĞI ═════════════
     {
       id: 'tr-de-b2-u12',
       order: 12,
-      title: 'Goethe B2 Sınav Hazırlık',
-      description: 'Goethe-Zertifikat B2 sınavına özel: pasif yapılar, Konjunktiv II, akademik kelime hazinesi ve tartışma-argüman kalıpları.',
-      tags: ['exam', 'goethe', 'telc'],
+      title: 'B2 Yeterlilik Sınavı',
+      description: 'B2 yeterlilik sınavına özel: pasif yapılar, Konjunktiv II, akademik kelime hazinesi ve tartışma-argüman kalıpları.',
+      tags: ['exam'],
       lessons: [
         {
           id: 'tr-de-b2-u12-l1',

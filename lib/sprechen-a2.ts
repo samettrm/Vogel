@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Goethe & telc A2 Sprechen (Speaking) exam simulator — content pool.
+// Standard A2 Sprechen (Speaking) exam simulator — content pool.
 //
 // Three parts, matching the official A2 oral-exam format:
 //   Teil 1: Kennenlernen     — paired Q&A on personal life. A2 answers are
