@@ -20,12 +20,13 @@ import {
 //   Boolean   → OR   (true kazanır)
 // ════════════════════════════════════════════════════════════════
 
+// Onboarding state cihaz-bazlıdır (her cihazda kullanıcı kendi onboarding'ini görür),
+// bu yüzden ProgressDoc'a dahil değildir. Sync sadece kullanıcının ilerlemesini taşır.
 export interface ProgressDoc {
   xp: number;
   streak: number;
   completedLessons: string[];
   achievementsUnlocked: string[];
-  onboardingCompleted: boolean;
   selectedLevel: string;
   learnedWords: LearnedWord[];
   examScores: Record<string, number>;
@@ -49,7 +50,6 @@ export async function uploadProgress(userId: string): Promise<void> {
       streak:               s.streak,
       completedLessons:     Array.from(s.completedLessons),
       achievementsUnlocked: Array.from(s.achievementsUnlocked),
-      onboardingCompleted:  s.onboardingCompleted,
       selectedLevel:        s.selectedLevel,
       learnedWords,
       examScores,
@@ -101,10 +101,8 @@ export async function downloadAndMergeProgress(userId: string): Promise<void> {
     ]);
     useUserStore.setState({ achievementsUnlocked: mergedAchievements });
 
-    // Onboarding — OR
-    if (cloud.onboardingCompleted && !s.onboardingCompleted) {
-      useUserStore.setState({ onboardingCompleted: true });
-    }
+    // Onboarding cihaz-bazlı — cloud'dan çekme, local'de kalsın.
+    // Her cihazda kullanıcı kendi welcome + level placement + sorular akışını görür.
 
     // Seviye — cloud'u al (daha güncel)
     if (cloud.selectedLevel && cloud.selectedLevel !== s.selectedLevel) {
@@ -154,12 +152,12 @@ export async function downloadAndReplaceProgress(userId: string): Promise<void> 
     const cloud = snap.data() as ProgressDoc;
 
     // Tüm progress alanlarını cloud'unkilerle değiştir
+    // NOT: onboardingCompleted cihaz-bazlıdır, cloud'dan dokunulmaz.
     useUserStore.setState({
       xp:                   cloud.xp ?? 0,
       streak:               cloud.streak ?? 0,
       completedLessons:     new Set(cloud.completedLessons ?? []),
       achievementsUnlocked: new Set(cloud.achievementsUnlocked ?? []),
-      onboardingCompleted:  cloud.onboardingCompleted ?? false,
       selectedLevel:        (cloud.selectedLevel as any) ?? 'A1',
     });
 
