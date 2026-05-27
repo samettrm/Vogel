@@ -21,7 +21,7 @@ import { useUserStore } from '../src/store/useUserStore';
 import { AchievementToast } from '../src/components/achievements/AchievementToast';
 import { preloadAllSounds } from '../src/utils/sounds';
 import { SENTRY_DSN } from '../src/config/sentry';
-import { initPurchases } from '../src/services/purchases';
+import { initPurchases, logInToRevenueCat, logOutFromRevenueCat } from '../src/services/purchases';
 import { initMobileAds, requestTrackingPermission } from '../src/services/ads';
 import { subscribeToAuthState } from '../src/services/auth';
 import { downloadAndReplaceProgress, uploadProgress } from '../src/services/sync';
@@ -377,6 +377,15 @@ function AuthSyncer() {
       if (prevUser && !user && uploadTimerRef.current) {
         clearTimeout(uploadTimerRef.current);
         uploadTimerRef.current = null;
+      }
+
+      // 💎 RC USER IDENTIFICATION — Firebase uid ile RC'yi senkronize et.
+      // Premium grant + restore + entitlement tracking için kritik.
+      // Anonymous user → RC Dashboard'da bulunamaz; uid ile kayıtlı → bulunabilir.
+      if (user) {
+        logInToRevenueCat(user.uid).catch(() => {});
+      } else if (prevUser) {
+        logOutFromRevenueCat().catch(() => {});
       }
 
       // Sadece e-posta doğrulanmışsa (veya Apple Reviewer) sync başlat.

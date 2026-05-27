@@ -50,6 +50,47 @@ export function isPurchasesConfigured(): boolean {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// USER IDENTIFICATION — RC kullanıcıyı Firebase uid ile takip eder
+//
+// AuthSyncer (app/_layout.tsx) içinde onAuthStateChanged callback'ten çağrılır:
+//   - User login → logInToRevenueCat(user.uid)
+//   - User logout → logOutFromRevenueCat()
+//
+// Bu sayede:
+//   - RC Dashboard'da kullanıcılar Firebase uid ile aranabilir
+//   - Premium grant verilen kullanıcılar cihaz değiştirse bile premium kalır
+//   - Restore Purchases doğru kullanıcı için çalışır
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Kullanıcı login olduğunda RC'ye bildir.
+ * RC bu uid'i kullanarak premium entitlement + restore + grant ilişkilendirir.
+ */
+export async function logInToRevenueCat(uid: string): Promise<void> {
+  if (!isPurchasesConfigured()) return;
+  try {
+    await Purchases.logIn(uid);
+    if (__DEV__) console.log('[RC] logIn:', uid);
+  } catch (e) {
+    if (__DEV__) console.warn('[RC] logIn failed:', e);
+  }
+}
+
+/**
+ * Kullanıcı çıkış yaptığında RC'yi anonymous moda al.
+ * Anonymous user'da çağrılırsa hata verir, sessizce yutuyoruz.
+ */
+export async function logOutFromRevenueCat(): Promise<void> {
+  if (!isPurchasesConfigured()) return;
+  try {
+    await Purchases.logOut();
+    if (__DEV__) console.log('[RC] logOut');
+  } catch {
+    // Zaten anonymous → logOut hata verir, normal
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // TİPLER
 // ─────────────────────────────────────────────────────────────────
 
