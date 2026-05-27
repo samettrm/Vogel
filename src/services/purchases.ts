@@ -65,14 +65,60 @@ export function isPurchasesConfigured(): boolean {
 /**
  * Kullanıcı login olduğunda RC'ye bildir.
  * RC bu uid'i kullanarak premium entitlement + restore + grant ilişkilendirir.
+ *
+ * Email + displayName isteğe bağlı — verilirse RC Dashboard'da customer
+ * email/isim ile aranabilir olur (premium grant verme süreci kolaylaşır).
  */
-export async function logInToRevenueCat(uid: string): Promise<void> {
+export async function logInToRevenueCat(
+  uid: string,
+  email?: string | null,
+  displayName?: string | null,
+): Promise<void> {
   if (!isPurchasesConfigured()) return;
   try {
     await Purchases.logIn(uid);
     if (__DEV__) console.log('[RC] logIn:', uid);
+
+    // 📧 Email + isim attribute — RC Dashboard customer aramayı kolaylaştırır.
+    // Apple private relay email'leri de gönderiyoruz (xxx@privaterelay.appleid.com),
+    // bu da arama için yeterli.
+    const attributes: Record<string, string> = {};
+    if (email) attributes['$email'] = email;
+    if (displayName) attributes['$displayName'] = displayName;
+    if (Object.keys(attributes).length > 0) {
+      try {
+        await Purchases.setAttributes(attributes);
+        if (__DEV__) console.log('[RC] setAttributes:', attributes);
+      } catch (e) {
+        if (__DEV__) console.warn('[RC] setAttributes failed:', e);
+      }
+    }
   } catch (e) {
     if (__DEV__) console.warn('[RC] logIn failed:', e);
+  }
+}
+
+/**
+ * Aktif premium plan tipini RC'den çek.
+ * Returns: 'monthly' | 'yearly' | 'family' | null
+ *
+ * Store'daki activePlanId'yi senkronize etmek için _layout.tsx PremiumSyncer'da
+ * kullanılır. Bu sayede Market ekranında doğru plan adı görünür ("Yıllık Plan",
+ * "Aile Planı" gibi — sadece "Premium" değil).
+ */
+export async function getActivePlanId(): Promise<PlanId | null> {
+  if (!isPurchasesConfigured()) return null;
+  try {
+    const info = await Purchases.getCustomerInfo();
+    const active = info.entitlements.active[ENTITLEMENT_PREMIUM];
+    if (!active) return null;
+    const productId = active.productIdentifier;
+    if (productId === PRODUCT_IDS.premiumYearly)  return 'yearly';
+    if (productId === PRODUCT_IDS.premiumMonthly) return 'monthly';
+    if (productId === PRODUCT_IDS.premiumFamily)  return 'family';
+    return null;
+  } catch {
+    return null;
   }
 }
 

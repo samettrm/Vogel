@@ -21,7 +21,7 @@ import { useUserStore } from '../src/store/useUserStore';
 import { AchievementToast } from '../src/components/achievements/AchievementToast';
 import { preloadAllSounds } from '../src/utils/sounds';
 import { SENTRY_DSN } from '../src/config/sentry';
-import { initPurchases, logInToRevenueCat, logOutFromRevenueCat } from '../src/services/purchases';
+import { initPurchases, logInToRevenueCat, logOutFromRevenueCat, getActivePlanId } from '../src/services/purchases';
 import { initMobileAds, requestTrackingPermission } from '../src/services/ads';
 import { subscribeToAuthState } from '../src/services/auth';
 import { downloadAndReplaceProgress, uploadProgress } from '../src/services/sync';
@@ -379,11 +379,11 @@ function AuthSyncer() {
         uploadTimerRef.current = null;
       }
 
-      // 💎 RC USER IDENTIFICATION — Firebase uid ile RC'yi senkronize et.
+      // 💎 RC USER IDENTIFICATION — Firebase uid + email/displayName ile RC'yi senkronize et.
       // Premium grant + restore + entitlement tracking için kritik.
-      // Anonymous user → RC Dashboard'da bulunamaz; uid ile kayıtlı → bulunabilir.
+      // Anonymous user → RC Dashboard'da bulunamaz; uid + email ile kayıtlı → email ile aranabilir.
       if (user) {
-        logInToRevenueCat(user.uid).catch(() => {});
+        logInToRevenueCat(user.uid, user.email, user.displayName).catch(() => {});
       } else if (prevUser) {
         logOutFromRevenueCat().catch(() => {});
       }
@@ -532,13 +532,28 @@ function PremiumSyncer() {
 
   useEffect(() => {
     if (!hasHydrated) return;
-    import('../src/services/purchases')
-      .then((mod) => mod.checkIsPremiumSafe())
-      .then((result) => {
+    (async () => {
+      try {
+        const mod = await import('../src/services/purchases');
+        const isPremium = await mod.checkIsPremiumSafe();
         // result === null → RC cevap vermedi → mevcut AsyncStorage değerini koru
-        if (result !== null) setPremium(result);
-      })
-      .catch(() => {});
+        if (isPremium !== null) setPremium(isPremium);
+
+        // 📊 Plan tipini de senkronize et — Market ekranında "Yıllık/Aylık/Aile"
+        // doğru gözüksün. Sadece premium aktifken sorgula, free user için skip.
+        if (isPremium === true) {
+          const planId = await mod.getActivePlanId();
+          if (planId !== null) {
+            useUserStore.setState({ activePlanId: planId });
+          }
+        } else if (isPremium === false) {
+          // Premium iptal → planId'yi de temizle
+          useUserStore.setState({ activePlanId: null });
+        }
+      } catch {
+        // RC yok / ağ hatası — mevcut değerlere dokunma
+      }
+    })();
     // sadece hydration değişiminde çalışsın
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasHydrated]);
