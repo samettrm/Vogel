@@ -10,6 +10,7 @@
       "env": {
         "EXPO_PUBLIC_SENTRY_DSN": "https://e6e79364db2a2ce1cf617a4874c4de87@o4511445488238592.ingest.de.sentry.io/4511445501476944",
         "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_iXakqQdIiyVCKFcEiAdTcXmUHEf",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "",
         "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyDAihK7Xq0-apK0yM6h9LRY9VG0HO-0kdY",
         "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "vogel-3e071.firebaseapp.com",
         "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "vogel-3e071",
@@ -28,6 +29,7 @@
       "env": {
         "EXPO_PUBLIC_SENTRY_DSN": "https://e6e79364db2a2ce1cf617a4874c4de87@o4511445488238592.ingest.de.sentry.io/4511445501476944",
         "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_iXakqQdIiyVCKFcEiAdTcXmUHEf",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "",
         "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyDAihK7Xq0-apK0yM6h9LRY9VG0HO-0kdY",
         "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "vogel-3e071.firebaseapp.com",
         "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "vogel-3e071",
@@ -48,6 +50,7 @@
         "SENTRY_PROJECT": "react-native",
         "EXPO_PUBLIC_SENTRY_DSN": "https://e6e79364db2a2ce1cf617a4874c4de87@o4511445488238592.ingest.de.sentry.io/4511445501476944",
         "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_iXakqQdIiyVCKFcEiAdTcXmUHEf",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "",
         "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyDAihK7Xq0-apK0yM6h9LRY9VG0HO-0kdY",
         "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "vogel-3e071.firebaseapp.com",
         "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "vogel-3e071",
