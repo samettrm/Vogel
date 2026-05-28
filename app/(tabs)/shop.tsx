@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 import { PremiumPlansCard } from '../../src/components/shop/PremiumPlansCard';
 import { useUserStore } from '../../src/store/useUserStore';
+import { useAuthStore } from '../../src/store/useAuthStore';
 import { useThemeColors } from '../../src/theme';
 import { useT } from '../../src/i18n';
 import {
@@ -41,6 +43,8 @@ const SCREEN_BG = '#05020e';
 export default function ShopScreen() {
   const c = useThemeColors();
   const t = useT();
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
   const makePremium = useUserStore((s) => (s as { makePremium?: (planId?: PlanId) => void }).makePremium);
 
@@ -57,10 +61,26 @@ export default function ShopScreen() {
   }, []);
 
   // ─── Premium plan satın alma ─────────────────────────────────────
+  // 🔒 LOGIN ZORUNLU — Premium satın alma için kullanıcı login olmalı.
+  // Aksi halde anonim RC user'a bağlanır, cihaz değişiminde / reinstall'da
+  // satın alma kaybolur. Login olmayan kullanıcıyı /login'e yönlendir.
   const handleSelectPlan = useCallback(async (
     planId: PlanId,
     rcPackage?: PurchasesPackage,
   ) => {
+    // Login kontrolü — premium HER ZAMAN hesaba bağlı olmalı
+    if (!user) {
+      Alert.alert(
+        'Giriş gerekli',
+        'Premium üyeliğin kaybolmaması için önce hesap oluşturman veya giriş yapman gerekiyor.',
+        [
+          { text: 'İptal', style: 'cancel' },
+          { text: 'Giriş yap', onPress: () => router.push('/login') },
+        ],
+      );
+      return;
+    }
+
     if (!isPurchasesConfigured() || !rcPackage) {
       if (typeof makePremium === 'function') makePremium(planId);
       return;
@@ -71,7 +91,7 @@ export default function ShopScreen() {
     } else if (!result.cancelled && result.message) {
       Alert.alert(t('shop.purchaseFailed'), result.message);
     }
-  }, [makePremium, t]);
+  }, [user, router, makePremium, t]);
 
   // ─── Satın almaları geri yükle ───────────────────────────────────
   const handleRestore = useCallback(async () => {
