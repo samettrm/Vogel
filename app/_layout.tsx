@@ -10,8 +10,8 @@ import { Audio } from 'expo-av';
 import { Stack, useRouter, usePathname } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef } from 'react';
-import { LogBox } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { AppState, LogBox, type AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -382,6 +382,10 @@ function AuthSyncer() {
         logInToRevenueCat(user.uid, user.email, user.displayName).catch(() => {});
       } else if (prevUser) {
         logOutFromRevenueCat().catch(() => {});
+        // 🔑 Local premium cache hemen temizle — RC sync gecikmesinde UI yanlis
+        // gostermesin (eski user'in premium'unu bir an gosterip sonra silmek
+        // ucl mesaj akisini bozar).
+        useUserStore.setState({ isPremium: false, activePlanId: null });
       }
 
       // Sadece e-posta doğrulanmışsa (veya Apple Reviewer) sync başlat.
@@ -525,34 +529,52 @@ function VerifyEmailGuard() {
 function PremiumSyncer() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const setPremium = useUserStore((s) => s.setPremium);
+  // 🔑 User değişimini izle — login/logout sonrası premium yeniden çek
+  const userUid = useAuthStore((s) => s.user?.uid ?? null);
 
-  useEffect(() => {
+  const checkPremium = useCallback(async () => {
     if (!hasHydrated) return;
-    (async () => {
-      try {
-        const mod = await import('../src/services/purchases');
-        const isPremium = await mod.checkIsPremiumSafe();
-        // result === null → RC cevap vermedi → mevcut AsyncStorage değerini koru
-        if (isPremium !== null) setPremium(isPremium);
+    try {
+      const mod = await import('../src/services/purchases');
+      const isPremium = await mod.checkIsPremiumSafe();
+      // result === null → RC cevap vermedi → mevcut AsyncStorage değerini koru
+      if (isPremium !== null) setPremium(isPremium);
 
-        // 📊 Plan tipini de senkronize et — Market ekranında "Yıllık/Aylık/Aile"
-        // doğru gözüksün. Sadece premium aktifken sorgula, free user için skip.
-        if (isPremium === true) {
-          const planId = await mod.getActivePlanId();
-          if (planId !== null) {
-            useUserStore.setState({ activePlanId: planId });
-          }
-        } else if (isPremium === false) {
-          // Premium iptal → planId'yi de temizle
-          useUserStore.setState({ activePlanId: null });
+      // 📊 Plan tipini de senkronize et — Market ekranında "Yıllık/Aylık/Aile"
+      // doğru gözüksün. Sadece premium aktifken sorgula, free user için skip.
+      if (isPremium === true) {
+        const planId = await mod.getActivePlanId();
+        if (planId !== null) {
+          useUserStore.setState({ activePlanId: planId });
         }
-      } catch {
-        // RC yok / ağ hatası — mevcut değerlere dokunma
+      } else if (isPremium === false) {
+        // Premium iptal → planId'yi de temizle
+        useUserStore.setState({ activePlanId: null });
       }
-    })();
-    // sadece hydration değişiminde çalışsın
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasHydrated]);
+    } catch {
+      // RC yok / ağ hatası — mevcut değerlere dokunma
+    }
+  }, [hasHydrated, setPremium]);
+
+  // ☁️ Hydration + user değişimi → premium re-check.
+  // userUid değişince Firebase user değişti demektir (login/logout/switch);
+  // RC'ye yeni user için sor.
+  useEffect(() => {
+    checkPremium();
+  }, [checkPremium, userUid]);
+
+  // 📱 AppState listener — uygulama background'dan foreground'a dönünce
+  // RC'ye tekrar sor. Admin RC Dashboard'dan grant verdikten sonra
+  // kullanıcı app'i kapatıp açmak zorunda kalmasın; sadece arka plana
+  // alıp geri dönmek yeterli olsun.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') {
+        checkPremium();
+      }
+    });
+    return () => sub.remove();
+  }, [checkPremium]);
 
   return null;
 }
