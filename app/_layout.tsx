@@ -252,26 +252,22 @@ function OnboardingGuard() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
 
-  // 🔍 Fresh install detection — 3 katmanlı defansif kontrol
-  // Onboarding'in atlanmasını ABSOLUTELY önler:
-  //   (1) KEYCHAIN MARKER — iCloud sync etmiyor, en güvenilir kaynak
-  //   (2) STALE STATE detection (fallback)
-  //   (3) INSTALL TIME comparison (fallback)
+  // 🔍 Fresh install detection — RACE-FREE async tek effect
+  // Hem state kontrolü hem navigation kararını TEK async effect'te yaparak
+  // setState → re-render → re-fire chain'ine güvenmiyoruz. Effect 2'nin
+  // erken fire edip "onboardingCompleted: true" görmesi sorununu önler.
+  const initialNavDecisionMade = useRef(false);
+
   useEffect(() => {
-    if (!hasHydrated) return;
+    if (!hasHydrated || initialNavDecisionMade.current) return;
+    initialNavDecisionMade.current = true;
     (async () => {
       try {
-        // 🔐 KATMAN 1 (EN GÜÇLÜ): KEYCHAIN MARKER
-        // iCloud restore AsyncStorage'ı geri getirebilir ama Keychain
-        // WHEN_UNLOCKED_THIS_DEVICE_ONLY iCloud'a yedeklenmez.
-        // Kullanıcı bu cihazda onboarding'i GERÇEKTEN tamamlamadıysa
-        // marker yoktur → onboardingCompleted'i sıfırla.
+        // 🔐 KATMAN 1: KEYCHAIN MARKER (iCloud sync etmiyor)
         const s = useUserStore.getState();
         if (s.onboardingCompleted) {
           const markerExists = await hasOnboardingMarker();
           if (!markerExists) {
-            // iCloud restore senaryosu — state restore edilmiş ama bu cihazda
-            // onboarding hiç yapılmamış. Sıfırla.
             useUserStore.setState({
               onboardingCompleted: false,
               hasEverSignedIn: false,
@@ -284,7 +280,6 @@ function OnboardingGuard() {
         const installTime = await Application.getInstallationTimeAsync();
         const currentMs = installTime.getTime();
         const stored = await AsyncStorage.getItem(INSTALL_TIME_KEY);
-
         if (stored === null) {
           await AsyncStorage.setItem(INSTALL_TIME_KEY, String(currentMs));
         } else if (Number(stored) !== currentMs) {
@@ -295,12 +290,19 @@ function OnboardingGuard() {
           });
           await AsyncStorage.setItem(INSTALL_TIME_KEY, String(currentMs));
         }
+
+        // 🎯 NAVIGATION — son state ile direkt karar ver, race yok.
+        const sFinal = useUserStore.getState();
+        if (!sFinal.onboardingCompleted) {
+          router.replace('/onboarding');
+        }
       } catch {}
     })();
-  }, [hasHydrated]);
+  }, [hasHydrated, router]);
 
+  // 📍 ONGOING NAVIGATION — onboarding biter/giriş/çıkış değişimleri için
   useEffect(() => {
-    if (!hasHydrated) return;
+    if (!hasHydrated || !initialNavDecisionMade.current) return;
     if (!onboardingCompleted && pathname !== '/onboarding') {
       router.replace('/onboarding');
     } else if (onboardingCompleted && pathname === '/onboarding') {
