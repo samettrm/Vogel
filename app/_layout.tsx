@@ -251,14 +251,32 @@ function OnboardingGuard() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
 
-  // 🔍 Fresh install / reinstall detection
-  // AsyncStorage temizlenmediyse (örn. iOS sandbox quirk) install time
-  // karşılaştırmasıyla yeniden yüklemeyi tespit edip state'i sıfırlıyoruz.
-  // Onboarding HER fresh install'da gösterilir — Keychain bypass YOK.
+  // 🔍 Fresh install detection — 3 katmanlı defansif kontrol
+  // Onboarding'in atlanmasını ABSOLUTELY önler:
+  //   (1) Install time karşılaştırması (AsyncStorage temiz değilse)
+  //   (2) Stale state detection (iCloud restore senaryosu için)
+  //   (3) iCloud restore'dan gelen onbordingCompleted'i sıfırlar
   useEffect(() => {
     if (!hasHydrated) return;
     (async () => {
       try {
+        // 🛡️ KATMAN 2: STALE STATE — onboarding true ama sıfır aktivite varsa
+        // bu state iCloud Backup'tan restore edilmiş demektir (kullanıcı hiç
+        // gerçekten onboarding yapmamış). Sıfırla.
+        const s = useUserStore.getState();
+        const looksStale =
+          s.onboardingCompleted &&
+          s.xp === 0 &&
+          s.completedLessons.size === 0 &&
+          s.learningMotivations.length === 0;
+        if (looksStale) {
+          useUserStore.setState({
+            onboardingCompleted: false,
+            hasEverSignedIn: false,
+          });
+        }
+
+        // 🛡️ KATMAN 1: INSTALL TIME — farklı install time → state sıfırla
         const installTime = await Application.getInstallationTimeAsync();
         const currentMs = installTime.getTime();
         const stored = await AsyncStorage.getItem(INSTALL_TIME_KEY);
