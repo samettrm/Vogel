@@ -29,6 +29,36 @@ import {
 let _initialized = false;
 
 // ─────────────────────────────────────────────────────────────────
+// PENDING IDENTITY QUEUE — RACE CONDITION FIX
+//
+// Sorun: Firebase onAuthStateChanged cached user'la SENKRON emit eder
+// (subscribe anında, cache varsa hemen). initPurchases() henüz bitmemiş
+// olabilir → logInToRevenueCat çağrıldığında isPurchasesConfigured false
+// → silent return → kullanıcı RC'de KALICI olarak $RCAnonymousID kalır.
+//
+// Çözüm: Singleton pending slot (latest-wins). RC ready değilken
+// identifyUser/signOutUser çağrıları saklanır. initPurchases tamamlanınca
+// flushPendingIdentity() en son emit eden state'i uygular.
+// ─────────────────────────────────────────────────────────────────
+
+type PendingIdentity =
+  | { type: 'login'; uid: string; email?: string | null; displayName?: string | null }
+  | { type: 'logout' };
+
+let _pendingIdentity: PendingIdentity | null = null;
+
+function flushPendingIdentity(): void {
+  if (!_pendingIdentity) return;
+  const pending = _pendingIdentity;
+  _pendingIdentity = null;
+  if (pending.type === 'login') {
+    _performLogin(pending.uid, pending.email, pending.displayName).catch(() => {});
+  } else {
+    _performLogout().catch(() => {});
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // BAŞLATMA
 // ─────────────────────────────────────────────────────────────────
 
@@ -40,6 +70,8 @@ export function initPurchases(): void {
     }
     Purchases.configure({ apiKey: RC_API_KEY });
     _initialized = true;
+    // 🔑 RC hazır oldu — pending identity varsa şimdi uygula
+    flushPendingIdentity();
   } catch {
     // Expo Go'da native modül yok — sessizce geç, mock mod devreye girer
   }
@@ -63,18 +95,14 @@ export function isPurchasesConfigured(): boolean {
 // ─────────────────────────────────────────────────────────────────
 
 /**
- * Kullanıcı login olduğunda RC'ye bildir.
- * RC bu uid'i kullanarak premium entitlement + restore + grant ilişkilendirir.
- *
- * Email + displayName isteğe bağlı — verilirse RC Dashboard'da customer
- * email/isim ile aranabilir olur (premium grant verme süreci kolaylaşır).
+ * Internal: RC'ye gerçek logIn + setAttributes çağrılarını yapar.
+ * Sadece RC initialize olduktan sonra çağrılmalı (queue mekanizması bunu garanti eder).
  */
-export async function logInToRevenueCat(
+async function _performLogin(
   uid: string,
   email?: string | null,
   displayName?: string | null,
 ): Promise<void> {
-  if (!isPurchasesConfigured()) return;
   try {
     await Purchases.logIn(uid);
     if (__DEV__) console.log('[RC] logIn:', uid);
@@ -98,13 +126,93 @@ export async function logInToRevenueCat(
   }
 }
 
+async function _performLogout(): Promise<void> {
+  try {
+    await Purchases.logOut();
+    if (__DEV__) console.log('[RC] logOut');
+  } catch {
+    // Zaten anonymous → logOut hata verir, normal
+  }
+}
+
+/**
+ * Kullanıcı login olduğunda RC'ye bildir.
+ * RC bu uid'i kullanarak premium entitlement + restore + grant ilişkilendirir.
+ *
+ * Email + displayName isteğe bağlı — verilirse RC Dashboard'da customer
+ * email/isim ile aranabilir olur (premium grant verme süreci kolaylaşır).
+ *
+ * ⚠️ RACE-SAFE: RC henüz initialize olmadıysa pending queue'ya kaydeder.
+ * initPurchases tamamlanınca flushPendingIdentity bu çağrıyı yapar.
+ */
+export async function logInToRevenueCat(
+  uid: string,
+  email?: string | null,
+  displayName?: string | null,
+): Promise<void> {
+  if (!RC_API_KEY) return; // Gerçekten yapılandırılmamış — no-op
+  if (!_initialized) {
+    // RC henüz hazır değil → queue (latest-wins)
+    _pendingIdentity = { type: 'login', uid, email, displayName };
+    if (__DEV__) console.log('[RC] queued login (SDK not ready):', uid);
+    return;
+  }
+  await _performLogin(uid, email, displayName);
+}
+
+/**
+ * RC Promotional entitlement product ID parser.
+ *
+ * Admin "Grant Promotional Entitlement" verince productIdentifier şu formatta gelir:
+ *   rc_promo_<entitlement_id>_<duration>
+ * Örn: rc_promo_Vogel_Language_Lessons_Pro_yearly
+ *
+ * RC promo'da family duration YOK — sadece daily/weekly/monthly/yearly/lifetime.
+ * Yearly/lifetime → 'yearly', kısa süreler → 'monthly'.
+ *
+ * Family planı admin'in manuel olarak verdiği durumlar için
+ * subscriber attribute 'plan_override' = 'family' kullanılır (aşağıda).
+ */
+function parseRcPromoPlan(productId: string): PlanId | null {
+  if (!productId) return null;
+  const lower = productId.toLowerCase();
+  if (!lower.startsWith('rc_promo_')) return null;
+  // yearly / annual / lifetime → 'yearly' (uzun süreli, kullanıcıya en faydalı görünüm)
+  if (
+    lower.includes('yearly') ||
+    lower.includes('annual') ||
+    lower.includes('lifetime') ||
+    lower.endsWith('_year')
+  ) {
+    return 'yearly';
+  }
+  // monthly, weekly, daily, *_month, *_day, *_week → 'monthly' (kısa süreli)
+  if (
+    lower.includes('monthly') ||
+    lower.includes('weekly') ||
+    lower.includes('daily') ||
+    lower.endsWith('_month') ||
+    lower.endsWith('_day') ||
+    lower.endsWith('_week')
+  ) {
+    return 'monthly';
+  }
+  return null;
+}
+
 /**
  * Aktif premium plan tipini RC'den çek.
  * Returns: 'monthly' | 'yearly' | 'family' | null
  *
+ * 3 katmanlı tespit (öncelik sırasına göre):
+ *   1) Gerçek SKU literal match — kullanıcı App Store/Play Store'dan satın aldı
+ *   2) Subscriber attribute 'plan_override' = 'monthly'|'yearly'|'family' —
+ *      admin RC Dashboard'dan manuel ekler (RC promo'da family yok)
+ *   3) parseRcPromoPlan — admin "Grant Promotional Entitlement" verdi,
+ *      productIdentifier rc_promo_*_yearly/lifetime → 'yearly', kısa → 'monthly'
+ *
  * Store'daki activePlanId'yi senkronize etmek için _layout.tsx PremiumSyncer'da
- * kullanılır. Bu sayede Market ekranında doğru plan adı görünür ("Yıllık Plan",
- * "Aile Planı" gibi — sadece "Premium" değil).
+ * kullanılır. Bu sayede Market ekranında doğru plan adı görünür.
  */
 export async function getActivePlanId(): Promise<PlanId | null> {
   if (!isPurchasesConfigured()) return null;
@@ -112,10 +220,32 @@ export async function getActivePlanId(): Promise<PlanId | null> {
     const info = await Purchases.getCustomerInfo();
     const active = info.entitlements.active[ENTITLEMENT_PREMIUM];
     if (!active) return null;
+
+    // 1. Gerçek SKU literal match
     const productId = active.productIdentifier;
     if (productId === PRODUCT_IDS.premiumYearly)  return 'yearly';
     if (productId === PRODUCT_IDS.premiumMonthly) return 'monthly';
     if (productId === PRODUCT_IDS.premiumFamily)  return 'family';
+
+    // 2. Subscriber attribute plan_override (admin family granting için manuel set)
+    // RC v10 customerInfo subscriberAttributes'i her zaman expose etmeyebilir,
+    // güvenli cast ile dene.
+    const subscriberAttrs =
+      (info as { subscriberAttributes?: Record<string, { value?: string }> })
+        .subscriberAttributes ?? {};
+    const overrideValue = subscriberAttrs?.plan_override?.value;
+    if (
+      overrideValue === 'monthly' ||
+      overrideValue === 'yearly' ||
+      overrideValue === 'family'
+    ) {
+      return overrideValue;
+    }
+
+    // 3. RC promo entitlement parser
+    const promoPlan = parseRcPromoPlan(productId);
+    if (promoPlan) return promoPlan;
+
     return null;
   } catch {
     return null;
@@ -125,15 +255,17 @@ export async function getActivePlanId(): Promise<PlanId | null> {
 /**
  * Kullanıcı çıkış yaptığında RC'yi anonymous moda al.
  * Anonymous user'da çağrılırsa hata verir, sessizce yutuyoruz.
+ *
+ * ⚠️ RACE-SAFE: RC henüz hazır değilse pending queue'ya kaydeder.
  */
 export async function logOutFromRevenueCat(): Promise<void> {
-  if (!isPurchasesConfigured()) return;
-  try {
-    await Purchases.logOut();
-    if (__DEV__) console.log('[RC] logOut');
-  } catch {
-    // Zaten anonymous → logOut hata verir, normal
+  if (!RC_API_KEY) return;
+  if (!_initialized) {
+    _pendingIdentity = { type: 'logout' };
+    if (__DEV__) console.log('[RC] queued logout (SDK not ready)');
+    return;
   }
+  await _performLogout();
 }
 
 // ─────────────────────────────────────────────────────────────────
