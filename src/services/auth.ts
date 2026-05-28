@@ -8,6 +8,7 @@ import {
   OAuthProvider,
   signInWithCredential,
   onAuthStateChanged,
+  updateProfile,
   type User,
 } from 'firebase/auth';
 import { Platform } from 'react-native';
@@ -198,6 +199,31 @@ export async function signInWithApple(): Promise<AuthResult> {
     const provider = new OAuthProvider('apple.com');
     const credential = provider.credential({ idToken: identityToken });
     const cred = await signInWithCredential(firebaseAuth, credential);
+
+    // 🔑 Apple Sign-In fullName SADECE ilk girişte gelir (Apple privacy policy).
+    // Sonraki girişlerde appleCredential.fullName null olur — bu yüzden ilk
+    // girişte updateProfile ile Firebase user record'una manuel yazıyoruz.
+    // Aksi halde user.displayName boş kalır, RC $displayName attribute'u set
+    // edilemez, Dashboard'da kullanıcı isimle aranabilir olmaz.
+    if (appleCredential.fullName && !cred.user.displayName) {
+      const fullName = appleCredential.fullName as {
+        givenName?: string | null;
+        familyName?: string | null;
+      };
+      const composed = [fullName.givenName, fullName.familyName]
+        .filter((p): p is string => !!p && p.trim().length > 0)
+        .join(' ')
+        .trim();
+      if (composed) {
+        try {
+          await updateProfile(cred.user, { displayName: composed });
+          if (__DEV__) console.log('[Apple] displayName persisted:', composed);
+        } catch (e) {
+          if (__DEV__) console.warn('[Apple] displayName persist failed:', e);
+        }
+      }
+    }
+
     return { ok: true, user: cred.user };
   } catch (e: any) {
     if (e.code === 'ERR_REQUEST_CANCELED')
