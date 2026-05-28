@@ -28,6 +28,7 @@
 // ════════════════════════════════════════════════════════════════
 
 const DEVICE_LOGIN_FLAG = 'vogel.device_had_signed_in_user';
+const ONBOARDING_COMPLETED_FLAG = 'vogel.onboarding_completed_v1';
 
 let _SecureStore: any = null;
 let _loadAttempted = false;
@@ -71,6 +72,43 @@ export async function hasDeviceEverLoggedIn(): Promise<boolean> {
   if (!ss?.getItemAsync) return false;
   try {
     const value = await ss.getItemAsync(DEVICE_LOGIN_FLAG);
+    return value === '1';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Kullanıcı bu cihazda onboarding'i GERÇEKTEN tamamladığını işaretle.
+ * completeOnboarding() action'ı çağrıldıktan sonra setlenir.
+ *
+ * iOS Keychain WHEN_UNLOCKED_THIS_DEVICE_ONLY → iCloud Backup'a DAHIL DEĞİL.
+ * Bu sayede iCloud restore senaryosunda AsyncStorage'daki
+ * onboardingCompleted: true değeri restore edilse bile, Keychain'de
+ * marker olmadığı için "fake completion" tespit edilir.
+ */
+export async function markOnboardingComplete(): Promise<void> {
+  const ss = getSecureStore();
+  if (!ss?.setItemAsync) return;
+  try {
+    await ss.setItemAsync(ONBOARDING_COMPLETED_FLAG, '1', {
+      keychainAccessible: ss.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    });
+  } catch {
+    // sessizce devam
+  }
+}
+
+/**
+ * Bu cihazda onboarding gerçekten tamamlandı mı?
+ * iCloud restore edilen AsyncStorage onbordingCompleted: true verse bile,
+ * Keychain marker yoksa kullanıcı bu cihazda hiç onboarding yapmadı demektir.
+ */
+export async function hasOnboardingMarker(): Promise<boolean> {
+  const ss = getSecureStore();
+  if (!ss?.getItemAsync) return false;
+  try {
+    const value = await ss.getItemAsync(ONBOARDING_COMPLETED_FLAG);
     return value === '1';
   } catch {
     return false;

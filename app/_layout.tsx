@@ -27,6 +27,7 @@ import { subscribeToAuthState } from '../src/services/auth';
 import { downloadAndReplaceProgress, uploadProgress } from '../src/services/sync';
 import { isFirebaseConfigured } from '../src/config/firebase';
 import { useAuthStore } from '../src/store/useAuthStore';
+import { hasOnboardingMarker } from '../src/utils/secureStore';
 
 // ════════════════════════════════════════════════════════════════
 // SENTRY — hata izleme
@@ -253,30 +254,33 @@ function OnboardingGuard() {
 
   // 🔍 Fresh install detection — 3 katmanlı defansif kontrol
   // Onboarding'in atlanmasını ABSOLUTELY önler:
-  //   (1) Install time karşılaştırması (AsyncStorage temiz değilse)
-  //   (2) Stale state detection (iCloud restore senaryosu için)
-  //   (3) iCloud restore'dan gelen onbordingCompleted'i sıfırlar
+  //   (1) KEYCHAIN MARKER — iCloud sync etmiyor, en güvenilir kaynak
+  //   (2) STALE STATE detection (fallback)
+  //   (3) INSTALL TIME comparison (fallback)
   useEffect(() => {
     if (!hasHydrated) return;
     (async () => {
       try {
-        // 🛡️ KATMAN 2: STALE STATE — onboarding true ama sıfır aktivite varsa
-        // bu state iCloud Backup'tan restore edilmiş demektir (kullanıcı hiç
-        // gerçekten onboarding yapmamış). Sıfırla.
+        // 🔐 KATMAN 1 (EN GÜÇLÜ): KEYCHAIN MARKER
+        // iCloud restore AsyncStorage'ı geri getirebilir ama Keychain
+        // WHEN_UNLOCKED_THIS_DEVICE_ONLY iCloud'a yedeklenmez.
+        // Kullanıcı bu cihazda onboarding'i GERÇEKTEN tamamlamadıysa
+        // marker yoktur → onboardingCompleted'i sıfırla.
         const s = useUserStore.getState();
-        const looksStale =
-          s.onboardingCompleted &&
-          s.xp === 0 &&
-          s.completedLessons.size === 0 &&
-          s.learningMotivations.length === 0;
-        if (looksStale) {
-          useUserStore.setState({
-            onboardingCompleted: false,
-            hasEverSignedIn: false,
-          });
+        if (s.onboardingCompleted) {
+          const markerExists = await hasOnboardingMarker();
+          if (!markerExists) {
+            // iCloud restore senaryosu — state restore edilmiş ama bu cihazda
+            // onboarding hiç yapılmamış. Sıfırla.
+            useUserStore.setState({
+              onboardingCompleted: false,
+              hasEverSignedIn: false,
+              learningMotivations: [],
+            });
+          }
         }
 
-        // 🛡️ KATMAN 1: INSTALL TIME — farklı install time → state sıfırla
+        // 🛡️ KATMAN 2: INSTALL TIME — farklı install time → state sıfırla
         const installTime = await Application.getInstallationTimeAsync();
         const currentMs = installTime.getTime();
         const stored = await AsyncStorage.getItem(INSTALL_TIME_KEY);

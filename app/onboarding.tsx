@@ -16,6 +16,7 @@ import { radius, spacing, textStyles, useThemeColors } from '../src/theme';
 import { useT, type MessageKey } from '../src/i18n';
 import { requestNotificationPermission } from '../src/utils/notifications';
 import { refreshSmartReminders } from '../src/utils/smartReminders';
+import { markOnboardingComplete } from '../src/utils/secureStore';
 import {
   MOTIVATIONS_META,
   estimateTimeToA2,
@@ -156,6 +157,8 @@ export default function OnboardingScreen() {
     // 🎯 Placement sonucunu uygula: active course + selected level
     setActiveCourse('tr', 'de', startingLevel);
     setSelectedLevel(startingLevel);
+    // 🔐 Keychain marker — iCloud restore senaryosunda onboarding "gerçek" yapıldığının kanıtı
+    markOnboardingComplete().catch(() => {});
     router.replace('/');
   };
 
@@ -167,6 +170,8 @@ export default function OnboardingScreen() {
     completeOnboarding(goalXp);
     setActiveCourse('tr', 'de', startingLevel);
     setSelectedLevel(startingLevel);
+    // 🔐 Keychain marker — iCloud restore senaryosunda onboarding "gerçek" yapıldığının kanıtı
+    markOnboardingComplete().catch(() => {});
     router.replace('/');
   };
 
