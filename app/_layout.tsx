@@ -235,23 +235,36 @@ function RootLayout() {
 export default Sentry.wrap(RootLayout);
 
 // ════════════════════════════════════════════════════════════════
-// ONBOARDING GUARD — NEUTERED (2026-05-29)
+// ONBOARDING GUARD
 //
-// 🚨 Apple App Review feedback ve UX kararı sonrası onboarding artık
-// otomatik tetiklenmiyor. Yeni kullanıcı fresh install'da DOĞRUDAN
-// ana ekrana (map) iniyor.
+// Fresh install (onboardingCompleted=false) → /onboarding'e yönlendir.
+// Onboarding'i tamamlayınca completeOnboarding() true yapar, AuthGuard
+// devreye girer.
 //
-// Eski mantık (iCloud restore + install time detection + redirect)
-// kaldırıldı. /onboarding rotası hala mevcut — kullanıcı isterse
-// Ayarlar'dan veya manuel link'le erişebilir. Store default'unda
-// onboardingCompleted: true olarak ayarlandı, kimse re-redirect
-// kontrolüne takılmıyor.
+// Sonraki açılışlarda onboardingCompleted persist'ten true gelir,
+// kullanıcı direkt ana ekrana (map) iner. Onboarding bir daha
+// gösterilmez.
 //
-// AuthGuard hala Duolingo paterni ile çalışıyor: 2 misafir ders →
-// login zorunlu. Onboarding'in olmaması bu akışı etkilemez çünkü
-// AuthGuard onboardingCompleted=true default olduğu için hemen aktif.
+// ⚠️ ATT prompt onboarding ekranındayken fire eder (AdsInitializer
+// onboardingCompleted'i artık beklemiyor, sadece hasHydrated bekliyor).
+// Bu Apple App Review 2.1 fix'inin temelidir — reviewer onboarding
+// gösterilirken ATT prompt'unu net görür.
 // ════════════════════════════════════════════════════════════════
 function OnboardingGuard() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const hasHydrated = useUserStore((s) => s.hasHydrated);
+  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    if (onboardingCompleted) return;
+    if (pathname === '/onboarding') return;
+    // Login + verify-email yollarında kalsın, oradan onboarding'e fırlatma
+    if (pathname === '/login' || pathname === '/verify-email') return;
+    router.replace('/onboarding');
+  }, [hasHydrated, onboardingCompleted, pathname, router]);
+
   return null;
 }
 

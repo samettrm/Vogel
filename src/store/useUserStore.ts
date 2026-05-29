@@ -370,10 +370,10 @@ export const useUserStore = create<UserState>()(
       leagueEndDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
       isPremium: false,
       activePlanId: null,
-      // Onboarding artık otomatik tetiklenmiyor — ilk açılışta kullanıcı
-      // doğrudan ana ekrana iner. /onboarding rotası hala var ama yalnızca
-      // manuel erişim için (Ayarlar'dan veya gelecekte yeni özellik).
-      onboardingCompleted: true,
+      // Fresh install'da false → OnboardingGuard /onboarding'e yönlendirir.
+      // Onboarding'i tamamlayınca completeOnboarding() true yapar ve map'e
+      // geçilir. Sonraki açılışlarda persist'ten true gelir, direkt map.
+      onboardingCompleted: false,
       hasEverSignedIn: false,
       dailyXpGoal: 30,
       learningMotivations: [],
