@@ -1,7 +1,7 @@
 import React from 'react';
 import { Redirect, Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { dark } from '../../src/theme';
 import { BottomNav } from '../../src/components/map/BottomNav';
 import { useUserStore } from '../../src/store/useUserStore';
@@ -19,6 +19,13 @@ import { useUserStore } from '../../src/store/useUserStore';
 //   /onboarding'e yönlendiriyoruz. Apple reviewer artık fresh install'da
 //   DOĞRUDAN onboarding ekranını görür, harita flash etmez.
 //
+// 🚨 HYDRATION LOCKOUT FIX (2026-05-29 — Gemini+ChatGPT+Codex consensus):
+//   Önceki versiyonda hydration sırasında `return null` döndürmesi
+//   Expo Router'ın layout slot tree'sini bozuyordu — app boş siyah
+//   ekranda kilitli kalıyordu (build 30). Çözüm: null yerine
+//   ActivityIndicator render et. Layout slot kuralı korunur, kullanıcı
+//   "loading" görür, hydration bitince düzgün navigate olur.
+//
 // Eski route'lar (leaderboard, store) dosya olarak duruyor ama
 // href: null ile sekme listesinden gizlendi (bozulmasın diye silinmedi).
 // ════════════════════════════════════════════════════════════════
@@ -27,12 +34,31 @@ export default function TabsLayout() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
 
-  // 1️⃣ Persist henüz hidrate olmadıysa null render et (splash görünür).
-  //    Yanlış state ile yönlendirme yapmamak için kritik.
-  if (!hasHydrated) return null;
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log('[Vogel Startup] (tabs)/_layout — hasHydrated:', hasHydrated, 'onboardingCompleted:', onboardingCompleted);
+  }
 
-  // 2️⃣ Onboarding tamamlanmamışsa Tabs'ı hiç render etme, doğrudan
-  //    /onboarding'e yönlendir. Senkron Redirect — flash YOK.
+  // 1️⃣ Hidrasyon bitene kadar Loading view (NULL DEĞİL — slot tree bozulur).
+  //    Zustand persist AsyncStorage'tan okuma async, birkaç frame sürer.
+  if (!hasHydrated) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: dark.bg,
+        }}
+      >
+        <ActivityIndicator size="large" color={dark.neon} />
+      </View>
+    );
+  }
+
+  // 2️⃣ Onboarding tamamlanmamışsa /onboarding'e yönlendir. Expo Router
+  //    Redirect bileşeni navigation context hazır olduktan sonra
+  //    güvenli çalışır (layout slot tree zarar görmez).
   if (!onboardingCompleted) {
     return <Redirect href="/onboarding" />;
   }
