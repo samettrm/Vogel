@@ -1,9 +1,10 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { dark } from '../../src/theme';
 import { BottomNav } from '../../src/components/map/BottomNav';
+import { useUserStore } from '../../src/store/useUserStore';
 
 // ════════════════════════════════════════════════════════════════
 // TABS LAYOUT
@@ -11,11 +12,31 @@ import { BottomNav } from '../../src/components/map/BottomNav';
 // Alt nav, expo-router'ın varsayılan tab bar'ı yerine
 // custom dark-neon BottomNav bileşeni ile render edilir.
 //
+// 🛡 SYNCHRONOUS ONBOARDING REDIRECT (Apple App Review 2.1 fix):
+//   OnboardingGuard'ın useEffect'i 50-200ms gecikmeli çalışıyordu →
+//   user fresh install'da map'i kısa süre flash olarak görüyordu.
+//   Burada SENKRON Redirect ile Tabs'lar hiç render olmadan
+//   /onboarding'e yönlendiriyoruz. Apple reviewer artık fresh install'da
+//   DOĞRUDAN onboarding ekranını görür, harita flash etmez.
+//
 // Eski route'lar (leaderboard, store) dosya olarak duruyor ama
 // href: null ile sekme listesinden gizlendi (bozulmasın diye silinmedi).
 // ════════════════════════════════════════════════════════════════
 
 export default function TabsLayout() {
+  const hasHydrated = useUserStore((s) => s.hasHydrated);
+  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
+
+  // 1️⃣ Persist henüz hidrate olmadıysa null render et (splash görünür).
+  //    Yanlış state ile yönlendirme yapmamak için kritik.
+  if (!hasHydrated) return null;
+
+  // 2️⃣ Onboarding tamamlanmamışsa Tabs'ı hiç render etme, doğrudan
+  //    /onboarding'e yönlendir. Senkron Redirect — flash YOK.
+  if (!onboardingCompleted) {
+    return <Redirect href="/onboarding" />;
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: dark.bg }}>
       <StatusBar style="light" />
