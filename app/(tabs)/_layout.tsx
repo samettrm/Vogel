@@ -5,6 +5,8 @@ import { View } from 'react-native';
 import { dark } from '../../src/theme';
 import { BottomNav } from '../../src/components/map/BottomNav';
 
+console.warn('[FILE_LOAD] app/(tabs)/_layout.tsx loaded');
+
 // ════════════════════════════════════════════════════════════════
 // TABS LAYOUT
 // 4 sekme: Harita (index) / Dersler / Profil / Mağaza (shop).

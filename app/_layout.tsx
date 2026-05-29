@@ -17,6 +17,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Sentry from '@sentry/react-native';
 import { useUserStore } from '../src/store/useUserStore';
+
+console.warn('[FILE_LOAD] app/_layout.tsx loaded');
 import { AchievementToast } from '../src/components/achievements/AchievementToast';
 import { preloadAllSounds } from '../src/utils/sounds';
 import { SENTRY_DSN } from '../src/config/sentry';
@@ -129,7 +131,7 @@ function RootLayout() {
   // etmesine fırsat veriyoruz. Sonuç: splash kalktığında user zaten doğru
   // ekranda (onboarding veya map) — map flash YOK.
   useEffect(() => {
-    console.log('[BOOT_SPLASH_CHECK]', {
+    console.warn('[BOOT_SPLASH_CHECK]', {
       fontsLoaded,
       hasHydrated,
       timestamp: Date.now(),
@@ -137,7 +139,7 @@ function RootLayout() {
     if (!fontsLoaded || !hasHydrated) return;
     // OnboardingGuard'ın useEffect'i pathname'i değiştirmesine fırsat ver
     const t = setTimeout(() => {
-      console.log('[BOOT_SPLASH_HIDE]', { timestamp: Date.now() });
+      console.warn('[BOOT_SPLASH_HIDE]', { timestamp: Date.now() });
       SplashScreen.hideAsync().catch(() => {
         // Zaten gizlenmişse veya native modül yoksa no-op
       });
@@ -302,7 +304,7 @@ function OnboardingGuard() {
       pathname !== '/onboarding' &&
       pathname !== '/login' &&
       pathname !== '/verify-email';
-    console.log('[ONBOARDING_DECISION]', {
+    console.warn('[ONBOARDING_DECISION]', {
       hasHydrated,
       onboardingCompleted,
       pathname,

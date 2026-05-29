@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
+
+console.warn('[FILE_LOAD] app/onboarding.tsx loaded');
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';

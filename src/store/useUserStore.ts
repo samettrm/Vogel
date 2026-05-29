@@ -891,7 +891,7 @@ export const useUserStore = create<UserState>()(
       }),
       migrate: (persistedState) => {
         const state = persistedState as Partial<UserState>;
-        console.log('[MIGRATE]', {
+        console.warn('[MIGRATE]', {
           hasPersistedState: persistedState !== undefined && persistedState !== null,
           onboardingCompletedInPersist: state?.onboardingCompleted,
           hasCompletedPlacementInPersist: (state as any)?.hasCompletedPlacement,
@@ -988,7 +988,7 @@ export const useUserStore = create<UserState>()(
       }),
       merge: (persistedState, currentState) => {
         const state = persistedState as Partial<UserState>;
-        console.log('[MERGE]', {
+        console.warn('[MERGE]', {
           hasPersistedState: persistedState !== undefined && persistedState !== null,
           onboardingCompletedInPersist: state?.onboardingCompleted,
           hasCompletedPlacementInPersist: state?.hasCompletedPlacement,
@@ -1064,7 +1064,7 @@ export const useUserStore = create<UserState>()(
       //      `state` parametresine güvenme. Bu, AsyncStorage boş bile olsa
       //      hidrasyon "tamamlandı" olarak işaretlenir.
       onRehydrateStorage: () => (state, error) => {
-        console.log('[REHYDRATE_COMPLETE]', {
+        console.warn('[REHYDRATE_COMPLETE]', {
           stateDefined: state !== undefined && state !== null,
           hasOnboardingCompletedInState: state && 'onboardingCompleted' in state,
           onboardingCompletedValue: state?.onboardingCompleted,

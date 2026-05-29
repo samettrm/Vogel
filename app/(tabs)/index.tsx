@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, useFocusEffect, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+
+console.warn('[FILE_LOAD] app/(tabs)/index.tsx loaded');
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -49,11 +51,12 @@ import type { CEFRLevel, Lesson, Unit } from '../../src/types';
 export default function HomeScreen() {
   const router = useRouter();
 
-  console.log('[FORCING_TEST] (tabs)/index.tsx loaded — forcing redirect to /onboarding');
+  console.warn('[FORCING_TEST] HomeScreen component RENDER edildi — forcing redirect');
 
   useEffect(() => {
-    console.log('[FORCING_TEST] router.replace(/onboarding) çağrıldı');
+    console.warn('[FORCING_TEST] useEffect fired, router.replace(/onboarding) çağrılıyor');
     router.replace('/onboarding');
+    console.warn('[FORCING_TEST] router.replace() döndü');
   }, [router]);
 
   return null;
