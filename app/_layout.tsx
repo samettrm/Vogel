@@ -14,8 +14,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import { AppState, LogBox, type AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Application from 'expo-application';
 import * as Sentry from '@sentry/react-native';
 import { useUserStore } from '../src/store/useUserStore';
 import { AchievementToast } from '../src/components/achievements/AchievementToast';
@@ -27,7 +25,6 @@ import { subscribeToAuthState } from '../src/services/auth';
 import { downloadAndReplaceProgress, uploadProgress } from '../src/services/sync';
 import { isFirebaseConfigured } from '../src/config/firebase';
 import { useAuthStore } from '../src/store/useAuthStore';
-import { hasOnboardingMarker } from '../src/utils/secureStore';
 
 // ════════════════════════════════════════════════════════════════
 // SENTRY — hata izleme
@@ -238,78 +235,23 @@ function RootLayout() {
 export default Sentry.wrap(RootLayout);
 
 // ════════════════════════════════════════════════════════════════
-// ONBOARDING GUARD — Stack mount edildikten SONRA yönlendirme
+// ONBOARDING GUARD — NEUTERED (2026-05-29)
 //
-// Bu component Stack'in altında render edildiği için React useEffect'i
-// Stack mount edildikten sonra çalıştırır (child → parent sıralaması).
-// Yani router.replace çağrıldığında navigator garantili olarak hazırdır.
+// 🚨 Apple App Review feedback ve UX kararı sonrası onboarding artık
+// otomatik tetiklenmiyor. Yeni kullanıcı fresh install'da DOĞRUDAN
+// ana ekrana (map) iniyor.
+//
+// Eski mantık (iCloud restore + install time detection + redirect)
+// kaldırıldı. /onboarding rotası hala mevcut — kullanıcı isterse
+// Ayarlar'dan veya manuel link'le erişebilir. Store default'unda
+// onboardingCompleted: true olarak ayarlandı, kimse re-redirect
+// kontrolüne takılmıyor.
+//
+// AuthGuard hala Duolingo paterni ile çalışıyor: 2 misafir ders →
+// login zorunlu. Onboarding'in olmaması bu akışı etkilemez çünkü
+// AuthGuard onboardingCompleted=true default olduğu için hemen aktif.
 // ════════════════════════════════════════════════════════════════
-const INSTALL_TIME_KEY = 'vogel:install-time';
-
 function OnboardingGuard() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const hasHydrated = useUserStore((s) => s.hasHydrated);
-  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
-
-  // 🔍 Fresh install detection — RACE-FREE async tek effect
-  // Hem state kontrolü hem navigation kararını TEK async effect'te yaparak
-  // setState → re-render → re-fire chain'ine güvenmiyoruz. Effect 2'nin
-  // erken fire edip "onboardingCompleted: true" görmesi sorununu önler.
-  const initialNavDecisionMade = useRef(false);
-
-  useEffect(() => {
-    if (!hasHydrated || initialNavDecisionMade.current) return;
-    initialNavDecisionMade.current = true;
-    (async () => {
-      try {
-        // 🔐 KATMAN 1: KEYCHAIN MARKER (iCloud sync etmiyor)
-        const s = useUserStore.getState();
-        if (s.onboardingCompleted) {
-          const markerExists = await hasOnboardingMarker();
-          if (!markerExists) {
-            useUserStore.setState({
-              onboardingCompleted: false,
-              hasEverSignedIn: false,
-              learningMotivations: [],
-            });
-          }
-        }
-
-        // 🛡️ KATMAN 2: INSTALL TIME — farklı install time → state sıfırla
-        const installTime = await Application.getInstallationTimeAsync();
-        const currentMs = installTime.getTime();
-        const stored = await AsyncStorage.getItem(INSTALL_TIME_KEY);
-        if (stored === null) {
-          await AsyncStorage.setItem(INSTALL_TIME_KEY, String(currentMs));
-        } else if (Number(stored) !== currentMs) {
-          useUserStore.setState({
-            onboardingCompleted: false,
-            hasEverSignedIn: false,
-            learningMotivations: [],
-          });
-          await AsyncStorage.setItem(INSTALL_TIME_KEY, String(currentMs));
-        }
-
-        // 🎯 NAVIGATION — son state ile direkt karar ver, race yok.
-        const sFinal = useUserStore.getState();
-        if (!sFinal.onboardingCompleted) {
-          router.replace('/onboarding');
-        }
-      } catch {}
-    })();
-  }, [hasHydrated, router]);
-
-  // 📍 ONGOING NAVIGATION — onboarding biter/giriş/çıkış değişimleri için
-  useEffect(() => {
-    if (!hasHydrated || !initialNavDecisionMade.current) return;
-    if (!onboardingCompleted && pathname !== '/onboarding') {
-      router.replace('/onboarding');
-    } else if (onboardingCompleted && pathname === '/onboarding') {
-      router.replace('/');
-    }
-  }, [hasHydrated, onboardingCompleted, pathname, router]);
-
   return null;
 }
 

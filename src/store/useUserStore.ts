@@ -370,7 +370,10 @@ export const useUserStore = create<UserState>()(
       leagueEndDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
       isPremium: false,
       activePlanId: null,
-      onboardingCompleted: false,
+      // Onboarding artık otomatik tetiklenmiyor — ilk açılışta kullanıcı
+      // doğrudan ana ekrana iner. /onboarding rotası hala var ama yalnızca
+      // manuel erişim için (Ayarlar'dan veya gelecekte yeni özellik).
+      onboardingCompleted: true,
       hasEverSignedIn: false,
       dailyXpGoal: 30,
       learningMotivations: [],
