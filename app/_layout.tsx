@@ -581,34 +581,43 @@ function PremiumSyncer() {
 
 // ════════════════════════════════════════════════════════════════
 // ADS INITIALIZER — AdMob SDK init zaten top-level'da yapıldı.
-// Bu component sadece App Tracking Transparency prompt'unu
-// onboarding bittikten SONRA göstermek için kullanılır (Apple
-// HIG önerisi: ATT prompt'unu context'le birlikte göster).
+// Bu component App Tracking Transparency prompt'unu göstermek için.
+//
+// 🚨 Apple Guideline 2.1 reject (2026-05-29) sonrası fix:
+//   Önceki implementasyon ATT prompt'unu yalnızca onboardingCompleted
+//   TRUE olduğunda gösteriyordu. Apple reviewer iPadOS 26.5'te prompt'u
+//   görmedi (muhtemelen onboarding'i tamamlamadan test ettiler veya
+//   AppState restore yüzünden onboarding step'i atlandı).
+//
+// Şimdi: hidrasyon biter bitmez, onboarding state'inden BAĞIMSIZ
+// olarak 1.5sn sonra ATT prompt göster. Apple reviewer'ın görmesi
+// garanti — iOS zaten sistem seviyesinde "bir kez" gösterir,
+// kullanıcı bir daha görmez.
 //
 // iOS 14.5+ için zorunlu. Kullanıcı izin vermezse contextual ads;
-// izin verirse personalized ads. Ya öyle ya böyle reklam yine de
-// gösterilir — sadece targeting kalitesi değişir.
+// izin verirse personalized ads.
 // ════════════════════════════════════════════════════════════════
 function AdsInitializer() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
-  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
-  const isPremium = useUserStore((s) => s.isPremium);
   const promptShownRef = useRef(false);
 
   useEffect(() => {
-    // Henüz hidrasyon yoksa veya onboarding bitmediyse ATT prompt gösterme
-    if (!hasHydrated || !onboardingCompleted) return;
-    // Premium kullanıcıya gereksiz prompt gösterme (yine de reklam görmeyecek)
-    if (isPremium) return;
-    // Bir kere göster
+    // Henüz hidrasyon yoksa bekle (store ready olmalı)
+    if (!hasHydrated) return;
+    // Bir kere tetikle
     if (promptShownRef.current) return;
     promptShownRef.current = true;
-    // 600ms gecikme — map ekranı render olsun, prompt context'le otursun
+    // 1500ms gecikme — UI render olsun, sistem dialog'u context'le otursun.
+    // Apple Guideline 2.1: prompt herhangi bir tracking verisi
+    // toplanmadan ÖNCE görünmeli. Bu konum doğru çünkü:
+    //   - initMobileAds() reklam yüklemiyor, sadece SDK init ediyor
+    //   - İlk gerçek reklam isteği interstitial/rewarded ile geliyor
+    //     ve onlar bu prompt sonrası tetikleniyor.
     const t = setTimeout(() => {
       requestTrackingPermission().catch(() => {});
-    }, 600);
+    }, 1500);
     return () => clearTimeout(t);
-  }, [hasHydrated, onboardingCompleted, isPremium]);
+  }, [hasHydrated]);
 
   return null;
 }

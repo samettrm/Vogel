@@ -197,6 +197,13 @@ export const messages = {
     purchaseFailed: { tr: 'Satın alma başarısız oldu.', en: 'Purchase failed.' },
     popular: { tr: 'POPÜLER', en: 'POPULAR' },
     bestValue: { tr: 'EN İYİ', en: 'BEST' },
+    // Apple Guideline 3.1.2(c) — abonelik akışında zorunlu yasal linkler
+    termsOfUse: { tr: 'Kullanım Koşulları', en: 'Terms of Use' },
+    privacyPolicy: { tr: 'Gizlilik Politikası', en: 'Privacy Policy' },
+    legalNotice: {
+      tr: 'Otomatik yenilenen abonelik. Mevcut dönem bitmeden en az 24 saat önce iptal etmezsen aynı fiyattan yenilenir. Aboneliğini Ayarlar > Apple ID > Abonelikler bölümünden istediğin zaman yönetebilirsin.',
+      en: 'Auto-renewing subscription. Renews at the same price unless cancelled at least 24 hours before the end of the current period. Manage your subscription anytime in Settings > Apple ID > Subscriptions.',
+    },
     select: { tr: 'SEÇ', en: 'SELECT' },
     perMonth: { tr: '/ay', en: '/mo' },
     perYear: { tr: '/yıl', en: '/yr' },
@@ -470,6 +477,13 @@ export const messages = {
     feature4: { tr: '⚡  Öncelikli destek', en: '⚡  Priority support' },
     cta: { tr: 'VOGEL PLUS\'I GÖR', en: 'SEE VOGEL PLUS' },
     dismiss: { tr: 'Hayır, teşekkürler', en: 'No thanks' },
+    // Apple Guideline 3.1.2(c) — abonelik akışında zorunlu yasal linkler
+    termsOfUse: { tr: 'Kullanım Koşulları', en: 'Terms of Use' },
+    privacyPolicy: { tr: 'Gizlilik Politikası', en: 'Privacy Policy' },
+    legalNotice: {
+      tr: 'Otomatik yenilenen abonelik. Mevcut dönem bitmeden en az 24 saat önce iptal etmezsen aynı fiyattan yenilenir. Aboneliğini Ayarlar > Apple ID > Abonelikler bölümünden istediğin zaman yönetebilirsin.',
+      en: 'Auto-renewing subscription. Renews at the same price unless cancelled at least 24 hours before the end of the current period. Manage your subscription anytime in Settings > Apple ID > Subscriptions.',
+    },
   },
 
   // Streak Calendar

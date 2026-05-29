@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import {
+  Linking,
   Modal,
   Pressable,
   StyleSheet,
@@ -22,6 +23,7 @@ import { router } from 'expo-router';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
 import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
+import { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '../../config/legal';
 
 // ════════════════════════════════════════════════════════════════
 // PAYWALL MODAL — Psikolojik dönüşüm optimizasyonu
@@ -85,6 +87,17 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
   const handleDismiss = () => {
     Haptics.selectionAsync().catch(() => {});
     onDismiss();
+  };
+
+  // Apple Guideline 3.1.2(c) — Privacy Policy + Terms of Use linkleri
+  const handleOpenPrivacy = () => {
+    Haptics.selectionAsync().catch(() => {});
+    Linking.openURL(PRIVACY_POLICY_URL).catch(() => {});
+  };
+
+  const handleOpenTerms = () => {
+    Haptics.selectionAsync().catch(() => {});
+    Linking.openURL(TERMS_OF_USE_URL).catch(() => {});
   };
 
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -164,6 +177,21 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
               <Pressable onPress={handleDismiss} style={styles.dismissBtn}>
                 <Text style={styles.dismissText}>{t('paywall.dismiss')}</Text>
               </Pressable>
+            </Animated.View>
+
+            {/* ⑧ LEGAL — Apple Guideline 3.1.2(c) gereği abonelik akışında zorunlu.
+                Otomatik yenileme açıklaması + Privacy/EULA linkleri. */}
+            <Animated.View entering={FadeIn.delay(560).duration(300)} style={styles.legalBlock}>
+              <Text style={styles.legalNotice}>{t('paywall.legalNotice')}</Text>
+              <View style={styles.legalLinksRow}>
+                <Pressable onPress={handleOpenTerms} hitSlop={8} accessibilityRole="link">
+                  <Text style={styles.legalLink}>{t('paywall.termsOfUse')}</Text>
+                </Pressable>
+                <Text style={styles.legalDot}>·</Text>
+                <Pressable onPress={handleOpenPrivacy} hitSlop={8} accessibilityRole="link">
+                  <Text style={styles.legalLink}>{t('paywall.privacyPolicy')}</Text>
+                </Pressable>
+              </View>
             </Animated.View>
 
           </Animated.View>
@@ -273,5 +301,35 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     // ⑦ Dismiss — kasıtlı küçük
     dismissBtn: { alignItems: 'center', paddingVertical: spacing.sm },
     dismissText: { ...textStyles.body, color: c.textLow, fontSize: 12 },
+
+    // ⑧ Legal — Apple 3.1.2(c) zorunlu blok
+    legalBlock: {
+      marginTop: spacing.xs,
+      paddingTop: spacing.sm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.glassBorder,
+      gap: 6,
+    },
+    legalNotice: {
+      ...textStyles.body,
+      color: c.textMuted,
+      fontSize: 10,
+      lineHeight: 14,
+      textAlign: 'center',
+      paddingHorizontal: spacing.sm,
+    },
+    legalLinksRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    legalLink: {
+      ...textStyles.body,
+      color: c.textMed,
+      fontSize: 11,
+      textDecorationLine: 'underline',
+    },
+    legalDot: { ...textStyles.body, color: c.textMuted, fontSize: 11 },
   });
 }

@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -28,6 +29,7 @@ import {
   type PlanId,
 } from '../../src/services/purchases';
 import { ENTITLEMENT_PREMIUM } from '../../src/config/revenuecat';
+import { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '../../src/config/legal';
 import type { PurchasesPackage } from 'react-native-purchases';
 
 // ════════════════════════════════════════════════════════════════
@@ -168,6 +170,28 @@ export default function ShopScreen() {
             </Animated.View>
           </TouchableOpacity>
 
+          {/* ── YASAL — Apple Guideline 3.1.2(c) gereği abonelik akışında zorunlu ── */}
+          <Text style={styles.legalNotice}>
+            {t('shop.legalNotice')}
+          </Text>
+          <View style={styles.legalLinksRow}>
+            <TouchableOpacity
+              onPress={() => Linking.openURL(TERMS_OF_USE_URL).catch(() => {})}
+              hitSlop={8}
+              accessibilityRole="link"
+            >
+              <Text style={styles.legalLink}>{t('shop.termsOfUse')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalDot}>·</Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL(PRIVACY_POLICY_URL).catch(() => {})}
+              hitSlop={8}
+              accessibilityRole="link"
+            >
+              <Text style={styles.legalLink}>{t('shop.privacyPolicy')}</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Yalnızca mock modda göster */}
           {!isPurchasesConfigured() ? (
             <View style={styles.mockNote}>
@@ -228,5 +252,30 @@ const styles = StyleSheet.create({
   mockText: {
     fontSize: 11,
     color: 'rgba(168,85,247,0.45)',
+  },
+  // ── Yasal — Apple Guideline 3.1.2(c) ──
+  legalNotice: {
+    fontSize: 10,
+    lineHeight: 14,
+    color: 'rgba(255,255,255,0.40)',
+    textAlign: 'center',
+    paddingHorizontal: 8,
+    marginTop: 4,
+  },
+  legalLinksRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  legalLink: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.65)',
+    textDecorationLine: 'underline',
+  },
+  legalDot: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.35)',
   },
 });
