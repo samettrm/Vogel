@@ -129,9 +129,15 @@ function RootLayout() {
   // etmesine fırsat veriyoruz. Sonuç: splash kalktığında user zaten doğru
   // ekranda (onboarding veya map) — map flash YOK.
   useEffect(() => {
+    console.log('[BOOT_SPLASH_CHECK]', {
+      fontsLoaded,
+      hasHydrated,
+      timestamp: Date.now(),
+    });
     if (!fontsLoaded || !hasHydrated) return;
     // OnboardingGuard'ın useEffect'i pathname'i değiştirmesine fırsat ver
     const t = setTimeout(() => {
+      console.log('[BOOT_SPLASH_HIDE]', { timestamp: Date.now() });
       SplashScreen.hideAsync().catch(() => {
         // Zaten gizlenmişse veya native modül yoksa no-op
       });
@@ -290,6 +296,20 @@ function OnboardingGuard() {
   const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
 
   useEffect(() => {
+    const willRedirect =
+      hasHydrated &&
+      !onboardingCompleted &&
+      pathname !== '/onboarding' &&
+      pathname !== '/login' &&
+      pathname !== '/verify-email';
+    console.log('[ONBOARDING_DECISION]', {
+      hasHydrated,
+      onboardingCompleted,
+      pathname,
+      willRedirect,
+      timestamp: Date.now(),
+    });
+
     if (!hasHydrated) return;
     if (onboardingCompleted) return;
     if (pathname === '/onboarding') return;

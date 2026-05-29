@@ -873,6 +873,13 @@ export const useUserStore = create<UserState>()(
       }),
       migrate: (persistedState) => {
         const state = persistedState as Partial<UserState>;
+        console.log('[MIGRATE]', {
+          hasPersistedState: persistedState !== undefined && persistedState !== null,
+          onboardingCompletedInPersist: state?.onboardingCompleted,
+          xpInPersist: state?.xp,
+          completedLessonsCount: state?.completedLessons ? (Array.isArray(state.completedLessons) ? state.completedLessons.length : 'set/other') : 0,
+          timestamp: Date.now(),
+        });
         // 🔧 BUG FIX: eski versiyonlarda activeCourse.level yoktu — 'A1' default ata
         const existingActiveCourse = state.activeCourse as { source?: LanguageCode; target?: LanguageCode; level?: CEFRLevel } | undefined;
         const normalizedActiveCourse = {
@@ -957,6 +964,13 @@ export const useUserStore = create<UserState>()(
       }),
       merge: (persistedState, currentState) => {
         const state = persistedState as Partial<UserState>;
+        console.log('[MERGE]', {
+          hasPersistedState: persistedState !== undefined && persistedState !== null,
+          onboardingCompletedInPersist: state?.onboardingCompleted,
+          onboardingCompletedInCurrent: currentState?.onboardingCompleted,
+          xpInPersist: state?.xp,
+          timestamp: Date.now(),
+        });
 
         const rawCompleted = normalizeCompletedLessons(state.completedLessons);
         const lessonProgress = normalizeLessonProgress(
@@ -995,8 +1009,40 @@ export const useUserStore = create<UserState>()(
           hasHydrated: false,
         };
       },
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+      // 🚨 CRITICAL BUG FIX (2026-05-30):
+      //
+      // Fresh install'da AsyncStorage BOŞ. Zustand persist v5'te:
+      //   - getItem('vogel-user-storage') → null döner
+      //   - Hidrasyon "rehydrate edecek bir şey yok" der
+      //   - onRehydrateStorage callback'i state=undefined ile fire eder
+      //   - state?.setHasHydrated(true) → optional chaining → NO-OP
+      //   - hasHydrated SONSUZA KADAR false kalır
+      //   - OnboardingGuard "!hasHydrated" check'inde takılır
+      //   - User Map ekranında kalır (default route render olur)
+      //
+      // SYMPTOM (eski davranış):
+      //   Fresh install → Map (yanlış — onboarding olmalıydı)
+      //   3-4 kez aç kapat → hala Map
+      //   1 lesson cevabı ver → bu setState AsyncStorage'a yazıyor
+      //   Bir sonraki açılışta artık veri VAR → state undefined değil →
+      //   setHasHydrated(true) çalışır → onboardingCompleted=false görür →
+      //   /onboarding'e redirect EDER (geç de olsa)
+      //
+      // FIX: Direkt useUserStore.setState({ hasHydrated: true }) çağır.
+      //      `state` parametresine güvenme. Bu, AsyncStorage boş bile olsa
+      //      hidrasyon "tamamlandı" olarak işaretlenir.
+      onRehydrateStorage: () => (state, error) => {
+        console.log('[REHYDRATE_COMPLETE]', {
+          stateDefined: state !== undefined && state !== null,
+          hasOnboardingCompletedInState: state && 'onboardingCompleted' in state,
+          onboardingCompletedValue: state?.onboardingCompleted,
+          error: error?.message,
+          timestamp: Date.now(),
+        });
+        useUserStore.setState({ hasHydrated: true });
+        if (error) {
+          console.warn('[Persist] hydration error:', error);
+        }
       },
     },
   ),
