@@ -98,7 +98,17 @@ interface UserState {
   activePlanId: PlanId | null;
 
   // ONBOARDING
+  // 🚨 İKİ FLAG MİMARİSİ (2026-05-30 — AI consensus):
+  //   onboardingCompleted: Tüm onboarding flow'unu (welcome → goal → notif → summary) tamamladı mı?
+  //   hasCompletedPlacement: Placement step'inde "Sıfırdan başla" veya seviye testi seçti mi?
+  //
+  // Map'e erişim KURALI: HER İKİSİ DE === true olmalı.
+  // undefined / null / missing → ASLA completed kabul edilmez.
+  //
+  // Bu iki ayrı flag, "iCloud restore" veya "lesson progress yanlış yorum"
+  // gibi sahte completion senaryolarını engeller.
   onboardingCompleted: boolean;
+  hasCompletedPlacement: boolean;
   // Kullanıcı bir kere giriş yaptıysa true. Logout sonrası clearLocalProgress
   // bunu BOZMAZ → AuthGuard misafir mod yerine login zorlar.
   // (Duolingo paterni: bir kere hesap açtın mı, artık geri dönemezsin.)
@@ -188,6 +198,9 @@ interface UserState {
   // SES + HAPTIC setters
   setSoundEnabled: (v: boolean) => void;
   setHapticEnabled: (v: boolean) => void;
+
+  // 🎯 Placement setter — onboarding step 1'de scratch veya placement test seçince true yapılır
+  setHasCompletedPlacement: (v: boolean) => void;
 
   // 🎯 Quest actions
   refreshDailyQuestsIfNeeded: () => void;
@@ -370,10 +383,11 @@ export const useUserStore = create<UserState>()(
       leagueEndDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
       isPremium: false,
       activePlanId: null,
-      // Fresh install'da false → OnboardingGuard /onboarding'e yönlendirir.
-      // Onboarding'i tamamlayınca completeOnboarding() true yapar ve map'e
-      // geçilir. Sonraki açılışlarda persist'ten true gelir, direkt map.
+      // Fresh install'da HER İKİSİ DE false → Map entry guard /onboarding'e
+      // yönlendirir. completeOnboarding() çağrılınca ikisi de true yapılır
+      // ve map render olur. Sonraki açılışlarda persist'ten true gelir.
       onboardingCompleted: false,
+      hasCompletedPlacement: false,
       hasEverSignedIn: false,
       dailyXpGoal: 30,
       learningMotivations: [],
@@ -514,6 +528,7 @@ export const useUserStore = create<UserState>()(
           leagueEndDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
           isPremium: false,
           onboardingCompleted: false,
+          hasCompletedPlacement: false,
           dailyXpGoal: 30,
           learningMotivations: [],
           dailyQuests: [],
@@ -653,9 +668,11 @@ export const useUserStore = create<UserState>()(
         })),
 
       // ONBOARDING
+      // İki flag de true yapılır — user tüm flow'u tamamladı + placement geçti
       completeOnboarding: (dailyGoal) =>
         set({
           onboardingCompleted: true,
+          hasCompletedPlacement: true,
           dailyXpGoal: Math.max(10, Math.min(100, dailyGoal)),
         }),
 
@@ -685,6 +702,7 @@ export const useUserStore = create<UserState>()(
       // SES + HAPTIC
       setSoundEnabled: (v) => set({ soundEnabled: v }),
       setHapticEnabled: (v) => set({ hapticEnabled: v }),
+      setHasCompletedPlacement: (v) => set({ hasCompletedPlacement: v }),
 
       // ──────────────────────────────────────────────────────────────────
       // 🎯 DAILY QUESTS — günlük görev sistemi
@@ -876,6 +894,7 @@ export const useUserStore = create<UserState>()(
         console.log('[MIGRATE]', {
           hasPersistedState: persistedState !== undefined && persistedState !== null,
           onboardingCompletedInPersist: state?.onboardingCompleted,
+          hasCompletedPlacementInPersist: (state as any)?.hasCompletedPlacement,
           xpInPersist: state?.xp,
           completedLessonsCount: state?.completedLessons ? (Array.isArray(state.completedLessons) ? state.completedLessons.length : 'set/other') : 0,
           timestamp: Date.now(),
@@ -890,6 +909,10 @@ export const useUserStore = create<UserState>()(
         return {
           ...state,
           activeCourse: normalizedActiveCourse,
+          // 🔒 STRICT: onboarding flag'leri sadece literal true ise true kabul edilir
+          // undefined/null/missing → false (kullanıcı onboarding'e gönderilir)
+          onboardingCompleted: state.onboardingCompleted === true,
+          hasCompletedPlacement: (state as { hasCompletedPlacement?: boolean }).hasCompletedPlacement === true,
           completedLessons: normalizeCompletedLessons(state.completedLessons),
           reviewItems: normalizeReviewItems(state.reviewItems),
           lessonExerciseProgress: normalizeLessonProgress(state.lessonExerciseProgress),
@@ -945,6 +968,7 @@ export const useUserStore = create<UserState>()(
         leagueEndDate: state.leagueEndDate,
         isPremium: state.isPremium,
         onboardingCompleted: state.onboardingCompleted,
+        hasCompletedPlacement: state.hasCompletedPlacement,
         hasEverSignedIn: state.hasEverSignedIn,
         dailyXpGoal: state.dailyXpGoal,
         learningMotivations: state.learningMotivations,
@@ -967,7 +991,9 @@ export const useUserStore = create<UserState>()(
         console.log('[MERGE]', {
           hasPersistedState: persistedState !== undefined && persistedState !== null,
           onboardingCompletedInPersist: state?.onboardingCompleted,
+          hasCompletedPlacementInPersist: state?.hasCompletedPlacement,
           onboardingCompletedInCurrent: currentState?.onboardingCompleted,
+          hasCompletedPlacementInCurrent: currentState?.hasCompletedPlacement,
           xpInPersist: state?.xp,
           timestamp: Date.now(),
         });
@@ -998,6 +1024,12 @@ export const useUserStore = create<UserState>()(
         return {
           ...currentState,
           ...state,
+          // 🔒 STRICT: onboarding flag'leri sadece literal true ise true kabul edilir.
+          //   undefined/null/missing/false → false (kullanıcı onboarding'e gönderilir)
+          //   Bu spread'in SONRA çağrıldığından emin ol — yukarıdaki ...state'in
+          //   undefined değerini override eder.
+          onboardingCompleted: state?.onboardingCompleted === true,
+          hasCompletedPlacement: state?.hasCompletedPlacement === true,
           completedLessons: healedCompleted,
           reviewItems: normalizeReviewItems(state.reviewItems),
           lessonExerciseProgress: lessonProgress,

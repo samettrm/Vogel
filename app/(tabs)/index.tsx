@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { Redirect, useFocusEffect, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, FlatList, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -30,7 +30,48 @@ import type { CEFRLevel, Lesson, Unit } from '../../src/types';
 
 // (Cache mantığı kaldırıldı — scrollToIndex ile her ders bittiğinde current unit'e snap)
 
+// ════════════════════════════════════════════════════════════════
+// 🛡 MAP ENTRY GUARD (2026-05-30 — AI consensus)
+//
+// Root guard'a güvenmiyoruz. Map ekranı kendi içinde korunuyor:
+//   1. hasHydrated === false → null render (splash görünür)
+//   2. onboardingCompleted !== true VEYA hasCompletedPlacement !== true
+//      → <Redirect href="/onboarding" />
+//   3. Aksi halde → MapScreenContent (gerçek harita)
+//
+// STRICT EŞİTLİK: undefined/null/false → "not completed" sayılır.
+// Lesson progress, completedLessons, xp gibi state'lere BAKILMAZ.
+//
+// Bu wrapper pattern hooks-rules'u ihlal etmez — wrapper sadece 3 hook
+// kullanır, inner component (MapScreenContent) her zaman aynı hook
+// sırasıyla render olur (sadece guard geçerse).
+// ════════════════════════════════════════════════════════════════
 export default function HomeScreen() {
+  const hasHydrated = useUserStore((s) => s.hasHydrated);
+  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
+  const hasCompletedPlacement = useUserStore((s) => s.hasCompletedPlacement);
+
+  console.log('[MAP_GUARD]', {
+    hasHydrated,
+    onboardingCompleted,
+    hasCompletedPlacement,
+    onboardingCompletedStrict: onboardingCompleted === true,
+    placementStrict: hasCompletedPlacement === true,
+    timestamp: Date.now(),
+  });
+
+  if (!hasHydrated) {
+    return null;
+  }
+
+  if (onboardingCompleted !== true || hasCompletedPlacement !== true) {
+    return <Redirect href="/onboarding" />;
+  }
+
+  return <MapScreenContent />;
+}
+
+function MapScreenContent() {
   const router = useRouter();
   const c = useThemeColors();
   const t = useT();
