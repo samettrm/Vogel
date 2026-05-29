@@ -9,6 +9,7 @@ import {
 import { Audio } from 'expo-av';
 import { Stack, useRouter, usePathname } from 'expo-router';
 import * as Speech from 'expo-speech';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState, LogBox, type AppStateStatus } from 'react-native';
@@ -36,6 +37,22 @@ import { useAuthStore } from '../src/store/useAuthStore';
 // API key .env'de yoksa init atlanır, mock mod çalışır.
 // ════════════════════════════════════════════════════════════════
 initPurchases();
+
+// ════════════════════════════════════════════════════════════════
+// SPLASH SCREEN — Apple App Review 2.1 + map flash fix.
+//
+// Native splash'i bu pre-prevent ile manuel olarak açık tutuyoruz.
+// RootLayout fontsLoaded + hasHydrated olduğunda + OnboardingGuard'ın
+// useEffect'i çalıştıktan sonra (bir tick) hideAsync ile kaldırıyoruz.
+//
+// Bu sayede:
+//   - Splash görünür kalır hidrasyon + redirect kararı verilene kadar
+//   - OnboardingGuard splash arkasında /onboarding'e atar (gerekirse)
+//   - User splash kalktığında DOĞRU ekranda olur (map flash YOK)
+// ════════════════════════════════════════════════════════════════
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Splash zaten gizlendiyse no-op
+});
 
 // ════════════════════════════════════════════════════════════════
 // ADMOB — Google Mobile Ads SDK başlatılır.
@@ -105,6 +122,22 @@ function RootLayout() {
   const hasHydrated = useUserStore((state) => state.hasHydrated);
   const applyHeartRefills = useUserStore((state) => state.applyHeartRefills);
   const themeMode = useUserStore((state) => state.themeMode);
+
+  // 🎬 SPLASH SCREEN — fontsLoaded + hasHydrated olunca splash'i kaldır.
+  // OnboardingGuard hidrasyon sonrası HEMEN (useEffect içinde) router.replace
+  // yapar; bu yüzden splash kalkmadan önce 50ms bekleyip guard'ın navigate
+  // etmesine fırsat veriyoruz. Sonuç: splash kalktığında user zaten doğru
+  // ekranda (onboarding veya map) — map flash YOK.
+  useEffect(() => {
+    if (!fontsLoaded || !hasHydrated) return;
+    // OnboardingGuard'ın useEffect'i pathname'i değiştirmesine fırsat ver
+    const t = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {
+        // Zaten gizlenmişse veya native modül yoksa no-op
+      });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [fontsLoaded, hasHydrated]);
 
   // ⏱ Kalp yenileme — 🚀 PERF: akıllı interval
   // Sadece kalp eksikse ve nextHeartRefillAt set ise interval kur.

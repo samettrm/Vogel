@@ -1,10 +1,9 @@
 import React from 'react';
-import { Redirect, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { dark } from '../../src/theme';
 import { BottomNav } from '../../src/components/map/BottomNav';
-import { useUserStore } from '../../src/store/useUserStore';
 
 // ════════════════════════════════════════════════════════════════
 // TABS LAYOUT
@@ -12,56 +11,21 @@ import { useUserStore } from '../../src/store/useUserStore';
 // Alt nav, expo-router'ın varsayılan tab bar'ı yerine
 // custom dark-neon BottomNav bileşeni ile render edilir.
 //
-// 🛡 SYNCHRONOUS ONBOARDING REDIRECT (Apple App Review 2.1 fix):
-//   OnboardingGuard'ın useEffect'i 50-200ms gecikmeli çalışıyordu →
-//   user fresh install'da map'i kısa süre flash olarak görüyordu.
-//   Burada SENKRON Redirect ile Tabs'lar hiç render olmadan
-//   /onboarding'e yönlendiriyoruz. Apple reviewer artık fresh install'da
-//   DOĞRUDAN onboarding ekranını görür, harita flash etmez.
+// ⚠️ KEY ARCHITECTURAL RULE (2026-05-29 — Expo Router 6 constraint):
+//   Bu layout HER ZAMAN <Tabs>...</Tabs> render etmek ZORUNDA. Null,
+//   ActivityIndicator veya bare Redirect döndürürsek expo-router screen
+//   registration bozulur ve app açılmaz (build 30 deneyiminden öğrendik).
 //
-// 🚨 HYDRATION LOCKOUT FIX (2026-05-29 — Gemini+ChatGPT+Codex consensus):
-//   Önceki versiyonda hydration sırasında `return null` döndürmesi
-//   Expo Router'ın layout slot tree'sini bozuyordu — app boş siyah
-//   ekranda kilitli kalıyordu (build 30). Çözüm: null yerine
-//   ActivityIndicator render et. Layout slot kuralı korunur, kullanıcı
-//   "loading" görür, hydration bitince düzgün navigate olur.
+//   Onboarding redirect logic'i RootLayout (app/_layout.tsx) içindeki
+//   OnboardingGuard tarafından yönetilir. Fresh install'da map flash'i
+//   SplashScreen API ile engellenir — splash hydration + nav decision
+//   bitene kadar görünür kalır, sonra otomatik kalkar.
 //
 // Eski route'lar (leaderboard, store) dosya olarak duruyor ama
 // href: null ile sekme listesinden gizlendi (bozulmasın diye silinmedi).
 // ════════════════════════════════════════════════════════════════
 
 export default function TabsLayout() {
-  const hasHydrated = useUserStore((s) => s.hasHydrated);
-  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
-
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log('[Vogel Startup] (tabs)/_layout — hasHydrated:', hasHydrated, 'onboardingCompleted:', onboardingCompleted);
-  }
-
-  // 1️⃣ Hidrasyon bitene kadar Loading view (NULL DEĞİL — slot tree bozulur).
-  //    Zustand persist AsyncStorage'tan okuma async, birkaç frame sürer.
-  if (!hasHydrated) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: dark.bg,
-        }}
-      >
-        <ActivityIndicator size="large" color={dark.neon} />
-      </View>
-    );
-  }
-
-  // 2️⃣ Onboarding tamamlanmamışsa /onboarding'e yönlendir. Expo Router
-  //    Redirect bileşeni navigation context hazır olduktan sonra
-  //    güvenli çalışır (layout slot tree zarar görmez).
-  if (!onboardingCompleted) {
-    return <Redirect href="/onboarding" />;
-  }
 
   return (
     <View style={{ flex: 1, backgroundColor: dark.bg }}>
