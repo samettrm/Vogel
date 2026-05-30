@@ -890,7 +890,10 @@ export const useUserStore = create<UserState>()(
         },
       }),
       migrate: (persistedState) => {
-        const state = persistedState as Partial<UserState>;
+        // 🚨 FRESH INSTALL FIX (2026-05-30):
+        // persistedState undefined/null olabilir (fresh install, AsyncStorage boş)
+        // {} fallback ile her field access guvenli olur, throw etmez.
+        const state = (persistedState ?? {}) as Partial<UserState>;
         console.warn('[MIGRATE]', {
           hasPersistedState: persistedState !== undefined && persistedState !== null,
           onboardingCompletedInPersist: state?.onboardingCompleted,
