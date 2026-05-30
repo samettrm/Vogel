@@ -86,6 +86,10 @@ interface UserState {
   nextHeartRefillAt: number | null;
   completedLessons: Set<string>;
   hasHydrated: boolean;
+  // 🔒 V13: Progress sync gate
+  //   Login sonrası cloud progress yüklenirken true olur.
+  //   Map render/focus bu süre boyunca beklenmeli (yanlış lesson hedeflemeyi önle).
+  isProgressSyncing: boolean;
   reviewItems: Record<string, ReviewItem>;
   lessonExerciseProgress: Record<string, Record<string, 'correct' | 'wrong'>>;
   // 🆕 Kullanıcının ilk kez gördüğü kelimeler — çoktan seçmeli egzersizde
@@ -170,6 +174,7 @@ interface UserState {
     level: CEFRLevel,
   ) => void;
   setHasHydrated: (value: boolean) => void;
+  setIsProgressSyncing: (value: boolean) => void;
   resetProgressForTesting: () => void;
   buyKupaPackage: (amount: number) => void;
   recordReviewResult: (payload: ReviewResultPayload, isCorrect: boolean) => void;
@@ -364,6 +369,7 @@ export const useUserStore = create<UserState>()(
       nextHeartRefillAt: null,
       completedLessons: new Set<string>(),
       hasHydrated: false,
+      isProgressSyncing: false,
       reviewItems: {},
       lessonExerciseProgress: {},
       seenWords: [],
@@ -509,6 +515,11 @@ export const useUserStore = create<UserState>()(
       setHasHydrated: (value) =>
         set({
           hasHydrated: value,
+        }),
+
+      setIsProgressSyncing: (value) =>
+        set({
+          isProgressSyncing: value,
         }),
 
       resetProgressForTesting: () =>

@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 console.warn('[FILE_LOAD] app/(tabs)/index.tsx loaded');
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, FlatList, InteractionManager, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, FlatList, InteractionManager, NativeScrollEvent, NativeSyntheticEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BirdMascot } from '../../src/components/map/BirdMascot';
@@ -52,11 +52,16 @@ export default function HomeScreen() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
   const hasCompletedPlacement = useUserStore((s) => s.hasCompletedPlacement);
+  // 🔒 V13: Progress sync gate
+  //   Login sonrası cloud progress yüklenirken Map render etmesin.
+  //   isProgressSyncing=true iken loading göster, false olunca MapScreenContent mount et.
+  const isProgressSyncing = useUserStore((s) => s.isProgressSyncing);
 
   console.warn('[MAP_GUARD]', {
     hasHydrated,
     onboardingCompleted,
     hasCompletedPlacement,
+    isProgressSyncing,
     onboardingCompletedStrict: onboardingCompleted === true,
     placementStrict: hasCompletedPlacement === true,
     timestamp: Date.now(),
@@ -68,6 +73,22 @@ export default function HomeScreen() {
 
   if (onboardingCompleted !== true || hasCompletedPlacement !== true) {
     return <Redirect href="/onboarding" />;
+  }
+
+  // 🔒 V13: Progress sync devam ediyorsa Map'i mount ETME
+  //   MapScreenContent mount olduğu anda focus tetiklenir (useFocusEffect).
+  //   completedLessons stale ise yanlış lesson hedeflenir.
+  //   isProgressSyncing false olduğunda re-render olur ve Map mount edilir.
+  if (isProgressSyncing) {
+    console.warn('[APP_READY_GATE]', {
+      isProgressSyncing: true,
+      action: 'block-map-render',
+    });
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a14' }}>
+        <ActivityIndicator size="large" color="#A78BFA" />
+      </View>
+    );
   }
 
   return <MapScreenContent />;

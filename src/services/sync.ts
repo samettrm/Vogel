@@ -152,6 +152,12 @@ export async function downloadAndMergeProgress(userId: string): Promise<void> {
 
 export async function downloadAndReplaceProgress(userId: string): Promise<void> {
   if (!isFirebaseConfigured || !firebaseDb) return;
+
+  // 🔒 V13: Progress sync gate başlat
+  //   Map render/focus bu süre boyunca beklenecek.
+  useUserStore.setState({ isProgressSyncing: true });
+  console.warn('[APP_READY_GATE]', { isProgressSyncing: true, phase: 'sync-start' });
+
   try {
     const snap = await getDoc(PROGRESS_PATH(userId));
     const localBefore = useUserStore.getState();
@@ -255,6 +261,17 @@ export async function downloadAndReplaceProgress(userId: string): Promise<void> 
     await uploadProgress(userId);
   } catch (e) {
     if (__DEV__) console.warn('[Sync] Download replace hatası:', e);
+  } finally {
+    // 🔒 V13: Progress sync gate kapat
+    //   Map artık render/focus edebilir.
+    useUserStore.setState({ isProgressSyncing: false });
+    const finalState = useUserStore.getState();
+    console.warn('[APP_READY_GATE]', {
+      isProgressSyncing: false,
+      phase: 'sync-complete',
+      finalCompletedLessonsCount: finalState.completedLessons.size,
+      finalXp: finalState.xp,
+    });
   }
 }
 
