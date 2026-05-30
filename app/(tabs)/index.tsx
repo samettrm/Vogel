@@ -336,11 +336,10 @@ function MapScreenContent() {
     const lessonCenterY = computeLessonCenterY(currentLessonId);
     const vh = viewportHeightRef.current || 800;
     if (lessonCenterY == null) return 0;
-    const usableTop = TOP_RESERVED;
-    const usableBottom = vh - BOTTOM_RESERVED;
-    // V15: BAŞLA balonu yukarıda → lesson node'u biraz yukarı al ki combo center'da olsun
-    const usableCenter = (usableTop + usableBottom) / 2 - 30;
-    return Math.max(0, lessonCenterY - usableCenter);
+    // V17: Sabit anchor — focusActiveLesson ile birebir aynı formül
+    const TARGET_ANCHOR_RATIO = 0.52;
+    const anchorY = vh * TARGET_ANCHOR_RATIO;
+    return Math.max(0, lessonCenterY - anchorY);
   }, [currentLessonId, computeLessonCenterY]);
 
   // 📐 V12: KISS — sadece scrollToIndex + viewOffset, complex measurement YOK
@@ -387,16 +386,15 @@ function MapScreenContent() {
     const lessonIdx = unit.lessons.findIndex((l) => l.id === actualLessonId);
 
     const vh = viewportHeightRef.current || 800;
-    const usableTop = TOP_RESERVED;
-    const usableBottom = vh - BOTTOM_RESERVED;
-    // 📌 V15: BAŞLA balonu node'un 52px YUKARISINDA absolute positioned.
-    const BUBBLE_COMPENSATION = 30;
-    const rawCenter = (usableTop + usableBottom) / 2;
-    const usableCenter = rawCenter - BUBBLE_COMPENSATION;
 
-    // 🎯 V16: STRATEGY 1 — Precise scroll using REAL measurements (drift-free)
-    //   Lesson layout ölçüldüyse → scrollToOffset ile EXAKT konum
-    //   Bu, getItemLayout formülündeki küçük hataların unitler arası drift'ini önler
+    // 🎯 V17: SABİT ANCHOR NOKTASI (user spec exact)
+    //   BAŞLA / current lesson node viewport'un %52 dikey hizasında SABİT durur.
+    //   Ders ilerledikçe harita anchor altından yukarı doğru akar.
+    //   Anchor değişmez, map akar.
+    const TARGET_ANCHOR_RATIO = 0.52;
+    const anchorY = vh * TARGET_ANCHOR_RATIO;
+
+    // 🎯 V17 STRATEGY 1: PRECISE scroll using REAL measurements (drift-free)
     const measuredUnitY = unitYMap.current[unit.id];
     const measuredPathY = pathYMap.current[unit.id];
     const measuredLessonLayout = lessonLayoutsMap.current[actualLessonId];
@@ -409,24 +407,22 @@ function MapScreenContent() {
         measuredLessonLayout.height / 2;
       const ch = contentHeightRef.current;
       const maxY = ch > 0 ? Math.max(0, ch - vh) : Infinity;
-      const targetY = Math.max(0, Math.min(lessonCenterY - usableCenter, maxY));
+      const targetScrollY = Math.max(0, Math.min(lessonCenterY - anchorY, maxY));
 
-      console.warn('[MAP_SCROLL_PRECISE]', {
-        reason,
-        force,
-        lessonId: actualLessonId,
-        unitIdx,
-        lessonIdx,
+      console.warn('[MAP_ANCHOR_FOCUS]', {
+        nextPlayableLessonId: actualLessonId,
+        lessonY: Math.round(measuredUnitY + measuredPathY + measuredLessonLayout.y),
+        lessonHeight: Math.round(measuredLessonLayout.height),
         lessonCenterY: Math.round(lessonCenterY),
-        usableCenter: Math.round(usableCenter),
-        targetY: Math.round(targetY),
-        vh,
-        animated,
+        viewportHeight: vh,
+        anchorY: Math.round(anchorY),
+        targetScrollY: Math.round(targetScrollY),
+        strategy: 'precise-scrollToOffset',
       });
 
       isProgrammaticScrollRef.current = true;
       try {
-        listRef.current?.scrollToOffset({ offset: targetY, animated });
+        listRef.current?.scrollToOffset({ offset: targetScrollY, animated });
       } catch (e) {
         console.warn('[MAP_SCROLL_FAIL]', { error: String(e) });
       }
@@ -434,22 +430,21 @@ function MapScreenContent() {
       return true;
     }
 
-    // 🔄 V16: STRATEGY 2 — Fallback scrollToIndex with viewOffset (measurements not ready)
-    //   Bu, IDk render'da kullanılır. Sonraki focus'larda STRATEGY 1 (precise) çalışır.
+    // 🔄 V17 STRATEGY 2: Fallback scrollToIndex (cold start, measurements not ready)
+    //   Lesson offset within unit: header(~76) + first_offset(40) + idx * spacing(124)
+    //   viewOffset = anchorY - lessonOffsetInUnit → unit_top'u o pozisyona koyar
+    //   → lesson_center = anchorY (target)
     const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
-    const viewOffset = usableCenter - lessonOffsetInUnit;
+    const viewOffset = anchorY - lessonOffsetInUnit;
 
-    console.warn('[MAP_SCROLL_TO]', {
-      reason,
-      force,
-      lessonId: actualLessonId,
+    console.warn('[MAP_ANCHOR_FOCUS]', {
+      nextPlayableLessonId: actualLessonId,
       unitIdx,
       lessonIdx,
       lessonOffsetInUnit,
-      usableCenter: Math.round(usableCenter),
+      viewportHeight: vh,
+      anchorY: Math.round(anchorY),
       viewOffset: Math.round(viewOffset),
-      vh,
-      animated,
       strategy: 'scrollToIndex-fallback',
     });
 
