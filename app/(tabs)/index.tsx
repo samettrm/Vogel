@@ -533,31 +533,41 @@ function MapScreenContent() {
         return;
       }
 
-      // 🔒 V27: Lesson exit'inden geliyorsak SAVED SCROLL'U RESTORE et
+      // 🔒 V28: Lesson exit'inden geliyorsak SAVED SCROLL'U RESTORE et (multiple attempts)
       //   FlatList lesson sırasında scroll position'ını kaybedebilir (y=0'a düşer).
-      //   handleLessonPress'te SAKLADIĞIMIZ position'ı geri yükle.
-      //   Auto-scroll (current/next focus) YAPILMAZ.
+      //   IMMEDIATE + MULTIPLE RETRIES — "tepeye zıplama" engellenir.
       if (mapNavState.fromLesson) {
         mapNavState.fromLesson = false; // Flag consume
         previousLessonIdRef.current = nextPlayableLessonId; // Ref güncelle
         const savedY = savedScrollYBeforeLessonRef.current;
-        console.warn('[MAP_FOCUS_LESSON_EXIT_RESTORE]', {
+        console.warn('[MAP_FOCUS_LESSON_EXIT_RESTORE_V28]', {
           lessonId: nextPlayableLessonId,
           savedScrollY: savedY != null ? Math.round(savedY) : null,
           currentScrollY: Math.round(currentScrollY.current),
         });
 
-        // Saved position varsa instant restore (animasyon YOK, zıplama yok)
-        if (savedY != null && savedY >= 0) {
-          // İki frame sonrası restore (FlatList layout settle olsun)
-          setTimeout(() => {
+        if (savedY != null && savedY > 0) {
+          const doRestore = (attempt: number) => {
             try {
               listRef.current?.scrollToOffset({ offset: savedY, animated: false });
-              console.warn('[MAP_SCROLL_RESTORED]', { offset: Math.round(savedY) });
+              console.warn('[MAP_SCROLL_RESTORED_V28]', {
+                offset: Math.round(savedY),
+                attempt,
+                currentScrollY: Math.round(currentScrollY.current),
+              });
             } catch (e) {
-              console.warn('[MAP_SCROLL_RESTORE_FAIL]', { error: String(e) });
+              console.warn('[MAP_SCROLL_RESTORE_FAIL]', { attempt, error: String(e) });
             }
-          }, 50);
+          };
+
+          // IMMEDIATE (synchronous - FlatList ready ise hemen)
+          doRestore(0);
+          // requestAnimationFrame — next paint frame
+          requestAnimationFrame(() => doRestore(1));
+          // Multiple retries — race condition'a karşı
+          setTimeout(() => doRestore(2), 50);
+          setTimeout(() => doRestore(3), 150);
+          setTimeout(() => doRestore(4), 300);
         }
         return;
       }
