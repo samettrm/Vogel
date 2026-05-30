@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   },
   manageSubBtnText: {
     ...textStyles.body,
-    color: c.textMed,
+    color: 'rgba(255,255,255,0.5)', // V35.1 fix: c was not in scope (module-level styles)
     fontSize: 12,
     textDecorationLine: 'underline',
   },
