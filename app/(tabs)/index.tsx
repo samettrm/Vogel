@@ -387,57 +387,69 @@ function MapScreenContent() {
 
     const vh = viewportHeightRef.current || 800;
 
-    // 🎯 V17: SABİT ANCHOR NOKTASI (user spec exact)
-    //   BAŞLA / current lesson node viewport'un %52 dikey hizasında SABİT durur.
-    //   Ders ilerledikçe harita anchor altından yukarı doğru akar.
-    //   Anchor değişmez, map akar.
-    const TARGET_ANCHOR_RATIO = 0.52;
-    const anchorY = vh * TARGET_ANCHOR_RATIO;
+    // 🎯 V19: CAMERA LOCK — CENTER_RATIO 0.50 (true viewport center, user spec exact)
+    //   Current lesson her zaman ekran ortasında. Harita altından akar.
+    const CENTER_RATIO = 0.50;
+    const anchorY = vh * CENTER_RATIO;
 
-    // 🎯 V17 STRATEGY 1: PRECISE scroll using REAL measurements (drift-free)
+    console.warn('[CAMERA_LOCK_TARGET]', {
+      reason,
+      nextPlayableLessonId,
+      focusTargetLessonId: actualLessonId,
+    });
+
+    // 🎯 V19: STRATEGY 1 — Precise scroll with measured Y (drift-free)
     const measuredUnitY = unitYMap.current[unit.id];
     const measuredPathY = pathYMap.current[unit.id];
     const measuredLessonLayout = lessonLayoutsMap.current[actualLessonId];
 
     if (measuredUnitY != null && measuredPathY != null && measuredLessonLayout) {
-      const lessonCenterY =
-        measuredUnitY +
-        measuredPathY +
-        measuredLessonLayout.y +
-        measuredLessonLayout.height / 2;
+      const lessonY = measuredUnitY + measuredPathY + measuredLessonLayout.y;
+      const lessonHeight = measuredLessonLayout.height;
+      const lessonCenterY = lessonY + lessonHeight / 2;
       const ch = contentHeightRef.current;
       const maxY = ch > 0 ? Math.max(0, ch - vh) : Infinity;
       const targetScrollY = Math.max(0, Math.min(lessonCenterY - anchorY, maxY));
 
-      console.warn('[MAP_ANCHOR_FOCUS]', {
-        nextPlayableLessonId: actualLessonId,
-        lessonY: Math.round(measuredUnitY + measuredPathY + measuredLessonLayout.y),
-        lessonHeight: Math.round(measuredLessonLayout.height),
+      console.warn('[CAMERA_LOCK_MEASURE]', {
+        lessonY: Math.round(lessonY),
+        lessonHeight: Math.round(lessonHeight),
         lessonCenterY: Math.round(lessonCenterY),
         viewportHeight: vh,
         anchorY: Math.round(anchorY),
+        contentHeight: ch,
         targetScrollY: Math.round(targetScrollY),
-        strategy: 'precise-scrollToOffset',
       });
+
+      console.warn('[CAMERA_LOCK_SCROLL]', {
+        targetScrollY: Math.round(targetScrollY),
+        animated: true,
+        reason,
+      });
+
+      // Clear pending — we're scrolling now
+      pendingFocusRef.current = null;
 
       isProgrammaticScrollRef.current = true;
       try {
-        listRef.current?.scrollToOffset({ offset: targetScrollY, animated });
+        listRef.current?.scrollToOffset({ offset: targetScrollY, animated: true });
       } catch (e) {
         console.warn('[MAP_SCROLL_FAIL]', { error: String(e) });
       }
-      setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 700 : 150);
+      setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
       return true;
     }
 
-    // 🔄 V17 STRATEGY 2: Fallback scrollToIndex (cold start, measurements not ready)
-    //   Lesson offset within unit: header(~76) + first_offset(40) + idx * spacing(124)
-    //   viewOffset = anchorY - lessonOffsetInUnit → unit_top'u o pozisyona koyar
-    //   → lesson_center = anchorY (target)
+    // 📌 V19: STRATEGY 2 — Pending (measurements not ready, queue and use scrollToIndex)
+    //   User spec: "Eğer lesson layout hazır değilse scroll iptal edilmeyecek. Pending'e alınacak."
+    //   onLayout/onContentSizeChange tetiklediğinde tryPendingFocus fire eder.
+    //   Ama bekleyemeyiz → scrollToIndex ile yine yaklaşık scroll yapılır.
+    pendingFocusRef.current = { lessonId: actualLessonId, reason, force: true, animated: true };
+
     const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
     const viewOffset = anchorY - lessonOffsetInUnit;
 
-    console.warn('[MAP_ANCHOR_FOCUS]', {
+    console.warn('[CAMERA_LOCK_PENDING]', {
       nextPlayableLessonId: actualLessonId,
       unitIdx,
       lessonIdx,
@@ -445,7 +457,7 @@ function MapScreenContent() {
       viewportHeight: vh,
       anchorY: Math.round(anchorY),
       viewOffset: Math.round(viewOffset),
-      strategy: 'scrollToIndex-fallback',
+      reason,
     });
 
     isProgrammaticScrollRef.current = true;
