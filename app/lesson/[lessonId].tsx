@@ -31,6 +31,7 @@ import { PaywallModal } from '../../src/components/paywall/PaywallModal';
 import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
 import { ALL_COURSES, getCourseById } from '../../src/data/courses';
 import { useUserStore } from '../../src/store/useUserStore';
+import { mapNavState } from '../../src/utils/navState';
 import { radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import { useT } from '../../src/i18n';
 import type { Exercise, Lesson } from '../../src/types';
@@ -506,6 +507,9 @@ export default function LessonScreen() {
   // ─── Handler'lar (useCallback ile memoize) ───────────────────────
 
   const goHome = useCallback(() => {
+    // V26: Map'e dönerken "lesson exit" flag set et.
+    //   Map useFocusEffect bunu görünce auto-scroll YAPMAZ → çıkılan ders pozisyonunda kalır.
+    mapNavState.fromLesson = true;
     // returnTo parametresi varsa oraya dön (exam-map, lessons, vb.)
     // yoksa ana haritaya dön
     router.replace((returnTo as any) ?? '/');

@@ -17,6 +17,7 @@ import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
 import { ALL_COURSES, AVAILABLE_LEVELS, getCourseByLevel } from '../../src/data/courses';
 import { useT } from '../../src/i18n';
 import { useUserStore } from '../../src/store/useUserStore';
+import { mapNavState } from '../../src/utils/navState';
 import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import type { CEFRLevel, Lesson, Unit } from '../../src/types';
 
@@ -517,17 +518,26 @@ function MapScreenContent() {
   //   V13 progress sync gate KALIYOR (login sırasında spinner).
   //   focusActiveLesson FONKSIYONU duruyor ama useFocusEffect'ten ÇAĞRILMIYOR.
   //   Sadece handleScrollToCurrent (kullanıcı butona basınca) çağırır.
-  // 📍 V23: HER FOCUS'TA TRACKING
+  // 📍 V26: HER FOCUS'TA TRACKING + LESSON_EXIT PRESERVE
   //   - Initial mount → scrollToIndex current lesson area'ya
   //   - Lesson complete → scrollToIndex new current'a
-  //   - Tab focus (Profile/Dersler → Map) → scrollToIndex current'a (preserve YOK)
-  //
-  //   scrollToIndex FlatList internal layout knowledge ile güvenli scroll.
-  //   Snap-to-top bug YOK. Her zaman current lesson area'sı gösterilir.
+  //   - Tab focus → scrollToIndex current'a
+  //   - LESSON EXIT (mapNavState.fromLesson) → SCROLL YOK, çıkılan ders pozisyonunda kal
   useFocusEffect(
     useCallback(() => {
       if (!hasHydrated || !nextPlayableLessonId) {
-        console.warn('[MAP_FOCUS_V23_EARLY_RETURN]', { hasHydrated, nextPlayableLessonId });
+        console.warn('[MAP_FOCUS_V26_EARLY_RETURN]', { hasHydrated, nextPlayableLessonId });
+        return;
+      }
+
+      // 🔒 V26: Lesson exit'inden geliyorsak auto-scroll YAPMA — çıkılan ders pozisyonunda kal
+      if (mapNavState.fromLesson) {
+        mapNavState.fromLesson = false; // Flag consume
+        previousLessonIdRef.current = nextPlayableLessonId; // Refref güncelle
+        console.warn('[MAP_FOCUS_LESSON_EXIT_PRESERVE]', {
+          lessonId: nextPlayableLessonId,
+          currentScrollY: Math.round(currentScrollY.current),
+        });
         return;
       }
 
