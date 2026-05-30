@@ -217,6 +217,8 @@ function MapScreenContent() {
 
   // 💾 V27: Lesson'a girmeden önceki scroll pozisyonu (lesson dönüşünde restore için)
   const savedScrollYBeforeLessonRef = useRef<number | null>(null);
+  // 💾 V30: Hangi lesson'a girildi (return sonrası bottom-tab check için)
+  const lastOpenedLessonIdRef = useRef<string | null>(null);
 
   // ─── Sticky bölüm başlığı (Duolingo tarzı) ──────────────────────────
   // Scroll edilince o anki ünitenin adı üstte sabit bantla gösterilir
@@ -575,6 +577,61 @@ function MapScreenContent() {
           setTimeout(() => doRestore(5), 300);
           setTimeout(() => doRestore(6), 500);
         }
+
+        // 🎯 V30: Restore sonrası bottom-tab check & nudge
+        //   Restore tamamlandıktan sonra (600ms), açılan lesson'ın ekran konumunu ölç.
+        //   Eğer bottom tab'a çok yakınsa → küçük smooth scroll ile yukarı al.
+        //   Lesson rahat konumdaysa → DOKUNMA.
+        const returnLessonId = lastOpenedLessonIdRef.current;
+        if (returnLessonId) {
+          setTimeout(() => {
+            const unit = course.units.find((u) =>
+              u.lessons.some((l) => l.id === returnLessonId),
+            );
+            if (!unit) return;
+            const unitY = unitYMap.current[unit.id];
+            const pathY = pathYMap.current[unit.id];
+            const lessonLayout = lessonLayoutsMap.current[returnLessonId];
+            if (unitY == null || pathY == null || !lessonLayout) {
+              console.warn('[LESSON_RETURN_NUDGE_NO_MEASURE]', { returnLessonId });
+              return;
+            }
+
+            const lessonCenterY = unitY + pathY + lessonLayout.y + lessonLayout.height / 2;
+            const curY = currentScrollY.current;
+            const lessonScreenY = lessonCenterY - curY;
+            const vh = viewportHeightRef.current || 800;
+            const bottomSafeLimit = vh - 160; // bottom tab + safe space
+
+            console.warn('[LESSON_RETURN_BOTTOM_CHECK]', {
+              returnLessonId,
+              lessonScreenY: Math.round(lessonScreenY),
+              viewportHeight: vh,
+              bottomSafeLimit: Math.round(bottomSafeLimit),
+              tooLow: lessonScreenY > bottomSafeLimit,
+            });
+
+            if (lessonScreenY > bottomSafeLimit) {
+              const desiredScreenY = vh * 0.55; // rahat orta-alt nokta
+              const delta = lessonScreenY - desiredScreenY;
+              const ch = contentHeightRef.current;
+              const maxY = ch > 0 ? Math.max(0, ch - vh) : Infinity;
+              const targetY = Math.max(0, Math.min(curY + delta, maxY));
+
+              console.warn('[LESSON_RETURN_NUDGE_UP]', {
+                targetY: Math.round(targetY),
+                delta: Math.round(delta),
+                reason: 'too_close_to_bottom_tab',
+              });
+
+              try {
+                listRef.current?.scrollToOffset({ offset: targetY, animated: true });
+              } catch (e) {
+                console.warn('[MAP_NUDGE_FAIL]', { error: String(e) });
+              }
+            }
+          }, 600); // restore'lar bittikten sonra
+        }
         return;
       }
 
@@ -785,9 +842,9 @@ function MapScreenContent() {
   }, [completedLessons, currentLessonId, lessonExerciseProgress, examLessonIds]);
 
   const handleLessonPress = useCallback((lesson: Lesson) => {
-    // V27: Lesson'a girmeden önce SCROLL POSITION'I SAKLA
-    //   Map'e döndüğünde bu pozisyonu restore edeceğiz.
+    // V27/V30: Lesson'a girmeden önce SCROLL POSITION + LESSON ID SAKLA
     savedScrollYBeforeLessonRef.current = currentScrollY.current;
+    lastOpenedLessonIdRef.current = lesson.id;
     console.warn('[MAP_SAVE_SCROLL_BEFORE_LESSON]', {
       lessonId: lesson.id,
       savedScrollY: Math.round(currentScrollY.current),
