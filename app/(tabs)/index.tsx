@@ -247,17 +247,28 @@ function MapScreenContent() {
     );
   }, [course.units, currentLessonId]);
 
-  // 📜 Her ünitenin exact yüksekliği (FlatList'in precise scroll yapabilmesi için)
-  // unit_height = lessons * 124 + header 40 + bottom margin 80
+  // 📜 V12: Ünite yüksekliği (FlatList virtualization + scrollToIndex için)
+  //   MapPath gerçek yapısı:
+  //     - headerWrap: padding (md=12 vertical) + text (~50px) + marginBottom (base=16) → ~90
+  //     - pathContainer height: lessons * 124 (NODE_SPACING) + 40 (FIRST_NODE_OFFSET) + spacing.lg (20) → lessons*124 + 60
+  //     - container marginBottom: spacing.lg (20)
+  //   Toplam ≈ lessons * 124 + 90 + 60 + 20 = lessons * 124 + 170
+  //
+  //   ⚠️ Eğer measured unitY varsa onu kullan (daha doğru), yoksa formül.
   const getItemLayout = useCallback(
     (data: ArrayLike<Unit> | null | undefined, index: number) => {
       const units = data ? Array.from(data) : [];
       let offset = 0;
       for (let i = 0; i < index; i++) {
         const unit = units[i];
-        offset += (unit?.lessons?.length ?? 0) * 124 + 40 + 80;
+        // Measured varsa kullan
+        const measured = unit ? unitYMap.current[unit.id] : null;
+        if (measured != null && i === 0) {
+          offset = 0; // İlk unit hep 0'dan başlar (ListHeader sonrası)
+        }
+        offset += (unit?.lessons?.length ?? 0) * 124 + 170;
       }
-      const length = (units[index]?.lessons?.length ?? 0) * 124 + 40 + 80;
+      const length = (units[index]?.lessons?.length ?? 0) * 124 + 170;
       return { length, offset, index };
     },
     [],
@@ -310,11 +321,16 @@ function MapScreenContent() {
     return Math.max(0, lessonCenterY - usableCenter);
   }, [currentLessonId, computeLessonCenterY]);
 
-  // 📐 V11: focusActiveLesson — target validation + force-render fallback
-  //   1. Validation: lessonId completedLessons'da mı? Bug → recompute
-  //   2. Layout ready? Yoksa force-render (scrollToIndex) + pending
-  //   3. Delta-based skip (!force && delta < 80)
-  //   4. Precise scroll to usable center
+  // 📐 V12: KISS — sadece scrollToIndex + viewOffset, complex measurement YOK
+  //
+  //   FlatList'in scrollToIndex'i internal getItemLayout'tan unit'i bulur.
+  //   viewOffset = usableCenter - lessonOffsetInUnit → lesson tam center'a oturur.
+  //
+  //   lessonOffsetInUnit = 76 (MapPath header area) + 40 (FIRST_NODE_OFFSET) + idx * 124 (NODE_SPACING)
+  //   usableCenter = (80 + vh - 110) / 2
+  //
+  //   FlatList getItemLayout'taki 32px hata önemli DEĞIL çünkü unit içinde
+  //   lesson pozisyonu sabit (MapPath layout deterministic).
   const focusActiveLesson = useCallback((
     lessonId: string,
     reason: string,
@@ -325,137 +341,109 @@ function MapScreenContent() {
 
     console.warn('[MAP_FOCUS_REQUEST]', { reason, lessonId, force });
 
-    // ⚠️ V11: TARGET VALIDATION — focus hedefi completed lesson'a yapılıyorsa BUG
-    const isTargetCompleted = completedLessons.has(lessonId);
+    // Target validation — completed lesson'a focus yapma
     let actualLessonId = lessonId;
-    if (isTargetCompleted) {
+    if (completedLessons.has(lessonId)) {
       console.warn('[MAP_TARGET_BUG_COMPLETED_LESSON]', {
         focusLessonId: lessonId,
         nextPlayableLessonId,
-        completedCount: completedLessons.size,
       });
-      // Recompute target → use next playable
       if (nextPlayableLessonId && !completedLessons.has(nextPlayableLessonId)) {
         actualLessonId = nextPlayableLessonId;
       }
     }
 
-    console.warn('[MAP_TARGET_COMPARE]', {
-      requestedLessonId: lessonId,
-      actualLessonId,
-      nextPlayableLessonId,
-      isTargetCompleted,
-    });
-
-    const lessonCenterY = computeLessonCenterY(actualLessonId);
-    const vh = viewportHeightRef.current;
-    const ch = contentHeightRef.current;
-    const layoutFound = lessonLayoutsMap.current[actualLessonId];
-
-    console.warn('[MAP_ACTIVE_LAYOUT_FOUND]', {
-      lessonId: actualLessonId,
-      hasLessonY: lessonCenterY != null,
-      vh,
-      ch,
-      layout: layoutFound,
-    });
-
-    // Layout/viewport hazır değilse pending'e ekle + FORCE RENDER
-    if (lessonCenterY == null || vh <= 0 || ch <= 0) {
-      pendingFocusRef.current = { lessonId: actualLessonId, reason, force, animated };
-      console.warn('[MAP_FOCUS_PENDING]', {
-        lessonId: actualLessonId,
-        reason,
-        force,
-        hasLessonY: lessonCenterY != null,
-        vh,
-        ch,
-      });
-
-      // 🔄 V11 force-render: Lesson layout ölçülmediyse FlatList'e unit'i render ettir
-      //   Unit virtualization yüzünden offscreen ise onLayout fire etmez.
-      //   scrollToIndex unit'e yaklaştırır → render → onLayout fire → tryPendingFocus
-      if (layoutFound == null && vh > 0) {
-        const unitIdx = course.units.findIndex((u) =>
-          u.lessons.some((l) => l.id === actualLessonId),
-        );
-        if (unitIdx >= 0) {
-          console.warn('[MAP_FORCE_RENDER]', {
-            unitIdx,
-            lessonId: actualLessonId,
-            why: 'layout-not-measured',
-          });
-          isProgrammaticScrollRef.current = true;
-          try {
-            listRef.current?.scrollToIndex({
-              index: unitIdx,
-              animated: false,
-              viewPosition: 0.5,
-            });
-          } catch {}
-          setTimeout(() => { isProgrammaticScrollRef.current = false; }, 200);
-        }
-      }
+    // Hangi unit + unit içinde hangi index?
+    const unitIdx = course.units.findIndex((u) =>
+      u.lessons.some((l) => l.id === actualLessonId),
+    );
+    if (unitIdx < 0) {
+      console.warn('[MAP_SCROLL_FAIL]', { reason, lessonId: actualLessonId, why: 'unit-not-found' });
       return false;
     }
+    const unit = course.units[unitIdx];
+    const lessonIdx = unit.lessons.findIndex((l) => l.id === actualLessonId);
 
-    // Usable area
+    const vh = viewportHeightRef.current || 800;
     const usableTop = TOP_RESERVED;
     const usableBottom = vh - BOTTOM_RESERVED;
     const usableCenter = (usableTop + usableBottom) / 2;
 
-    // 📊 Delta hesabı (user spec exact)
-    const currentY = currentScrollY.current;
-    const viewportCenterInContent = currentY + usableCenter;
-    const delta = Math.abs(lessonCenterY - viewportCenterInContent);
+    // Lesson'ın unit içindeki Y'si (CENTER):
+    //   MapPath header (~76) + FIRST_NODE_OFFSET (40) + idx * NODE_SPACING (124)
+    const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
 
-    console.warn('[MAP_FOCUS_STATE]', {
-      reason,
-      force,
-      currentScrollY: Math.round(currentY),
-      lessonCenterY: Math.round(lessonCenterY),
-      usableCenter: Math.round(usableCenter),
-      viewportCenterInContent: Math.round(viewportCenterInContent),
-      delta: Math.round(delta),
-    });
-
-    // Tek skip koşulu: force değil VE delta < 80
-    if (!force && delta < 80) {
-      console.warn('[MAP_SCROLL_SKIP]', {
-        lessonId: actualLessonId,
-        reason,
-        why: 'delta-under-80',
-        delta: Math.round(delta),
-      });
-      return true;
-    }
-
-    // Target Y = lessonCenter - usableCenter, clamp to [0, maxY]
-    let targetY = lessonCenterY - usableCenter;
-    const maxY = Math.max(0, ch - vh);
-    targetY = Math.max(0, Math.min(targetY, maxY));
+    // viewOffset = unit_top'un viewport top'tan uzaklığı
+    //   Lesson center'ı usableCenter'a getirmek için:
+    //   unit_top = usableCenter - lessonOffsetInUnit
+    const viewOffset = usableCenter - lessonOffsetInUnit;
 
     console.warn('[MAP_SCROLL_TO]', {
-      lessonId: actualLessonId,
       reason,
       force,
-      lessonCenterY: Math.round(lessonCenterY),
-      targetY: Math.round(targetY),
-      vh,
-      ch,
+      lessonId: actualLessonId,
+      unitIdx,
+      lessonIdx,
+      lessonOffsetInUnit,
       usableCenter: Math.round(usableCenter),
+      viewOffset: Math.round(viewOffset),
+      vh,
       animated,
     });
 
     isProgrammaticScrollRef.current = true;
     try {
-      listRef.current?.scrollToOffset({ offset: targetY, animated });
+      listRef.current?.scrollToIndex({
+        index: unitIdx,
+        animated,
+        viewPosition: 0,
+        viewOffset,
+      });
     } catch (e) {
       console.warn('[MAP_SCROLL_FAIL]', { error: String(e) });
     }
-    setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 600 : 100);
+
+    // 🎯 V12 REFINEMENT: scrollToIndex APPROXIMATE; 500ms sonra measured Y varsa precise scroll
+    //   getItemLayout formülü tam tutmuyor olabilir → scrollToIndex hafif yanlış yere koyar
+    //   500ms sonra unitY + pathY + lessonLayout var ise scrollToOffset ile düzelt
+    setTimeout(() => {
+      const unitYMeasured = unitYMap.current[unit.id];
+      const pathYMeasured = pathYMap.current[unit.id];
+      const lessonLayoutMeasured = lessonLayoutsMap.current[actualLessonId];
+      if (unitYMeasured != null && pathYMeasured != null && lessonLayoutMeasured) {
+        const lessonCenterY = unitYMeasured + pathYMeasured + lessonLayoutMeasured.y + lessonLayoutMeasured.height / 2;
+        const targetY = Math.max(0, lessonCenterY - usableCenter);
+        const currentY = currentScrollY.current;
+        const drift = Math.abs(targetY - currentY);
+
+        console.warn('[MAP_SCROLL_REFINE]', {
+          lessonId: actualLessonId,
+          measuredCenterY: Math.round(lessonCenterY),
+          currentScrollY: Math.round(currentY),
+          targetY: Math.round(targetY),
+          drift: Math.round(drift),
+        });
+
+        // Sadece 30px+ drift varsa düzelt (titreşim önle)
+        if (drift > 30) {
+          isProgrammaticScrollRef.current = true;
+          try {
+            listRef.current?.scrollToOffset({ offset: targetY, animated: true });
+          } catch {}
+        }
+      } else {
+        console.warn('[MAP_SCROLL_REFINE_SKIP]', {
+          lessonId: actualLessonId,
+          hasUnitY: unitYMeasured != null,
+          hasPathY: pathYMeasured != null,
+          hasLessonLayout: lessonLayoutMeasured != null,
+        });
+      }
+    }, animated ? 500 : 200);
+
+    setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 1200 : 250);
     return true;
-  }, [computeLessonCenterY, completedLessons, nextPlayableLessonId, course.units]);
+  }, [completedLessons, nextPlayableLessonId, course.units]);
 
   // 📌 V9: tryPendingFocus — layout/viewport hazır olduğunda pending'i fire et
   const tryPendingFocus = useCallback(() => {
@@ -483,11 +471,15 @@ function MapScreenContent() {
     });
   }, [computeLessonCenterY, focusActiveLesson]);
 
-  // 📐 V11 FIX (user spec exact)
-  //   Her focus'ta `nextPlayableLessonId` hesaplanır (currentLessonId state değil).
-  //   nextPlayableLessonId completedLessons üzerinden FRESH hesaplanır.
+  // 📐 V12 FIX (KISS — scrollToIndex + viewOffset + refinement)
+  //   Marker: V12_BUILD_2026_05_30_FINAL — bu log varsa v12 deployed
   useFocusEffect(
     useCallback(() => {
+      console.warn('[MAP_FOCUS_EFFECT_FIRE]', {
+        v: 'V12_BUILD_2026_05_30_FINAL',
+        hasHydrated,
+        nextPlayableLessonId,
+      });
       if (!hasHydrated || !nextPlayableLessonId) return;
 
       const oldLessonId = previousLessonIdRef.current;
