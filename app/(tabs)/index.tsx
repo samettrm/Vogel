@@ -505,58 +505,28 @@ function MapScreenContent() {
     });
   }, [computeLessonCenterY, focusActiveLesson]);
 
-  // 📐 V12 FIX (KISS — scrollToIndex + viewOffset + refinement)
-  //   Marker: V12_BUILD_2026_05_30_FINAL — bu log varsa v12 deployed
+  // ❌ V21: AUTO-SCROLL TAMAMEN KALDIRILDI (user explicit request)
+  //   USER: "haritanın en üstüne çekiyor yine şunu tamamen iptal et"
+  //
+  //   Auto-scroll logic problem: Estimate/measurement bazen yanlış değer dönüyor →
+  //   targetScrollY clamp(0) ile y=0'a atıyor → harita üstüne snap.
+  //
+  //   Çözüm: useFocusEffect'i bypass et. Auto-scroll YOK.
+  //   Kullanıcı manuel scroll yapacak. Sticky button (yeşil ok) ile current'a gidebilir.
+  //
+  //   V13 progress sync gate KALIYOR (login sırasında spinner).
+  //   focusActiveLesson FONKSIYONU duruyor ama useFocusEffect'ten ÇAĞRILMIYOR.
+  //   Sadece handleScrollToCurrent (kullanıcı butona basınca) çağırır.
   useFocusEffect(
     useCallback(() => {
-      console.warn('[MAP_FOCUS_EFFECT_FIRE]', {
-        v: 'V12_BUILD_2026_05_30_FINAL',
+      console.warn('[MAP_FOCUS_EFFECT_FIRE_V21]', {
+        v: 'V21_NO_AUTO_SCROLL',
         hasHydrated,
         nextPlayableLessonId,
       });
-      if (!hasHydrated || !nextPlayableLessonId) return;
-
-      const oldLessonId = previousLessonIdRef.current;
-      const isInitialMount = oldLessonId === null;
-      const isLessonChange = oldLessonId !== null && oldLessonId !== nextPlayableLessonId;
-      previousLessonIdRef.current = nextPlayableLessonId;
-
-      let reason: string;
-      let force: boolean;
-      if (isLessonChange) {
-        reason = 'lesson_complete';
-        force = true;
-      } else if (isInitialMount) {
-        reason = 'initial_mount';
-        force = true;
-      } else {
-        reason = 'tab_focus';
-        force = false;
-      }
-
-      console.warn('[MAP_CURRENT_ACTIVE]', {
-        nextPlayableLessonId,
-        previousLessonId: oldLessonId,
-        completedLessonsCount: completedLessons.size,
-        reason,
-        force,
-      });
-
-      // 🎯 V18: SADECE TEK SCROLL — 500ms delay (measurements hazır olunca), HER ZAMAN animated
-      //   Bu sayede:
-      //   - 500ms layout settle olur, onLayout fire eder
-      //   - focusActiveLesson scrollToOffset (precise measured Y) çalıştırır
-      //   - Smooth animated scroll → "yumuşak akış"
-      const handle = InteractionManager.runAfterInteractions(() => {
-        setTimeout(() => {
-          focusActiveLesson(nextPlayableLessonId, reason, { animated: true, force: true });
-        }, 500);
-      });
-
-      return () => {
-        handle.cancel?.();
-      };
-    }, [hasHydrated, nextPlayableLessonId, completedLessons.size, focusActiveLesson]),
+      // ⛔ Auto-scroll devre dışı — user manuel kontrol ediyor
+      // useFocusEffect bir callback bekliyor ama içinde scroll YOK.
+    }, [hasHydrated, nextPlayableLessonId]),
   );
 
   // 📜 Animated.Value listener → her frame'de FlatList scroll güncelle
