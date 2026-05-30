@@ -2,7 +2,9 @@
 
 Bu dosya, projede çalışacak her Claude oturumunun (ya da insan geliştiricinin) hızlıca konuya hakim olması için yazılmıştır. **Operasyonel pipeline detayları için [AGENTS.md](AGENTS.md)'ye bak** (Codemagic, EAS, signing, çıktı al komutları). Burası **mimari + state + konvansiyon** kaynağıdır.
 
-> Yeni Claude oturumu açıldığında: önce bu dosyayı, sonra [TODO.md](TODO.md) ve [AGENTS.md](AGENTS.md)'yi oku.
+> Yeni Claude oturumu açıldığında: önce bu dosyayı, sonra [STABILITY-LOCK.md](STABILITY-LOCK.md), [TODO.md](TODO.md) ve [AGENTS.md](AGENTS.md)'yi oku.
+>
+> 🔒 **CRITICAL:** [STABILITY-LOCK.md](STABILITY-LOCK.md) — V35.1 sonrası user-onaylı mekaniklerin kilit listesi. Bu listeye dokunmadan önce user onayı alınmalı.
 
 ---
 
