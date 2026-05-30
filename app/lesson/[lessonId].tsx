@@ -507,13 +507,31 @@ export default function LessonScreen() {
   // ─── Handler'lar (useCallback ile memoize) ───────────────────────
 
   const goHome = useCallback((mode: 'exit' | 'complete' = 'exit') => {
-    // V26: Map'e dönerken "lesson exit" flag set et.
-    // V31: Mode da set et — 'exit' (X / abandon) veya 'complete' (DEVAM after success).
-    //   - exit → Map useFocusEffect savedScrollY'yi restore eder (pozisyonda kal)
-    //   - complete → Map useFocusEffect tab_focus mantığı ile smooth focus to next lesson
-    mapNavState.fromLesson = true;
-    mapNavState.lessonReturnMode = mode;
-    router.replace((returnTo as any) ?? '/');
+    // V34: Navigation stack fix
+    //   - Map'e dönüş (returnTo yok veya '/') → router.replace('/') + mapNavState flag
+    //   - Diğer ekrana dönüş (exam-map, lessons) → router.back() (lesson'ı pop et)
+    //     router.replace(returnTo) YENİ instance ekliyordu, stack'i bozuyordu.
+    //     User: "exam-map back button spam gerekiyor" — duplicate exam-map sebebiyle.
+    console.warn('[EXAM_NAV_EXIT_LESSON]', {
+      mode,
+      returnTo: returnTo || '/',
+      action: returnTo && returnTo !== '/' ? 'router.back()' : 'router.replace(/)',
+    });
+
+    if (!returnTo || returnTo === '/') {
+      // Map'e dönüş → flag set + replace
+      mapNavState.fromLesson = true;
+      mapNavState.lessonReturnMode = mode;
+      router.replace('/');
+    } else {
+      // exam-map / lessons / vb → sadece lesson'ı pop et (duplicate önle)
+      try {
+        router.back();
+      } catch {
+        // Fallback: stack boşsa replace
+        router.replace(returnTo as any);
+      }
+    }
   }, [router, returnTo]);
 
   const closeLesson = useCallback(() => {
