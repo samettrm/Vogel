@@ -17,7 +17,6 @@ import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
 import { ALL_COURSES, AVAILABLE_LEVELS, getCourseByLevel } from '../../src/data/courses';
 import { useT } from '../../src/i18n';
 import { useUserStore } from '../../src/store/useUserStore';
-import { mapNavState } from '../../src/utils/navState';
 import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import type { CEFRLevel, Lesson, Unit } from '../../src/types';
 
@@ -225,31 +224,29 @@ function MapScreenContent() {
     return Math.max(0, offset - viewOffsetValue);
   }, [currentUnitIndex, currentLessonId, course.units]);
 
-  // 📜 V4 FIX (2026-05-30 — unified tracking)
+  // 📜 V5 FIX (2026-05-30) — Restore-first, then track
   //
-  // User v3 feedback: "mevcut konumu takip etmiyor dersten çıkınca, kamera
-  // ekranın ortasında duruyor". v3'teki fromLesson special-casing tracking'i
-  // tamamen durdurdu.
+  // User spec:
+  //   1. Lesson'a girerken scroll Y kaydet (handleScroll onScroll ile current)
+  //   2. Lesson'dan dönünce ÖNCE savedY restore (animated: false) — sessizce
+  //   3. Restore sonrası aktif lesson visible mı kontrol
+  //   4. Visible → no-op
+  //   5. Not visible → smooth scroll (InteractionManager)
   //
-  // V4 UNIFIED BEHAVIOR (lesson exit ve tab switch AYNI):
-  //   - Active lesson VISIBLE (distance ≤ 350) → SCROLL YOK ✓
-  //   - Active lesson FAR → smooth scroll (InteractionManager idle) ✓
-  //   - Initial mount → FlatList initialScrollIndex kendi handle eder
+  // ⚠️ KRITIK FARK V4 ile:
+  //   V4 sadece visibility check yapıyordu, currentScrollY.current'a güveniyordu.
+  //   Eğer FlatList freezeOnBlur sonrası y=0'a düşüyorsa, currentScrollY stale
+  //   kalıyor → "lesson visible" yanlış kararı veriyordu → kamera y=0'da kalıyordu.
   //
-  // y=0 jump koruması:
-  //   - scrollToIndex({ animated: true }) MEVCUT scroll Y'den animasyon yapar
-  //     (FlatList state preserve ediyorsa)
-  //   - InteractionManager.runAfterInteractions JS idle bekler — render race yok
-  //   - setTimeout blind YOK
+  //   V5: HER focus'ta önce restore — FlatList state'i kaybetmemiş bile olsa
+  //   no-op olur, kaybetmişse fix eder. Sonra visibility check + smooth scroll.
   //
-  // mapNavState.fromLesson flag artık consume edilmiyor (gelecekte ihtiyaç
-  // olursa diye duruyor, ama logic'i artık etkilemiyor).
+  // lastScrolledForLessonRef:
+  //   - SADECE aynı activeLessonId tekrarını engeller
+  //   - Yeni activeLessonId geldiyse engellenmiyor (her seferinde focus logic çalışır)
   useFocusEffect(
     useCallback(() => {
       if (!hasHydrated || currentUnitIndex < 0 || !currentLessonId) return;
-
-      // Eski flag'i consume et (active tracking'i durdurmasın diye)
-      mapNavState.fromLesson = false;
 
       // 1️⃣ İlk render — FlatList initialScrollIndex kendi handle eder
       if (lastScrolledForLessonRef.current === null) {
@@ -262,28 +259,55 @@ function MapScreenContent() {
         return;
       }
 
-      // 2️⃣ Visibility check — aktif lesson ekranda mı?
-      const currentY = currentScrollY.current;
-      const distance = Math.abs(currentY - targetScrollY);
-      const TOLERANCE = 350;
-      const visible = distance <= TOLERANCE;
+      // 2️⃣ Aynı lesson — sadece restore (yeni scroll yok)
+      const isSameLesson = lastScrolledForLessonRef.current === currentLessonId;
 
-      // Visible → SCROLL YOK (pozisyon korunur)
-      if (visible) {
-        lastScrolledForLessonRef.current = currentLessonId;
+      const savedY = currentScrollY.current;
+
+      // 3️⃣ ÖNCE saved scroll Y'yi sessizce restore et
+      //    (FlatList y=0'a düştüyse fix eder; düşmediyse no-op)
+      //    Bu HER focus'ta yapılır — same lesson ya da yeni lesson, fark etmez.
+      console.warn('[MAP_SCROLL_RESTORE]', {
+        scrollY: savedY,
+        isSameLesson,
+      });
+      try {
+        listRef.current?.scrollToOffset({
+          offset: savedY,
+          animated: false, // ⚡ Sessizce, animasyon YOK
+        });
+      } catch {}
+
+      // 4️⃣ Same lesson + restore yapıldı → bitti
+      if (isSameLesson) {
         console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
           activeLessonId: currentLessonId,
-          currentY,
-          targetY: targetScrollY,
-          distance,
-          visible: true,
-          reason: 'lesson-visible-no-scroll',
+          reason: 'same-lesson-restore-only',
           shouldScroll: false,
         });
         return;
       }
 
-      // 3️⃣ Aktif lesson görünür değil → smooth scroll (tracking)
+      // 5️⃣ Yeni lesson — visibility check (restore sonrası)
+      const distance = Math.abs(savedY - targetScrollY);
+      const TOLERANCE = 350;
+      const visible = distance <= TOLERANCE;
+
+      if (visible) {
+        lastScrolledForLessonRef.current = currentLessonId;
+        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+          activeLessonId: currentLessonId,
+          currentY: savedY,
+          targetY: targetScrollY,
+          distance,
+          visible: true,
+          reason: 'new-lesson-visible-no-scroll',
+          shouldScroll: false,
+        });
+        return;
+      }
+
+      // 6️⃣ Yeni lesson far → smooth scroll (active lesson tracking)
       const currentUnit = course.units[currentUnitIndex];
       if (!currentUnit) return;
       const lessonIndexInUnit = currentUnit.lessons.findIndex((l) => l.id === currentLessonId);
@@ -292,11 +316,11 @@ function MapScreenContent() {
 
       console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
         activeLessonId: currentLessonId,
-        currentY,
+        currentY: savedY,
         targetY: targetScrollY,
         distance,
         visible: false,
-        reason: 'lesson-far-smooth-tracking',
+        reason: 'new-lesson-far-smooth-tracking',
         shouldScroll: true,
       });
 
