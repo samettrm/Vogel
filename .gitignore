@@ -58,3 +58,5 @@ GoogleService-Info.plist
 
 # Validator ciktisi (validate-exercises.mjs her calistiginda yeniden uretilir)
 scripts/validator-report.txt
+
+.keystore-credentials.txt
