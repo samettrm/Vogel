@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Redirect, useRouter } from 'expo-router';
+import { Redirect, useFocusEffect, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 console.warn('[FILE_LOAD] app/(tabs)/index.tsx loaded');
@@ -17,6 +17,7 @@ import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
 import { ALL_COURSES, AVAILABLE_LEVELS, getCourseByLevel } from '../../src/data/courses';
 import { useT } from '../../src/i18n';
 import { useUserStore } from '../../src/store/useUserStore';
+import { mapNavState } from '../../src/utils/navState';
 import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import type { CEFRLevel, Lesson, Unit } from '../../src/types';
 
@@ -224,116 +225,118 @@ function MapScreenContent() {
     return Math.max(0, offset - viewOffsetValue);
   }, [currentUnitIndex, currentLessonId, course.units]);
 
-  // 📜 LESSON CHANGE → SMOOTH SCROLL (single source of truth)
+  // 📜 V3 FIX (2026-05-30 — nuanced behavior)
   //
-  // 🚨 V2 FIX (2026-05-30 — user re-report):
-  //   Önceki fix yetmedi. useFocusEffect + useEffect çift fire ediyordu,
-  //   FlatList unfreeze'de y=0'a zıplıyordu, setTimeout blind scroll yapıyordu.
+  // User feedback: V2 (useFocusEffect kaldırılması) çok agresif oldu.
+  // Aktif lesson tracking diğer tab'lardan dönüşte de durdu.
   //
-  // YENİ TEK NOKTA (useFocusEffect TAMAMEN KALDIRILDI):
-  //   1. Initial mount: lastSeenLessonIdRef başlatılır, scroll YOK
-  //      (FlatList initialScrollIndex'i kendi handle eder)
-  //   2. Lesson değişti: visibility check yap, görünürse skip
-  //   3. Görünür değilse: InteractionManager.runAfterInteractions ile
-  //      smooth scroll (setTimeout YOK, render-blocking YOK)
-  //   4. lastSeenLessonIdRef güncellenir
+  // YENİ NUANCED BEHAVIOR:
+  //   - Lesson exit (router.replace('/') from /lesson/X):
+  //       → mapNavState.fromLesson = true (lesson screen set eder)
+  //       → useFocusEffect bu flag'i consume eder → SCROLL YOK
+  //       → Kullanıcı pozisyonu KORUNUR ✓
   //
-  // Tab focus / lesson exit → useEffect SADECE currentLessonId değiştiyse fire.
-  // currentLessonId aynıysa hiçbir scroll TETİKLENMEZ → kullanıcı pozisyonu KORUNUR.
-  useEffect(() => {
-    if (!hasHydrated) return;
-    if (currentUnitIndex < 0) return;
-    if (!currentLessonId) return;
+  //   - Other tab → Map (Profile/Lessons/Shop → Map):
+  //       → fromLesson flag false → normal tracking
+  //       → Active lesson visible → SCROLL YOK
+  //       → Active lesson not visible → smooth scroll ✓
+  //
+  //   - Initial mount:
+  //       → lastScrolledForLessonRef === null → FlatList initialScrollIndex
+  //       → SCROLL YOK
+  //
+  //   - Lesson tamamlandı + farklı lesson + far + tab focus:
+  //       → fromLesson true → consume → SCROLL YOK (lesson exit'ten geldik)
+  //       → next tab focus → flag false → check visibility → scroll if needed
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasHydrated || currentUnitIndex < 0 || !currentLessonId) return;
 
-    // 1️⃣ İlk render: lastScrolledForLessonRef boş → sadece "gördüm" işareti at,
-    //    scroll YAPMA. FlatList initialScrollIndex zaten doğru pozisyondan başlatır.
-    if (lastScrolledForLessonRef.current === null) {
-      lastScrolledForLessonRef.current = currentLessonId;
-      console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
-        activeLessonId: currentLessonId,
-        reason: 'initial-mount-no-scroll',
-        shouldScroll: false,
-      });
-      return;
-    }
+      const cameFromLesson = mapNavState.fromLesson;
+      mapNavState.fromLesson = false; // Consume — sadece bu focus için
 
-    // 2️⃣ Aynı lesson → scroll YAPMA (render re-fire koruması)
-    if (lastScrolledForLessonRef.current === currentLessonId) {
-      console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
-        activeLessonId: currentLessonId,
-        reason: 'same-lesson-skip',
-        shouldScroll: false,
-      });
-      return;
-    }
+      // 1️⃣ İlk render — FlatList initialScrollIndex zaten kendi handle eder
+      if (lastScrolledForLessonRef.current === null) {
+        lastScrolledForLessonRef.current = currentLessonId;
+        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+          activeLessonId: currentLessonId,
+          reason: 'initial-mount-no-scroll',
+          shouldScroll: false,
+        });
+        return;
+      }
 
-    // 3️⃣ Lesson DEĞİŞTİ → görünürlük kontrolü
-    const currentY = currentScrollY.current;
-    const distance = Math.abs(currentY - targetScrollY);
-    const TOLERANCE = 400; // ~viewport half
-    const visible = distance <= TOLERANCE;
+      // 2️⃣ Lesson exit → SCROLL YOK (mevcut pozisyon korunur)
+      if (cameFromLesson) {
+        lastScrolledForLessonRef.current = currentLessonId;
+        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+          activeLessonId: currentLessonId,
+          previousScrolledFor: lastScrolledForLessonRef.current,
+          reason: 'came-from-lesson-no-scroll',
+          shouldScroll: false,
+        });
+        return;
+      }
 
-    // Mark scrolled (önemli: scroll yapsak da yapmasak da update et)
-    lastScrolledForLessonRef.current = currentLessonId;
+      // 3️⃣ Other tab → Map: aktif lesson tracking
+      const currentY = currentScrollY.current;
+      const distance = Math.abs(currentY - targetScrollY);
+      const TOLERANCE = 400; // ~viewport half
+      const visible = distance <= TOLERANCE;
 
-    if (visible) {
+      // Aktif lesson görünür alandaysa → SCROLL YOK
+      if (visible) {
+        lastScrolledForLessonRef.current = currentLessonId;
+        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+          activeLessonId: currentLessonId,
+          currentY,
+          targetY: targetScrollY,
+          distance,
+          visible: true,
+          reason: 'tab-focus-lesson-visible-no-scroll',
+          shouldScroll: false,
+        });
+        return;
+      }
+
+      // 4️⃣ Aktif lesson görünür değil → smooth scroll
+      const currentUnit = course.units[currentUnitIndex];
+      if (!currentUnit) return;
+      const lessonIndexInUnit = currentUnit.lessons.findIndex((l) => l.id === currentLessonId);
+      if (lessonIndexInUnit < 0) return;
+      const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
+
       console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
         activeLessonId: currentLessonId,
         currentY,
         targetY: targetScrollY,
         distance,
-        visible: true,
-        reason: 'lesson-changed-but-visible-no-scroll',
-        shouldScroll: false,
+        visible: false,
+        reason: 'tab-focus-lesson-far-smooth-scroll',
+        shouldScroll: true,
       });
-      return;
-    }
 
-    // 4️⃣ Lesson far → InteractionManager ile smooth scroll
-    //    InteractionManager.runAfterInteractions = JS thread idle olduğunda fire eder
-    //    setTimeout'tan daha güvenli — render-blocking yok, frame drop yok
-    const currentUnit = course.units[currentUnitIndex];
-    if (!currentUnit) return;
-    const lessonIndexInUnit = currentUnit.lessons.findIndex((l) => l.id === currentLessonId);
-    if (lessonIndexInUnit < 0) return;
-    const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
+      isProgrammaticScrollRef.current = true;
+      const handle = InteractionManager.runAfterInteractions(() => {
+        try {
+          listRef.current?.scrollToIndex({
+            index: currentUnitIndex,
+            animated: true,
+            viewPosition: 0,
+            viewOffset: viewOffsetValue,
+          });
+        } catch {
+          // onScrollToIndexFailed fallback
+        }
+        lastScrolledForLessonRef.current = currentLessonId;
+        setTimeout(() => { isProgrammaticScrollRef.current = false; }, 700);
+      });
 
-    console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
-      activeLessonId: currentLessonId,
-      currentY,
-      targetY: targetScrollY,
-      distance,
-      visible: false,
-      reason: 'lesson-changed-far-smooth-scroll',
-      shouldScroll: true,
-    });
-
-    isProgrammaticScrollRef.current = true;
-    const handle = InteractionManager.runAfterInteractions(() => {
-      try {
-        listRef.current?.scrollToIndex({
-          index: currentUnitIndex,
-          animated: true,
-          viewPosition: 0,
-          viewOffset: viewOffsetValue,
-        });
-      } catch {
-        // onScrollToIndexFailed fallback
-      }
-      setTimeout(() => { isProgrammaticScrollRef.current = false; }, 700);
-    });
-
-    return () => {
-      handle.cancel?.();
-    };
-  }, [hasHydrated, currentUnitIndex, currentLessonId, course.units, targetScrollY]);
-
-  // 🛡 useFocusEffect REMOVED (V2 fix — 2026-05-30)
-  //    Önceki versiyon useFocusEffect ile her tab focus'unda scroll restore yapıyordu.
-  //    Bu y=0 zıplamasının kaynağıydı. Şimdi:
-  //    - Tab focus → hiçbir scroll trigger YOK
-  //    - currentLessonId değişirse → yukarıdaki useEffect handle eder
-  //    - Kullanıcı pozisyonu doğal olarak preserve olur (FlatList state)
+      return () => {
+        handle.cancel?.();
+      };
+    }, [hasHydrated, currentUnitIndex, currentLessonId, course.units, targetScrollY]),
+  );
 
   // 📜 Animated.Value listener → her frame'de FlatList scroll güncelle
   useEffect(() => {
