@@ -506,12 +506,13 @@ export default function LessonScreen() {
 
   // ─── Handler'lar (useCallback ile memoize) ───────────────────────
 
-  const goHome = useCallback(() => {
+  const goHome = useCallback((mode: 'exit' | 'complete' = 'exit') => {
     // V26: Map'e dönerken "lesson exit" flag set et.
-    //   Map useFocusEffect bunu görünce auto-scroll YAPMAZ → çıkılan ders pozisyonunda kalır.
+    // V31: Mode da set et — 'exit' (X / abandon) veya 'complete' (DEVAM after success).
+    //   - exit → Map useFocusEffect savedScrollY'yi restore eder (pozisyonda kal)
+    //   - complete → Map useFocusEffect tab_focus mantığı ile smooth focus to next lesson
     mapNavState.fromLesson = true;
-    // returnTo parametresi varsa oraya dön (exam-map, lessons, vb.)
-    // yoksa ana haritaya dön
+    mapNavState.lessonReturnMode = mode;
     router.replace((returnTo as any) ?? '/');
   }, [router, returnTo]);
 
@@ -779,13 +780,11 @@ export default function LessonScreen() {
               maxHearts={maxHearts}
               onContinue={async () => {
                 // 📺 Free kullanıcıya ~1/3 olasılıkla interstitial göster.
-                // Premium kullanıcıda hiç reklam yok.
-                // showInterstitialAd kendisi probability + premium gating yapıyor;
-                // burada sadece açıkça `!isPremium` kontrolü ile fazladan emniyet ekledik.
                 if (!isPremium) {
                   try { await showInterstitialAd(); } catch {}
                 }
-                goHome();
+                // V31: 'complete' mode → Map'te smooth focus to next playable lesson
+                goHome('complete');
               }}
               isUnitComplete={isUnitComplete}
               isPremium={isPremium}

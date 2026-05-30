@@ -541,15 +541,63 @@ function MapScreenContent() {
         return;
       }
 
-      // 🔒 V29: LESSON EXIT — MODULE-LEVEL scroll Y'yi restore et
-      //   moduleSavedScrollY component unmount olsa bile yaşıyor.
-      //   handleScroll bunu sürekli güncelliyor.
-      //   Bu sayede scroll position TAM olarak korunur.
+      // 🔒 V31: LESSON RETURN — mode'a göre davran (exit vs complete)
       if (mapNavState.fromLesson) {
+        const mode = mapNavState.lessonReturnMode;
         mapNavState.fromLesson = false; // Flag consume
+        mapNavState.lessonReturnMode = null;
         previousLessonIdRef.current = nextPlayableLessonId;
-        const savedY = moduleSavedScrollY; // V29: MODULE-LEVEL
-        console.warn('[MAP_FOCUS_LESSON_EXIT_RESTORE_V29]', {
+
+        console.warn('[LESSON_RETURN_MODE]', {
+          mode,
+          nextPlayableLessonId,
+        });
+
+        // 🎯 V31 COMPLETE — başarılı ders + DEVAM → tab_focus mantığı çalıştır
+        //   scrollToIndex ile nextPlayable lesson'a smooth focus (V23 tab_focus aynısı)
+        if (mode === 'complete') {
+          const unitIdx = course.units.findIndex((u) =>
+            u.lessons.some((l) => l.id === nextPlayableLessonId),
+          );
+          if (unitIdx < 0) return;
+          const unit = course.units[unitIdx];
+          const lessonIdx = unit.lessons.findIndex((l) => l.id === nextPlayableLessonId);
+          const vh = viewportHeightRef.current || 800;
+          const anchorY = vh * 0.25; // V25 anchor
+          const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
+          const viewOffset = anchorY - lessonOffsetInUnit;
+
+          console.warn('[LESSON_COMPLETE_FOCUS]', {
+            nextPlayableLessonId,
+            unitIdx,
+            lessonIdx,
+            viewOffset: Math.round(viewOffset),
+            anchorY: Math.round(anchorY),
+            reason: 'lesson_complete_focus',
+          });
+
+          const handle = InteractionManager.runAfterInteractions(() => {
+            setTimeout(() => {
+              isProgrammaticScrollRef.current = true;
+              try {
+                listRef.current?.scrollToIndex({
+                  index: unitIdx,
+                  animated: true,
+                  viewPosition: 0,
+                  viewOffset,
+                });
+              } catch (e) {
+                console.warn('[LESSON_COMPLETE_FOCUS_FAIL]', { error: String(e) });
+              }
+              setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
+            }, 300);
+          });
+          return () => { handle.cancel?.(); };
+        }
+
+        // 🔒 V31 EXIT — X / abandon → V29 restore davranışı
+        const savedY = moduleSavedScrollY;
+        console.warn('[LESSON_RETURN_EXIT_RESTORE]', {
           lessonId: nextPlayableLessonId,
           moduleSavedScrollY: Math.round(savedY),
           currentScrollY: Math.round(currentScrollY.current),

@@ -18,4 +18,7 @@ export const mapNavState = {
   // Set by lesson screen before router.replace, consumed by map's
   // useFocusEffect to suppress auto-scroll for this focus cycle.
   fromLesson: false,
+  // V31: 'exit' (X button, abandon) → restore previous scroll position
+  //      'complete' (DEVAM after success) → smooth focus to next playable lesson
+  lessonReturnMode: null as 'exit' | 'complete' | null,
 };
