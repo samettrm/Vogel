@@ -24,6 +24,7 @@ import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useT } from '../../i18n';
 import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 import { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '../../config/legal';
+import { openManageSubscriptions } from '../../utils/manageSubscriptions';
 
 // ════════════════════════════════════════════════════════════════
 // PAYWALL MODAL — Psikolojik dönüşüm optimizasyonu
@@ -190,6 +191,10 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
                 <Text style={styles.legalDot}>·</Text>
                 <Pressable onPress={handleOpenPrivacy} hitSlop={8} accessibilityRole="link">
                   <Text style={styles.legalLink}>{t('paywall.privacyPolicy')}</Text>
+                </Pressable>
+                <Text style={styles.legalDot}>·</Text>
+                <Pressable onPress={openManageSubscriptions} hitSlop={8} accessibilityRole="link">
+                  <Text style={styles.legalLink}>{t('paywall.manageSubscription')}</Text>
                 </Pressable>
               </View>
             </Animated.View>

@@ -30,6 +30,7 @@ import {
 } from '../../src/services/purchases';
 import { ENTITLEMENT_PREMIUM } from '../../src/config/revenuecat';
 import { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '../../src/config/legal';
+import { openManageSubscriptions } from '../../src/utils/manageSubscriptions';
 import type { PurchasesPackage } from 'react-native-purchases';
 
 // ════════════════════════════════════════════════════════════════
@@ -189,6 +190,15 @@ export default function ShopScreen() {
               accessibilityRole="link"
             >
               <Text style={styles.legalLink}>{t('shop.privacyPolicy')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalDot}>·</Text>
+            {/* Apple Guideline 3.1.2(b) — Aboneliği Yönet linki */}
+            <TouchableOpacity
+              onPress={openManageSubscriptions}
+              hitSlop={8}
+              accessibilityRole="link"
+            >
+              <Text style={styles.legalLink}>{t('shop.manageSubscription')}</Text>
             </TouchableOpacity>
           </View>
 

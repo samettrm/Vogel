@@ -17,6 +17,7 @@ import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 import { useUserStore } from '../../store/useUserStore';
 import { FamilyShareGuide } from './FamilyShareGuide';
 import type { PremiumPackage, PlanId } from '../../services/purchases';
+import { openManageSubscriptions } from '../../utils/manageSubscriptions';
 
 // ════════════════════════════════════════════════════════════════
 // PREMIUM PLANS CARD — Y Cosmic Tasarım
@@ -297,11 +298,22 @@ export function PremiumPlansCard({
             ))}
           </View>
 
-          {Platform.OS === 'android' ? (
-            <Text style={styles.premiumManageText}>
-              Google Play'den aboneliğini yönetebilirsin
+          {/* Apple Guideline 3.1.2(b) + Google Play — Aboneliği yönet linki */}
+          <Pressable
+            onPress={openManageSubscriptions}
+            style={({ pressed }) => [
+              styles.manageSubBtn,
+              pressed && { opacity: 0.7 },
+            ]}
+            accessibilityRole="link"
+          >
+            <Ionicons name="settings-outline" size={14} color={c.textMed} />
+            <Text style={styles.manageSubBtnText}>
+              {Platform.OS === 'ios'
+                ? "Aboneliği Yönet (App Store)"
+                : "Aboneliği Yönet (Google Play)"}
             </Text>
-          ) : null}
+          </Pressable>
         </View>
 
         <FamilyShareGuide
@@ -644,6 +656,22 @@ const styles = StyleSheet.create({
   premiumManageText: {
     ...textStyles.body, color: 'rgba(255,255,255,0.2)', fontSize: 12,
     textAlign: 'center', marginTop: 20, paddingHorizontal: spacing.base,
+  },
+  manageSubBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    gap: 6,
+    marginTop: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  manageSubBtnText: {
+    ...textStyles.body,
+    color: c.textMed,
+    fontSize: 12,
+    textDecorationLine: 'underline',
   },
 
   // ── Design A: Üyelik Kartı ─────────────────────────────────────
