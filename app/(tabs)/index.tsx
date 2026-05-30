@@ -278,9 +278,11 @@ function MapScreenContent() {
     }
   }, [hasHydrated, applyHeartRefills]);
 
-  // 🎬 V32: Initial mount → 700ms sonra mapVisible=true (scroll positioned olur o aralıkta)
+  // 🎬 V33: Safeguard timeout — mapVisible mutlaka true olsun (5sn sonra fallback)
+  //   useFocusEffect zaten scroll bitince setMapVisible(true) yapacak,
+  //   ama herhangi bir sebeple yapmazsa 1.5sn'de force göster.
   useEffect(() => {
-    const t = setTimeout(() => setMapVisible(true), 700);
+    const t = setTimeout(() => setMapVisible(true), 1500);
     return () => clearTimeout(t);
   }, []);
 
@@ -588,7 +590,7 @@ function MapScreenContent() {
             reason: 'lesson_complete_focus',
           });
 
-          // V32: Hide map while scrolling (top flash prevention)
+          // V33: SILENT JUMP — Map görünmez iken animated:false ile hedefe yerleş
           setMapVisible(false);
 
           const handle = InteractionManager.runAfterInteractions(() => {
@@ -597,16 +599,18 @@ function MapScreenContent() {
               try {
                 listRef.current?.scrollToIndex({
                   index: unitIdx,
-                  animated: true,
+                  animated: false, // V33: SILENT jump (no animation visible)
                   viewPosition: 0,
                   viewOffset,
                 });
               } catch (e) {
                 console.warn('[LESSON_COMPLETE_FOCUS_FAIL]', { error: String(e) });
               }
-              setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
-              // V32: Scroll animasyonu bittikten sonra map'i göster
-              setTimeout(() => setMapVisible(true), 700);
+              // V33: Silent jump landed → map'i görünür yap (kısa delay olsun ki layout settle)
+              setTimeout(() => {
+                setMapVisible(true);
+                isProgrammaticScrollRef.current = false;
+              }, 150);
             }, 300);
           });
           return () => { handle.cancel?.(); };
@@ -734,10 +738,11 @@ function MapScreenContent() {
         anchorY: Math.round(anchorY),
       });
 
-      // V32: Initial mount ve lesson_change'de hide map (top flash önle).
-      //   Tab focus'ta hide ETME (zaten yumuşak akıyor).
-      if (isInitialMount || isLessonChange) {
-        setMapVisible(false);
+      // V33: Initial mount + lesson_change → SILENT JUMP (animated:false)
+      //       Tab focus → SMOOTH SCROLL (animated:true)
+      const isSilentJump = isInitialMount || isLessonChange;
+      if (isSilentJump) {
+        setMapVisible(false); // Hide map while silent jumping
       }
 
       const handle = InteractionManager.runAfterInteractions(() => {
@@ -746,17 +751,22 @@ function MapScreenContent() {
           try {
             listRef.current?.scrollToIndex({
               index: unitIdx,
-              animated: true,
+              animated: !isSilentJump, // V33: false for silent, true for smooth tab focus
               viewPosition: 0,
               viewOffset,
             });
           } catch (e) {
             console.warn('[MAP_SCROLL_FAIL_V23]', { error: String(e) });
           }
-          setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
-          // V32: Scroll bittikten sonra map'i göster (initial/lesson_change için)
-          if (isInitialMount || isLessonChange) {
-            setTimeout(() => setMapVisible(true), 700);
+          if (isSilentJump) {
+            // Silent jump → 150ms sonra göster (animasyon yok)
+            setTimeout(() => {
+              setMapVisible(true);
+              isProgrammaticScrollRef.current = false;
+            }, 150);
+          } else {
+            // Smooth scroll (tab focus) → 800ms sonra programmatik flag temizle
+            setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
           }
         }, 500);
       });
