@@ -338,7 +338,8 @@ function MapScreenContent() {
     if (lessonCenterY == null) return 0;
     const usableTop = TOP_RESERVED;
     const usableBottom = vh - BOTTOM_RESERVED;
-    const usableCenter = (usableTop + usableBottom) / 2;
+    // V15: BAŞLA balonu yukarıda → lesson node'u biraz yukarı al ki combo center'da olsun
+    const usableCenter = (usableTop + usableBottom) / 2 - 30;
     return Math.max(0, lessonCenterY - usableCenter);
   }, [currentLessonId, computeLessonCenterY]);
 
@@ -388,7 +389,13 @@ function MapScreenContent() {
     const vh = viewportHeightRef.current || 800;
     const usableTop = TOP_RESERVED;
     const usableBottom = vh - BOTTOM_RESERVED;
-    const usableCenter = (usableTop + usableBottom) / 2;
+    // 📌 V15: BAŞLA balonu node'un 52px YUKARISINDA absolute positioned.
+    //   Sadece node merkezini hesaba katarsak balon+node combo aşağıda görünür.
+    //   Lesson node'u biraz yukarı kaydır → balon + node combo tam center'da olsun.
+    //   BUBBLE_COMPENSATION = 30 (balon yarısı + triangle, görsel tahmin)
+    const BUBBLE_COMPENSATION = 30;
+    const rawCenter = (usableTop + usableBottom) / 2;
+    const usableCenter = rawCenter - BUBBLE_COMPENSATION;
 
     // Lesson'ın unit içindeki Y'si (CENTER):
     //   MapPath header (~76) + FIRST_NODE_OFFSET (40) + idx * NODE_SPACING (124)
