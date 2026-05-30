@@ -139,13 +139,20 @@ function MapScreenContent() {
 
   // 📜 Scroll-to-current Button — Duolingo tarz�ı yukarı ok butonu
   // Kullanıcı aşağı kaydırınca görünür, basınca yavaşta hizlanan animasyonla current lesson'a döner
-  const currentScrollY = useRef(0); // Anlık scroll Y konumu
+  const currentScrollY = useRef(0); // Anlık scroll Y konumu (her scroll'da güncel)
   const scrollAnimY = useRef(new Animated.Value(0)).current; // Custom animasyon için
   const buttonOpacity = useRef(new Animated.Value(0)).current; // Buton fade in/out
   const [showScrollButton, setShowScrollButton] = useState(false);
   const isAnimatingScrollRef = useRef(false);
   // Programmatik scroll (useEffect / ⬆️ button) sırasında sticky güncellemesini durdur
   const isProgrammaticScrollRef = useRef(false);
+
+  // 🛡 SCROLL JUMP PREVENTION (2026-05-30):
+  //   - lastScrolledForLessonRef: Hangi lesson için son scroll yapıldığını track.
+  //     Aynı lesson için tekrar tekrar scroll YAPMAZ.
+  //   - Tab focus sonrası saved scroll Y'yi restore eder (jump-to-top yok).
+  //   - Smooth scroll SADECE current lesson görünür değilse + lesson değiştiyse.
+  const lastScrolledForLessonRef = useRef<string | null>(null);
 
   // ─── Sticky bölüm başlığı (Duolingo tarzı) ──────────────────────────
   // Scroll edilince o anki ünitenin adı üstte sabit bantla gösterilir
@@ -199,15 +206,47 @@ function MapScreenContent() {
     [],
   );
 
-  // 📜 Current LESSON'a scroll — sadece unit'e değil, kalan ders'in tam görünür olacağı konuma
-  // Mantık: scrollToIndex unit'e snap yapar, viewOffset ile unit içindeki lesson konumunu hesaba katar
-  // Formül: viewOffset = 60 - lessonIndexInUnit * 124
-  //   → lesson_0 (ilk ders): viewOffset=60 → unit başlığı görünür + ilk ders 100px aşağıda
-  //   → lesson_2 (3. ders): viewOffset=-188 → unit başlığı kayar, current ders 100px aşağıda
+  // 📜 Hedef scroll Y koordinatı — current lesson'ın tam görünür olacağı konum
+  //    Önceden bu useEffect'lerden SONRA tanımlıydı, TDZ hatası riski vardı.
+  //    Şimdi yukarı taşındı — useEffect/useFocusEffect güvenli kullanabilir.
+  const targetScrollY = useMemo(() => {
+    if (currentUnitIndex < 0 || !currentLessonId) return 0;
+    let offset = 0;
+    for (let i = 0; i < currentUnitIndex; i++) {
+      const unit = course.units[i];
+      offset += (unit?.lessons?.length ?? 0) * 124 + 40 + 80;
+    }
+    const currentUnit = course.units[currentUnitIndex];
+    const lessonIndexInUnit = currentUnit?.lessons.findIndex(
+      (l) => l.id === currentLessonId,
+    ) ?? 0;
+    const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
+    return Math.max(0, offset - viewOffsetValue);
+  }, [currentUnitIndex, currentLessonId, course.units]);
+
+  // 📜 Current LESSON'a scroll — SADECE lesson değiştiğinde fire eder.
+  //
+  // 🛡 ÖNCEKİ BUG: Bu useEffect course.units veya currentLessonId değiştiğinde
+  //    fire ediyordu → her ders bitiminde RE-SCROLL → "harita en üste zıplıyo".
+  //
+  // 🛡 YENİ DAVRANIŞ: lastScrolledForLessonRef ile aynı lesson için tekrar
+  //    scroll YAPMAZ. Sadece currentLessonId GERÇEKTEN değiştiğinde scroll.
+  //
+  // Formül: viewOffset = 40 - 100 - lessonIndexInUnit * 124
   useEffect(() => {
     if (!hasHydrated) return;
     if (currentUnitIndex < 0) return;
     if (!currentLessonId) return;
+
+    // 🚫 Aynı lesson için zaten scroll yapıldı → tekrar yapma
+    if (lastScrolledForLessonRef.current === currentLessonId) {
+      console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+        activeLessonId: currentLessonId,
+        reason: 'same-lesson-skip',
+        shouldScroll: false,
+      });
+      return;
+    }
 
     const currentUnit = course.units[currentUnitIndex];
     if (!currentUnit) return;
@@ -217,8 +256,15 @@ function MapScreenContent() {
     if (lessonIndexInUnit < 0) return;
 
     // viewOffset: lesson ekranın üstünden ~100px aşağıda görünsün
-    // (40 unit header - 100 padding - lessonIndex * 124)
     const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
+
+    console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+      activeLessonId: currentLessonId,
+      targetY: targetScrollY,
+      previousScrolledFor: lastScrolledForLessonRef.current,
+      reason: 'lesson-changed',
+      shouldScroll: true,
+    });
 
     isProgrammaticScrollRef.current = true;
     const tt = setTimeout(() => {
@@ -232,25 +278,91 @@ function MapScreenContent() {
       } catch {
         // Fallback onScrollToIndexFailed'de
       }
+      // ✅ Scroll yapıldı, lesson ID'sini kaydet
+      lastScrolledForLessonRef.current = currentLessonId;
       // Animasyon bittikten sonra sticky güncellemesini aç (~700ms yeterli)
       setTimeout(() => { isProgrammaticScrollRef.current = false; }, 700);
-    }, 250);  // Önceden 100ms — artık daha yumuşak başlatmak için 250ms
+    }, 250);
 
     return () => clearTimeout(tt);
-  }, [hasHydrated, currentUnitIndex, currentLessonId, course.units]);
+  }, [hasHydrated, currentUnitIndex, currentLessonId, course.units, targetScrollY]);
 
-  // 📜 Tab focus → current lesson'a smooth scroll
-  // Başka sekmeden (Dersler, Mağaza) haritaya geçilince current ders'in
-  // tam görünür olmasını sağlar. animated: true → smooth kayma, sert jump değil.
-  // 200ms delay → FlatList render edip layout hazır olunca animation başlar.
+  // 📜 Tab focus → SADECE scroll Y restore + current lesson görünür değilse
+  //                 ve farklı lesson ise smooth scroll.
+  //
+  // 🛡 ÖNCEKİ BUG: Her focus'ta scrollToIndex({ animated: true }) çağrılıyordu →
+  //    ders dönüşünde "harita en üste, sonra dersine animate".
+  //
+  // 🛡 YENİ DAVRANIŞ:
+  //    1. Saved scroll Y'yi animated:false ile RESTORE et (jump-to-top yok)
+  //    2. Aynı lesson için 2. scroll YAPMA (lastScrolledForLessonRef kontrolü)
+  //    3. Current lesson zaten görünür alandaysa scroll YAPMA
+  //    4. Sadece lesson far + farklıysa smooth scroll
   useFocusEffect(
     useCallback(() => {
       if (!hasHydrated || currentUnitIndex < 0 || !currentLessonId) return;
+
+      // 1️⃣ Önce saved scroll Y'yi RESTORE et (jump-to-top'u engelle)
+      const savedY = currentScrollY.current;
+      if (savedY > 0) {
+        console.warn('[MAP_SCROLL_RESTORE]', { scrollY: savedY });
+        setTimeout(() => {
+          try {
+            listRef.current?.scrollToOffset({
+              offset: savedY,
+              animated: false, // ⚡ Instant restore — animation YOK
+            });
+          } catch {}
+        }, 0);
+      }
+
+      // 2️⃣ Aynı lesson için zaten scroll yapıldı → smooth scroll YAPMA
+      if (lastScrolledForLessonRef.current === currentLessonId) {
+        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+          activeLessonId: currentLessonId,
+          currentY: savedY,
+          reason: 'focus-same-lesson-no-smooth-scroll',
+          shouldScroll: false,
+        });
+        return;
+      }
+
+      // 3️⃣ Current lesson zaten visible viewport'taysa scroll YAPMA
+      const distance = Math.abs(savedY - targetScrollY);
+      const TOLERANCE = 400; // ~viewport half
+      const visible = distance <= TOLERANCE;
+
+      if (visible) {
+        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+          activeLessonId: currentLessonId,
+          currentY: savedY,
+          targetY: targetScrollY,
+          distance,
+          visible: true,
+          reason: 'lesson-already-visible',
+          shouldScroll: false,
+        });
+        lastScrolledForLessonRef.current = currentLessonId;
+        return;
+      }
+
+      // 4️⃣ Lesson görünür değil + farklı → smooth scroll
       const currentUnit = course.units[currentUnitIndex];
       if (!currentUnit) return;
       const lessonIndexInUnit = currentUnit.lessons.findIndex((l) => l.id === currentLessonId);
       if (lessonIndexInUnit < 0) return;
       const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
+
+      console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+        activeLessonId: currentLessonId,
+        currentY: savedY,
+        targetY: targetScrollY,
+        distance,
+        visible: false,
+        reason: 'focus-lesson-far-smooth-scroll',
+        shouldScroll: true,
+      });
+
       isProgrammaticScrollRef.current = true;
       const tid = setTimeout(() => {
         try {
@@ -260,34 +372,13 @@ function MapScreenContent() {
             viewPosition: 0,
             viewOffset: viewOffsetValue,
           });
-        } catch {
-          // FlatList henüz hazır değilse sustur
-        }
-        // Animasyon bittikten sonra sticky güncellemesini aç (~700ms yeterli)
+        } catch {}
+        lastScrolledForLessonRef.current = currentLessonId;
         setTimeout(() => { isProgrammaticScrollRef.current = false; }, 700);
       }, 200);
       return () => clearTimeout(tid);
-    }, [hasHydrated, currentUnitIndex, currentLessonId, course.units]),
+    }, [hasHydrated, currentUnitIndex, currentLessonId, course.units, targetScrollY]),
   );
-
-  // 📜 Hedef scroll Y koordinatı — current lesson'ın tam görünür olacağı konum
-  // (useEffect içindeki scrollToIndex formulüyle birebir uyumlu)
-  const targetScrollY = useMemo(() => {
-    if (currentUnitIndex < 0 || !currentLessonId) return 0;
-    let offset = 0;
-    for (let i = 0; i < currentUnitIndex; i++) {
-      const unit = course.units[i];
-      offset += (unit?.lessons?.length ?? 0) * 124 + 40 + 80;
-    }
-    const currentUnit = course.units[currentUnitIndex];
-    const lessonIndexInUnit = currentUnit?.lessons.findIndex(
-      (l) => l.id === currentLessonId,
-    ) ?? 0;
-    // useEffect ile aynı formul: viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124
-    // FlatList scroll: scrollOffset = unitOffset - viewOffset
-    const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
-    return Math.max(0, offset - viewOffsetValue);
-  }, [currentUnitIndex, currentLessonId, course.units]);
 
   // 📜 Animated.Value listener → her frame'de FlatList scroll güncelle
   useEffect(() => {
@@ -299,11 +390,19 @@ function MapScreenContent() {
     return () => scrollAnimY.removeListener(id);
   }, [scrollAnimY]);
 
+  // 📜 Last logged scroll Y — log spam'i önlemek için sadece 200px+ değişimde log
+  const lastLoggedScrollY = useRef(0);
+
   // 📜 Scroll event handler — buton görünürlüğünü kontrol et
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
       currentScrollY.current = y;
+      // 🔍 Log throttle — sadece 200px+ değişimde log bas (log spam yok)
+      if (Math.abs(y - lastLoggedScrollY.current) > 200) {
+        console.warn('[MAP_SCROLL_SAVE]', { scrollY: Math.round(y) });
+        lastLoggedScrollY.current = y;
+      }
       // Eğer current lesson'dan 400px+ aşağıdaysa butonu göster
       const shouldShow = y > targetScrollY + 400;
       if (shouldShow !== showScrollButton) {

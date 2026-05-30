@@ -133,37 +133,126 @@ export async function downloadAndMergeProgress(userId: string): Promise<void> {
   }
 }
 
-// ─── İndir ve REPLACE: Firestore → yerel (cloud authoritative) ────
-// SADECE LOGIN sonrası kullanılır. Local'i tamamen cloud'la değiştirir.
-// "Bu cihaza giriş yaptım" senaryosu: cloud'daki state ana state olur.
-// Eğer cloud boşsa local de boş guest state'e döner (= clearLocalProgress).
+// ─── Login sonrası MERGE — guest progress kaybedilmez ───────────────
+// Login (email/Google/Apple/verify-email) sonrası çağrılır.
+// MERGE STRATEJİSİ (downloadAndMergeProgress ile aynı mantık):
+//   - completedLessons → union (local + remote birleşir)
+//   - lessonExerciseProgress → merge (per-lesson keys)
+//   - reviewItems → merge
+//   - xp/streak → max
+//   - achievementsUnlocked → union
+//   - selectedLevel → cloud (varsa) yoksa local
+//   - activeCourse → local korunur (cloud'da yok)
+//
+// 🚨 ESKİ DAVRANIŞ (BUG): Cloud boşsa clearLocalProgress() çağırırdı →
+//    guest progress WIPE olurdu. Yeni davranış: cloud boşsa local'i
+//    cloud'a UPLOAD eder (preserve guest). Cloud'da varsa MERGE yapar.
+//
+// onboardingCompleted, hasCompletedPlacement → cihaz-bazlı, ASLA dokunulmaz.
 
 export async function downloadAndReplaceProgress(userId: string): Promise<void> {
   if (!isFirebaseConfigured || !firebaseDb) return;
   try {
     const snap = await getDoc(PROGRESS_PATH(userId));
+    const localBefore = useUserStore.getState();
+
+    console.warn('[AUTH_PROGRESS_BEFORE_LOGIN]', {
+      localXp: localBefore.xp,
+      localCompletedLessonsCount: localBefore.completedLessons.size,
+      localStreak: localBefore.streak,
+      localOnboardingCompleted: localBefore.onboardingCompleted,
+      localHasCompletedPlacement: localBefore.hasCompletedPlacement,
+      localSelectedLevel: localBefore.selectedLevel,
+    });
 
     if (!snap.exists()) {
-      // Cloud boş → bu kullanıcının ilk girişi → boş state'le başla
-      await clearLocalProgress();
+      // Cloud BOŞ → bu kullanıcının ilk girişi.
+      // ESKİ DAVRANIŞ: clearLocalProgress() → WIPE guest (BUG)
+      // YENİ DAVRANIŞ: Local guest progress'i cloud'a UPLOAD et (preserve).
+      console.warn('[AUTH_PROGRESS_AFTER_REMOTE_FETCH]', {
+        cloudExists: false,
+        action: 'preserving local + uploading to cloud',
+      });
+      await uploadProgress(userId);
+      console.warn('[AUTH_PROGRESS_MERGED]', {
+        result: 'cloud-empty-uploaded-local',
+        finalCompletedLessons: localBefore.completedLessons.size,
+        finalXp: localBefore.xp,
+      });
       return;
     }
 
     const cloud = snap.data() as ProgressDoc;
-
-    // Tüm progress alanlarını cloud'unkilerle değiştir
-    // NOT: onboardingCompleted cihaz-bazlıdır, cloud'dan dokunulmaz.
-    useUserStore.setState({
-      xp:                   cloud.xp ?? 0,
-      streak:               cloud.streak ?? 0,
-      completedLessons:     new Set(cloud.completedLessons ?? []),
-      achievementsUnlocked: new Set(cloud.achievementsUnlocked ?? []),
-      selectedLevel:        (cloud.selectedLevel as any) ?? 'A1',
+    console.warn('[AUTH_PROGRESS_AFTER_REMOTE_FETCH]', {
+      cloudExists: true,
+      cloudXp: cloud.xp,
+      cloudCompletedLessonsCount: cloud.completedLessons?.length ?? 0,
+      cloudStreak: cloud.streak,
+      cloudSelectedLevel: cloud.selectedLevel,
     });
 
-    // Storage alanları
-    await setLearnedWords(cloud.learnedWords ?? []);
-    await setExamScores(cloud.examScores ?? {});
+    // ─── MERGE — guest + cloud progress birleşir ──────────────────
+    const mergedXp = Math.max(localBefore.xp, cloud.xp ?? 0);
+    const mergedStreak = Math.max(localBefore.streak, cloud.streak ?? 0);
+
+    const mergedCompletedLessons = new Set([
+      ...Array.from(localBefore.completedLessons),
+      ...(cloud.completedLessons ?? []),
+    ]);
+
+    const mergedAchievements = new Set([
+      ...Array.from(localBefore.achievementsUnlocked),
+      ...(cloud.achievementsUnlocked ?? []),
+    ]);
+
+    // Selected level — cloud öncelikli (daha güncel) ama local'de farklıysa max al
+    const mergedSelectedLevel = (cloud.selectedLevel as any) ?? localBefore.selectedLevel;
+
+    // 🔒 KORUNAN STATE'LER (asla dokunulmaz):
+    //   - onboardingCompleted, hasCompletedPlacement (cihaz-bazlı)
+    //   - lessonExerciseProgress (cloud'da yok, local'de kalır)
+    //   - reviewItems (cloud'da yok, local'de kalır)
+    //   - activeCourse (cloud'da yok, local'de kalır)
+    //   - hearts, nextHeartRefillAt (gerçek zamanlı state)
+    useUserStore.setState({
+      xp:                   mergedXp,
+      streak:               mergedStreak,
+      completedLessons:     mergedCompletedLessons,
+      achievementsUnlocked: mergedAchievements,
+      selectedLevel:        mergedSelectedLevel,
+    });
+
+    // Sınav skorları — max per level
+    const localScores = await getExamScores();
+    const mergedScores: Record<string, number> = { ...localScores };
+    for (const [level, score] of Object.entries(cloud.examScores ?? {})) {
+      if ((mergedScores[level] ?? 0) < (score ?? 0)) {
+        mergedScores[level] = score;
+      }
+    }
+    await setExamScores(mergedScores);
+
+    // Öğrenilen kelimeler — union (id bazlı dedupe)
+    const localWords = await getLearnedWords();
+    const localWordSet = new Set(localWords.map((w) => `${w.language}:${w.id}`));
+    const newWords = (cloud.learnedWords ?? []).filter(
+      (w) => w?.id && w?.language && !localWordSet.has(`${w.language}:${w.id}`),
+    );
+    if (newWords.length > 0) {
+      await setLearnedWords([...localWords, ...newWords]);
+    }
+
+    console.warn('[AUTH_PROGRESS_MERGED]', {
+      result: 'merged-cloud-with-local',
+      mergedCompletedLessons: mergedCompletedLessons.size,
+      mergedXp,
+      mergedStreak,
+      onboardingPreserved: localBefore.onboardingCompleted,
+      placementPreserved: localBefore.hasCompletedPlacement,
+    });
+
+    // Merge sonrası cloud'u da güncelle (yeni union state remote'a yazılsın)
+    await uploadProgress(userId);
   } catch (e) {
     if (__DEV__) console.warn('[Sync] Download replace hatası:', e);
   }
