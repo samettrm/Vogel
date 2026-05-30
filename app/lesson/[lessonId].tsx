@@ -39,7 +39,6 @@ import {
   isAnswerCorrect, joinWords,
 } from '../../src/utils/exerciseHelpers';
 import { playSound } from '../../src/utils/sounds';
-import { mapNavState } from '../../src/utils/navState';
 
 // ─────────────────────────────────────────────────────────────────
 // REDUCER — Tüm ders state'i tek yerde
@@ -507,12 +506,6 @@ export default function LessonScreen() {
   // ─── Handler'lar (useCallback ile memoize) ───────────────────────
 
   const goHome = useCallback(() => {
-    // 🛡 Map screen'in lesson exit'te auto-scroll yapmaması için flag set.
-    //    Map'in useFocusEffect'i bu flag'i okuyup consume eder → scroll YOK.
-    //    Sadece map'e dönüş için geçerli, exam-map gibi diğer rotalar için değil.
-    if (!returnTo || returnTo === '/') {
-      mapNavState.fromLesson = true;
-    }
     // returnTo parametresi varsa oraya dön (exam-map, lessons, vb.)
     // yoksa ana haritaya dön
     router.replace((returnTo as any) ?? '/');

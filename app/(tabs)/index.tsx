@@ -225,37 +225,33 @@ function MapScreenContent() {
     return Math.max(0, offset - viewOffsetValue);
   }, [currentUnitIndex, currentLessonId, course.units]);
 
-  // 📜 V3 FIX (2026-05-30 — nuanced behavior)
+  // 📜 V4 FIX (2026-05-30 — unified tracking)
   //
-  // User feedback: V2 (useFocusEffect kaldırılması) çok agresif oldu.
-  // Aktif lesson tracking diğer tab'lardan dönüşte de durdu.
+  // User v3 feedback: "mevcut konumu takip etmiyor dersten çıkınca, kamera
+  // ekranın ortasında duruyor". v3'teki fromLesson special-casing tracking'i
+  // tamamen durdurdu.
   //
-  // YENİ NUANCED BEHAVIOR:
-  //   - Lesson exit (router.replace('/') from /lesson/X):
-  //       → mapNavState.fromLesson = true (lesson screen set eder)
-  //       → useFocusEffect bu flag'i consume eder → SCROLL YOK
-  //       → Kullanıcı pozisyonu KORUNUR ✓
+  // V4 UNIFIED BEHAVIOR (lesson exit ve tab switch AYNI):
+  //   - Active lesson VISIBLE (distance ≤ 350) → SCROLL YOK ✓
+  //   - Active lesson FAR → smooth scroll (InteractionManager idle) ✓
+  //   - Initial mount → FlatList initialScrollIndex kendi handle eder
   //
-  //   - Other tab → Map (Profile/Lessons/Shop → Map):
-  //       → fromLesson flag false → normal tracking
-  //       → Active lesson visible → SCROLL YOK
-  //       → Active lesson not visible → smooth scroll ✓
+  // y=0 jump koruması:
+  //   - scrollToIndex({ animated: true }) MEVCUT scroll Y'den animasyon yapar
+  //     (FlatList state preserve ediyorsa)
+  //   - InteractionManager.runAfterInteractions JS idle bekler — render race yok
+  //   - setTimeout blind YOK
   //
-  //   - Initial mount:
-  //       → lastScrolledForLessonRef === null → FlatList initialScrollIndex
-  //       → SCROLL YOK
-  //
-  //   - Lesson tamamlandı + farklı lesson + far + tab focus:
-  //       → fromLesson true → consume → SCROLL YOK (lesson exit'ten geldik)
-  //       → next tab focus → flag false → check visibility → scroll if needed
+  // mapNavState.fromLesson flag artık consume edilmiyor (gelecekte ihtiyaç
+  // olursa diye duruyor, ama logic'i artık etkilemiyor).
   useFocusEffect(
     useCallback(() => {
       if (!hasHydrated || currentUnitIndex < 0 || !currentLessonId) return;
 
-      const cameFromLesson = mapNavState.fromLesson;
-      mapNavState.fromLesson = false; // Consume — sadece bu focus için
+      // Eski flag'i consume et (active tracking'i durdurmasın diye)
+      mapNavState.fromLesson = false;
 
-      // 1️⃣ İlk render — FlatList initialScrollIndex zaten kendi handle eder
+      // 1️⃣ İlk render — FlatList initialScrollIndex kendi handle eder
       if (lastScrolledForLessonRef.current === null) {
         lastScrolledForLessonRef.current = currentLessonId;
         console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
@@ -266,25 +262,13 @@ function MapScreenContent() {
         return;
       }
 
-      // 2️⃣ Lesson exit → SCROLL YOK (mevcut pozisyon korunur)
-      if (cameFromLesson) {
-        lastScrolledForLessonRef.current = currentLessonId;
-        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
-          activeLessonId: currentLessonId,
-          previousScrolledFor: lastScrolledForLessonRef.current,
-          reason: 'came-from-lesson-no-scroll',
-          shouldScroll: false,
-        });
-        return;
-      }
-
-      // 3️⃣ Other tab → Map: aktif lesson tracking
+      // 2️⃣ Visibility check — aktif lesson ekranda mı?
       const currentY = currentScrollY.current;
       const distance = Math.abs(currentY - targetScrollY);
-      const TOLERANCE = 400; // ~viewport half
+      const TOLERANCE = 350;
       const visible = distance <= TOLERANCE;
 
-      // Aktif lesson görünür alandaysa → SCROLL YOK
+      // Visible → SCROLL YOK (pozisyon korunur)
       if (visible) {
         lastScrolledForLessonRef.current = currentLessonId;
         console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
@@ -293,13 +277,13 @@ function MapScreenContent() {
           targetY: targetScrollY,
           distance,
           visible: true,
-          reason: 'tab-focus-lesson-visible-no-scroll',
+          reason: 'lesson-visible-no-scroll',
           shouldScroll: false,
         });
         return;
       }
 
-      // 4️⃣ Aktif lesson görünür değil → smooth scroll
+      // 3️⃣ Aktif lesson görünür değil → smooth scroll (tracking)
       const currentUnit = course.units[currentUnitIndex];
       if (!currentUnit) return;
       const lessonIndexInUnit = currentUnit.lessons.findIndex((l) => l.id === currentLessonId);
@@ -312,7 +296,7 @@ function MapScreenContent() {
         targetY: targetScrollY,
         distance,
         visible: false,
-        reason: 'tab-focus-lesson-far-smooth-scroll',
+        reason: 'lesson-far-smooth-tracking',
         shouldScroll: true,
       });
 
