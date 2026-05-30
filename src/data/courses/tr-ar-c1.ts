@@ -1,46 +1,226 @@
 import type { Course } from '../../types';
 
-// ════════════════════════════════════════════════════════════════
-// TR → AR C1 — PLACEHOLDER
-//
-// ⚠️ YAKINDA: Bu dil çifti için içerik henüz hazırlanmadı.
-// AI ile TR-DE içeriğinden çevrilecek (Phase 2).
-//
-// Bu dosya iskelet — uygulamanın crash olmaması için gerekli minimum
-// veri vardır.
-// ════════════════════════════════════════════════════════════════
-
 export const TR_AR_C1: Course = {
   id: 'tr-ar-c1',
   sourceLanguage: 'tr',
   targetLanguage: 'ar',
   level: 'C1',
   title: 'Arapça C1',
-  description: 'Bu seviye için içerik yakında eklenecek.',
+  description: 'İleri seviye, deyimler, akademik, edebi.',
   units: [
     {
       id: 'tr-ar-c1-u1',
       order: 1,
-      title: 'Yakında',
-      description: 'Bu dil çiftinin müfredatı hazırlanıyor.',
-      tags: ['daily'],
+      title: 'Deyimsel İfadeler',
+      description: 'Idioms ve atasözleri.',
       lessons: [
         {
           id: 'tr-ar-c1-u1-l1',
           order: 1,
-          title: 'Placeholder',
-          xpReward: 10,
+          title: 'Yaygın deyimler',
+          xpReward: 100,
           exercises: [
-            {
-              id: 'tr-ar-c1-u1-l1-e1',
-              type: 'multipleChoice',
-              question: 'Bu dil çifti için içerik yakında hazır olacak.',
-              options: [
-                { id: 'a', text: 'Tamam' },
-                { id: 'b', text: 'Bekliyorum' },
-              ],
-              correctOptionId: 'a',
-            },
+            { id: 'tr-ar-c1-u1-l1-e1', type: 'multipleChoice', question: '"على راحتك" (ʿalā rāḥatik) ne demek?', options: [{ id: 'a', text: 'Rahatına bak' }, { id: 'b', text: 'Çalış' }, { id: 'c', text: 'Acele et' }, { id: 'd', text: 'Bekle' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l1-e2', type: 'multipleChoice', question: '"ما شاء الله" (mā shāʾa Allāh) ne demek?', options: [{ id: 'a', text: 'Maşallah / Allah ne dilediyse' }, { id: 'b', text: 'İnşallah' }, { id: 'c', text: 'Elhamdülillah' }, { id: 'd', text: 'Bismillah' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l1-e3', type: 'multipleChoice', question: '"إن شاء الله" (in shāʾa Allāh) ne demek?', options: [{ id: 'a', text: 'İnşallah / Allah dilerse' }, { id: 'b', text: 'Maşallah' }, { id: 'c', text: 'Elhamdülillah' }, { id: 'd', text: 'Bismillah' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l1-e4', type: 'multipleChoice', question: '"الحمد لله" (al-ḥamdu li-llāh) ne demek?', options: [{ id: 'a', text: 'Allah\'a şükür / Elhamdülillah' }, { id: 'b', text: 'Maşallah' }, { id: 'c', text: 'İnşallah' }, { id: 'd', text: 'Bismillah' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l1-e5', type: 'multipleChoice', question: '"بإذن الله" (bi-idhni Allāh) ne demek?', options: [{ id: 'a', text: 'Allah\'ın izniyle' }, { id: 'b', text: 'Allah\'ın yardımıyla' }, { id: 'c', text: 'Allah\'a şükür' }, { id: 'd', text: 'Allah dilerse' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l1-e6', type: 'multipleChoice', question: '"الصبر مفتاح الفرج" (aṣ-ṣabr miftāḥ al-faraj) ne demek?', options: [{ id: 'a', text: 'Sabır ferahlığın anahtarıdır' }, { id: 'b', text: 'Sabırsızlık' }, { id: 'c', text: 'Acele' }, { id: 'd', text: 'Bekleyiş' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l1-e7', type: 'multipleChoice', question: '"الوقت من ذهب" (al-waqt min dhahab) ne demek?', options: [{ id: 'a', text: 'Vakit nakittir' }, { id: 'b', text: 'Altın değerli' }, { id: 'c', text: 'Zaman geçer' }, { id: 'd', text: 'Para önemli' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-c1-u1-l2',
+          order: 2,
+          title: 'Vücut deyimleri',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-c1-u1-l2-e1', type: 'multipleChoice', question: '"يد في يد" (yad fī yad) ne demek?', options: [{ id: 'a', text: 'El ele' }, { id: 'b', text: 'Yan yana' }, { id: 'c', text: 'Birlikte' }, { id: 'd', text: 'Karşılıklı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l2-e2', type: 'multipleChoice', question: '"عين بعين" (ʿayn bi-ʿayn) ne demek?', options: [{ id: 'a', text: 'Göze göz / Aynısıyla karşılık' }, { id: 'b', text: 'Yüz yüze' }, { id: 'c', text: 'Karşılıklı' }, { id: 'd', text: 'Birlikte' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l2-e3', type: 'multipleChoice', question: '"قلب ذهبي" (qalb dhahabī) ne demek?', options: [{ id: 'a', text: 'Altın kalpli / iyi yürekli' }, { id: 'b', text: 'Soğuk kalpli' }, { id: 'c', text: 'Cesur' }, { id: 'd', text: 'Korkak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l2-e4', type: 'multipleChoice', question: '"رأس مال" (raʾs māl) ne demek?', options: [{ id: 'a', text: 'Sermaye' }, { id: 'b', text: 'Para' }, { id: 'c', text: 'Borç' }, { id: 'd', text: 'Hisse' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l2-e5', type: 'multipleChoice', question: '"على رأسي" (ʿalā raʾsī) ne demek?', options: [{ id: 'a', text: 'Başüstüne / emrindeyim' }, { id: 'b', text: 'Başımda' }, { id: 'c', text: 'Yukarıda' }, { id: 'd', text: 'Önümde' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l2-e6', type: 'multipleChoice', question: '"كلامك ذهب" (kalāmuk dhahab) ne demek?', options: [{ id: 'a', text: 'Sözün altın' }, { id: 'b', text: 'Sözün boş' }, { id: 'c', text: 'Sözün hatalı' }, { id: 'd', text: 'Sözün uzun' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l2-e7', type: 'multipleChoice', question: '"ضرب عصفورين بحجر" (ḍarb ʿuṣfūrayn bi-ḥajar) ne demek?', options: [{ id: 'a', text: 'Bir taşla iki kuş vurmak' }, { id: 'b', text: 'Avlamak' }, { id: 'c', text: 'Bekletmek' }, { id: 'd', text: 'Aldatmak' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-c1-u1-l3',
+          order: 3,
+          title: 'Atasözleri',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-c1-u1-l3-e1', type: 'multipleChoice', question: '"الجار قبل الدار" (al-jār qabla d-dār) ne demek?', options: [{ id: 'a', text: 'Önce komşu sonra ev' }, { id: 'b', text: 'Evden kaçmak' }, { id: 'c', text: 'Komşusuz olmamak' }, { id: 'd', text: 'Önce ev sonra komşu' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l3-e2', type: 'multipleChoice', question: '"العلم نور" (al-ʿilm nūr) ne demek?', options: [{ id: 'a', text: 'İlim nurdur' }, { id: 'b', text: 'İlim güçtür' }, { id: 'c', text: 'İlim zenginliktir' }, { id: 'd', text: 'İlim mutluluktur' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l3-e3', type: 'multipleChoice', question: '"الصديق وقت الضيق" (aṣ-ṣadīq waqt aḍ-ḍīq) ne demek?', options: [{ id: 'a', text: 'Dar günde dost olur' }, { id: 'b', text: 'Sıkıntılı zaman' }, { id: 'c', text: 'Yalnızlık' }, { id: 'd', text: 'Arkadaş azlığı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l3-e4', type: 'multipleChoice', question: '"الكلمة الطيبة صدقة" (al-kalimah aṭ-ṭayyibah ṣadaqah) ne demek?', options: [{ id: 'a', text: 'Güzel söz sadakadır' }, { id: 'b', text: 'Sadaka önemlidir' }, { id: 'c', text: 'Konuşmak iyidir' }, { id: 'd', text: 'Yardım etmek' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l3-e5', type: 'multipleChoice', question: '"الأم مدرسة" (al-umm madrasah) ne demek?', options: [{ id: 'a', text: 'Anne bir okuldur' }, { id: 'b', text: 'Annesizlik' }, { id: 'c', text: 'Eğitim' }, { id: 'd', text: 'Aile' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l3-e6', type: 'multipleChoice', question: '"خير الكلام ما قل ودل" (khayr al-kalām mā qalla wa-dalla) ne demek?', options: [{ id: 'a', text: 'En iyi söz az ve öz olandır' }, { id: 'b', text: 'Çok konuşmak' }, { id: 'c', text: 'Az konuşmak' }, { id: 'd', text: 'Hiç konuşmamak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u1-l3-e7', type: 'multipleChoice', question: '"مثل" (mathal) ne demek?', options: [{ id: 'a', text: 'Atasözü' }, { id: 'b', text: 'Hikaye' }, { id: 'c', text: 'Şiir' }, { id: 'd', text: 'Söz' }], correctOptionId: 'a' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'tr-ar-c1-u2',
+      order: 2,
+      title: 'Akademik Dil',
+      description: 'Üniversite, makale, sunum.',
+      lessons: [
+        {
+          id: 'tr-ar-c1-u2-l1',
+          order: 1,
+          title: 'Akademik',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-c1-u2-l1-e1', type: 'multipleChoice', question: '"بحث علمي" (baḥth ʿilmī) ne demek?', options: [{ id: 'a', text: 'Bilimsel araştırma' }, { id: 'b', text: 'Sorgu' }, { id: 'c', text: 'Test' }, { id: 'd', text: 'Anket' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l1-e2', type: 'multipleChoice', question: '"فرضية" (farḍiyyah) ne demek?', options: [{ id: 'a', text: 'Hipotez' }, { id: 'b', text: 'Teori' }, { id: 'c', text: 'Kanıt' }, { id: 'd', text: 'Sonuç' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l1-e3', type: 'multipleChoice', question: '"أطروحة" (uṭrūḥah) ne demek?', options: [{ id: 'a', text: 'Tez' }, { id: 'b', text: 'Makale' }, { id: 'c', text: 'Rapor' }, { id: 'd', text: 'Kitap' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l1-e4', type: 'multipleChoice', question: '"تحليل" (taḥlīl) ne demek?', options: [{ id: 'a', text: 'Analiz' }, { id: 'b', text: 'Test' }, { id: 'c', text: 'Sınama' }, { id: 'd', text: 'Çalışma' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l1-e5', type: 'multipleChoice', question: '"استنتاج" (istintāj) ne demek?', options: [{ id: 'a', text: 'Sonuç çıkarma' }, { id: 'b', text: 'Başlangıç' }, { id: 'c', text: 'Gelişme' }, { id: 'd', text: 'Süreç' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l1-e6', type: 'multipleChoice', question: '"دكتوراه" (duktūrāh) ne demek?', options: [{ id: 'a', text: 'Doktora' }, { id: 'b', text: 'Lisans' }, { id: 'c', text: 'Yüksek lisans' }, { id: 'd', text: 'Lise' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l1-e7', type: 'multipleChoice', question: '"أستاذ" (ustādh) ne demek?', options: [{ id: 'a', text: 'Profesör / Hoca' }, { id: 'b', text: 'Öğrenci' }, { id: 'c', text: 'Asistan' }, { id: 'd', text: 'Müdür' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-c1-u2-l2',
+          order: 2,
+          title: 'Yazılı dil',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-c1-u2-l2-e1', type: 'multipleChoice', question: '"مقال" (maqāl) ne demek?', options: [{ id: 'a', text: 'Makale' }, { id: 'b', text: 'Hikaye' }, { id: 'c', text: 'Roman' }, { id: 'd', text: 'Şiir' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l2-e2', type: 'multipleChoice', question: '"فقرة" (fiqrah) ne demek?', options: [{ id: 'a', text: 'Paragraf' }, { id: 'b', text: 'Cümle' }, { id: 'c', text: 'Bölüm' }, { id: 'd', text: 'Sayfa' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l2-e3', type: 'multipleChoice', question: '"مقدمة" (muqaddimah) ne demek?', options: [{ id: 'a', text: 'Giriş' }, { id: 'b', text: 'Sonuç' }, { id: 'c', text: 'Gelişme' }, { id: 'd', text: 'Özet' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l2-e4', type: 'multipleChoice', question: '"خاتمة" (khātimah) ne demek?', options: [{ id: 'a', text: 'Sonuç bölümü' }, { id: 'b', text: 'Giriş' }, { id: 'c', text: 'Gelişme' }, { id: 'd', text: 'Özet' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l2-e5', type: 'multipleChoice', question: '"اقتباس" (iqtibās) ne demek?', options: [{ id: 'a', text: 'Alıntı' }, { id: 'b', text: 'Yorum' }, { id: 'c', text: 'Eleştiri' }, { id: 'd', text: 'Açıklama' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l2-e6', type: 'multipleChoice', question: '"مرجع" (marjiʿ) ne demek?', options: [{ id: 'a', text: 'Kaynak' }, { id: 'b', text: 'Alıntı' }, { id: 'c', text: 'Yorum' }, { id: 'd', text: 'Belge' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l2-e7', type: 'multipleChoice', question: '"كتابة" (kitābah) ne demek?', options: [{ id: 'a', text: 'Yazı / Yazma' }, { id: 'b', text: 'Okuma' }, { id: 'c', text: 'Konuşma' }, { id: 'd', text: 'Dinleme' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-c1-u2-l3',
+          order: 3,
+          title: 'Felsefe ve etik',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-c1-u2-l3-e1', type: 'multipleChoice', question: '"فلسفة" (falsafah) ne demek?', options: [{ id: 'a', text: 'Felsefe' }, { id: 'b', text: 'Bilim' }, { id: 'c', text: 'Sanat' }, { id: 'd', text: 'Edebiyat' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l3-e2', type: 'multipleChoice', question: '"حقيقة" (ḥaqīqah) ne demek?', options: [{ id: 'a', text: 'Gerçek / Hakikat' }, { id: 'b', text: 'Yalan' }, { id: 'c', text: 'Söz' }, { id: 'd', text: 'Kanıt' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l3-e3', type: 'multipleChoice', question: '"وجود" (wujūd) ne demek?', options: [{ id: 'a', text: 'Varoluş' }, { id: 'b', text: 'Yaşam' }, { id: 'c', text: 'Ölüm' }, { id: 'd', text: 'Zaman' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l3-e4', type: 'multipleChoice', question: '"حرية" (ḥurriyyah) ne demek?', options: [{ id: 'a', text: 'Özgürlük' }, { id: 'b', text: 'Bağımlılık' }, { id: 'c', text: 'Sorumluluk' }, { id: 'd', text: 'Hak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l3-e5', type: 'multipleChoice', question: '"عدل" (ʿadl) ne demek?', options: [{ id: 'a', text: 'Adalet' }, { id: 'b', text: 'Hukuk' }, { id: 'c', text: 'Yargı' }, { id: 'd', text: 'Mahkeme' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l3-e6', type: 'multipleChoice', question: '"أخلاق" (akhlāq) ne demek?', options: [{ id: 'a', text: 'Ahlak' }, { id: 'b', text: 'Yasa' }, { id: 'c', text: 'Din' }, { id: 'd', text: 'Kültür' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u2-l3-e7', type: 'multipleChoice', question: '"مسؤولية" (masʾūliyyah) ne demek?', options: [{ id: 'a', text: 'Sorumluluk' }, { id: 'b', text: 'Görev' }, { id: 'c', text: 'Hak' }, { id: 'd', text: 'İhtiyaç' }], correctOptionId: 'a' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'tr-ar-c1-u3',
+      order: 3,
+      title: 'Sanat ve Edebiyat',
+      description: 'Şiir, roman, sanat.',
+      lessons: [
+        {
+          id: 'tr-ar-c1-u3-l1',
+          order: 1,
+          title: 'Edebiyat',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-c1-u3-l1-e1', type: 'multipleChoice', question: '"شعر" (shiʿr) ne demek?', options: [{ id: 'a', text: 'Şiir' }, { id: 'b', text: 'Roman' }, { id: 'c', text: 'Hikaye' }, { id: 'd', text: 'Deneme' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l1-e2', type: 'multipleChoice', question: '"رواية" (riwāyah) ne demek?', options: [{ id: 'a', text: 'Roman' }, { id: 'b', text: 'Şiir' }, { id: 'c', text: 'Hikaye' }, { id: 'd', text: 'Tiyatro' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l1-e3', type: 'multipleChoice', question: '"قصة" (qiṣṣah) ne demek?', options: [{ id: 'a', text: 'Hikaye' }, { id: 'b', text: 'Roman' }, { id: 'c', text: 'Şiir' }, { id: 'd', text: 'Tiyatro' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l1-e4', type: 'multipleChoice', question: '"شاعر" (shāʿir) ne demek?', options: [{ id: 'a', text: 'Şair' }, { id: 'b', text: 'Yazar' }, { id: 'c', text: 'Eleştirmen' }, { id: 'd', text: 'Editör' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l1-e5', type: 'multipleChoice', question: '"كاتب" (kātib) ne demek?', options: [{ id: 'a', text: 'Yazar' }, { id: 'b', text: 'Şair' }, { id: 'c', text: 'Editör' }, { id: 'd', text: 'Eleştirmen' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l1-e6', type: 'multipleChoice', question: '"أدب" (adab) ne demek?', options: [{ id: 'a', text: 'Edebiyat / Edep' }, { id: 'b', text: 'Sanat' }, { id: 'c', text: 'Bilim' }, { id: 'd', text: 'Tarih' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l1-e7', type: 'multipleChoice', question: '"بطل" (baṭal) ne demek?', options: [{ id: 'a', text: 'Kahraman' }, { id: 'b', text: 'Karakter' }, { id: 'c', text: 'Düşman' }, { id: 'd', text: 'Yardımcı' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-c1-u3-l2',
+          order: 2,
+          title: 'Sanat',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-c1-u3-l2-e1', type: 'multipleChoice', question: '"فن" (fann) ne demek?', options: [{ id: 'a', text: 'Sanat' }, { id: 'b', text: 'Resim' }, { id: 'c', text: 'Müzik' }, { id: 'd', text: 'Tiyatro' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l2-e2', type: 'multipleChoice', question: '"لوحة" (lawḥah) ne demek?', options: [{ id: 'a', text: 'Tablo' }, { id: 'b', text: 'Heykel' }, { id: 'c', text: 'Sergi' }, { id: 'd', text: 'Galeri' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l2-e3', type: 'multipleChoice', question: '"تمثال" (timthāl) ne demek?', options: [{ id: 'a', text: 'Heykel' }, { id: 'b', text: 'Tablo' }, { id: 'c', text: 'Çizim' }, { id: 'd', text: 'Vazo' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l2-e4', type: 'multipleChoice', question: '"معرض" (maʿriḍ) ne demek?', options: [{ id: 'a', text: 'Sergi' }, { id: 'b', text: 'Galeri' }, { id: 'c', text: 'Müze' }, { id: 'd', text: 'Konser' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l2-e5', type: 'multipleChoice', question: '"متحف" (matḥaf) ne demek?', options: [{ id: 'a', text: 'Müze' }, { id: 'b', text: 'Galeri' }, { id: 'c', text: 'Sergi' }, { id: 'd', text: 'Kütüphane' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l2-e6', type: 'multipleChoice', question: '"فنان" (fannān) ne demek?', options: [{ id: 'a', text: 'Sanatçı' }, { id: 'b', text: 'Müzisyen' }, { id: 'c', text: 'Yazar' }, { id: 'd', text: 'Tasarımcı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l2-e7', type: 'multipleChoice', question: '"موسيقى" (mūsīqā) ne demek?', options: [{ id: 'a', text: 'Müzik' }, { id: 'b', text: 'Sanat' }, { id: 'c', text: 'Resim' }, { id: 'd', text: 'Sinema' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-c1-u3-l3',
+          order: 3,
+          title: 'Sinema',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-c1-u3-l3-e1', type: 'multipleChoice', question: '"سينما" (sīnamā) ne demek?', options: [{ id: 'a', text: 'Sinema' }, { id: 'b', text: 'Tiyatro' }, { id: 'c', text: 'Konser' }, { id: 'd', text: 'Stadyum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l3-e2', type: 'multipleChoice', question: '"فيلم" (film) ne demek?', options: [{ id: 'a', text: 'Film' }, { id: 'b', text: 'Dizi' }, { id: 'c', text: 'Şarkı' }, { id: 'd', text: 'Resim' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l3-e3', type: 'multipleChoice', question: '"مخرج" (mukhrij) ne demek?', options: [{ id: 'a', text: 'Yönetmen' }, { id: 'b', text: 'Yapımcı' }, { id: 'c', text: 'Oyuncu' }, { id: 'd', text: 'Yazar' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l3-e4', type: 'multipleChoice', question: '"ممثل" (mumaththil) ne demek?', options: [{ id: 'a', text: 'Oyuncu' }, { id: 'b', text: 'Yönetmen' }, { id: 'c', text: 'Yazar' }, { id: 'd', text: 'Sanatçı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l3-e5', type: 'multipleChoice', question: '"مسرحية" (masraḥiyyah) ne demek?', options: [{ id: 'a', text: 'Tiyatro oyunu' }, { id: 'b', text: 'Film' }, { id: 'c', text: 'Konser' }, { id: 'd', text: 'Dans' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l3-e6', type: 'multipleChoice', question: '"حفلة موسيقية" (ḥaflah mūsīqiyyah) ne demek?', options: [{ id: 'a', text: 'Konser' }, { id: 'b', text: 'Parti' }, { id: 'c', text: 'Festival' }, { id: 'd', text: 'Albüm' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u3-l3-e7', type: 'multipleChoice', question: '"تحفة فنية" (tuḥfah fanniyyah) ne demek?', options: [{ id: 'a', text: 'Başyapıt / Sanat eseri' }, { id: 'b', text: 'Resim' }, { id: 'c', text: 'Heykel' }, { id: 'd', text: 'Tablo' }], correctOptionId: 'a' },
+          ],
+        },
+      ],
+    },
+    // ═════════════ ÜNİTE 4: C1 YETERLİLİK SINAV HAZIRLIĞI ═════════════
+    {
+      id: 'tr-ar-c1-u4',
+      order: 4,
+      title: 'C1 Yeterlilik Sınavı',
+      description: 'C1 yeterlilik sınavına özel: akademik yazı, deyimler, nüans, karmaşık yapılar.',
+      tags: ['exam'],
+      lessons: [
+        {
+          id: 'tr-ar-c1-u4-l1',
+          order: 1,
+          title: 'Akademik Yazı Kalıpları',
+          xpReward: 150,
+          exercises: [
+            { id: 'tr-ar-c1-u4-l1-e1', type: 'multipleChoice', question: '"يهدف هذا البحث إلى دراسة..." ne demek?', options: [{ id: 'a', text: 'Bu araştırma ... incelemeyi amaçlamaktadır' }, { id: 'b', text: 'Bu araştırma bitti' }, { id: 'c', text: 'Bu araştırma eski' }, { id: 'd', text: 'Bu araştırma önemsiz' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l1-e2', type: 'multipleChoice', question: '"يمكن القول إن..." ne demek?', options: [{ id: 'a', text: '... söylenebilir / öne sürülebilir' }, { id: 'b', text: 'Anlamadım' }, { id: 'c', text: 'Kesin doğru' }, { id: 'd', text: 'Yanlış' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l1-e3', type: 'multipleChoice', question: '"أظهرت الدراسات الحديثة..." ne demek?', options: [{ id: 'a', text: 'Son araştırmalar göstermiştir ki' }, { id: 'b', text: 'Hiç araştırılmamış' }, { id: 'c', text: 'Araştıracaklar' }, { id: 'd', text: 'Görmedim' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l1-e4', type: 'multipleChoice', question: '"دراسة" (dirāsah) ne demek?', options: [{ id: 'a', text: 'Çalışma / Etüt' }, { id: 'b', text: 'Sınav' }, { id: 'c', text: 'Soru' }, { id: 'd', text: 'Test' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l1-e5', type: 'multipleChoice', question: '"من المتفق عليه أن..." ne demek?', options: [{ id: 'a', text: 'genel olarak kabul edilir ki' }, { id: 'b', text: 'reddedilir' }, { id: 'c', text: 'bilinmez' }, { id: 'd', text: 'tartışmalı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l1-e6', type: 'matchPairs', pairs: [{ id: 'p1', left: 'amaçlamaktadır', right: 'يهدف إلى' }, { id: 'p2', left: 'söylenebilir', right: 'يمكن القول' }, { id: 'p3', left: 'göstermiştir', right: 'أظهرت' }, { id: 'p4', left: 'incelemek', right: 'دراسة' }, { id: 'p5', left: 'kabul edilen', right: 'متفق عليه' }] },
+            { id: 'tr-ar-c1-u4-l1-e7', type: 'multipleChoice', question: '"استنتاج" (istintāj) ne demek?', options: [{ id: 'a', text: 'Sonuç çıkarma' }, { id: 'b', text: 'Başlangıç' }, { id: 'c', text: 'Gelişme' }, { id: 'd', text: 'Süreç' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l1-e8', type: 'multipleChoice', question: '"مقالة علمية" (maqālah ʿilmiyyah) ne demek?', options: [{ id: 'a', text: 'Bilimsel makale' }, { id: 'b', text: 'Hikaye' }, { id: 'c', text: 'Şiir' }, { id: 'd', text: 'Roman' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-c1-u4-l2',
+          order: 2,
+          title: 'Deyimler ve Atasözleri',
+          xpReward: 150,
+          exercises: [
+            { id: 'tr-ar-c1-u4-l2-e1', type: 'multipleChoice', question: '"الوقت من ذهب" ne demek?', options: [{ id: 'a', text: 'Vakit nakittir' }, { id: 'b', text: 'Altın değerli' }, { id: 'c', text: 'Zaman geçer' }, { id: 'd', text: 'Para önemli' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l2-e2', type: 'multipleChoice', question: '"الصبر مفتاح الفرج" ne demek?', options: [{ id: 'a', text: 'Sabır ferahlığın anahtarıdır' }, { id: 'b', text: 'Sabırsızlık' }, { id: 'c', text: 'Acele' }, { id: 'd', text: 'Beklemek' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l2-e3', type: 'multipleChoice', question: '"العلم نور" (al-ʿilm nūr) ne demek?', options: [{ id: 'a', text: 'İlim nurdur' }, { id: 'b', text: 'İlim güçtür' }, { id: 'c', text: 'İlim zenginlik' }, { id: 'd', text: 'İlim mutluluk' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l2-e4', type: 'multipleChoice', question: '"الصديق وقت الضيق" ne demek?', options: [{ id: 'a', text: 'Dar günde dost olur' }, { id: 'b', text: 'Sıkıntı zamanı' }, { id: 'c', text: 'Yalnızlık' }, { id: 'd', text: 'Arkadaş azlığı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l2-e5', type: 'multipleChoice', question: '"ضرب عصفورين بحجر" ne demek?', options: [{ id: 'a', text: 'Bir taşla iki kuş vurmak' }, { id: 'b', text: 'Avlamak' }, { id: 'c', text: 'Aldatmak' }, { id: 'd', text: 'Vurmak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l2-e6', type: 'matchPairs', pairs: [{ id: 'p1', left: 'vakit nakittir', right: 'الوقت من ذهب' }, { id: 'p2', left: 'sabır ferahlığın anahtarı', right: 'الصبر مفتاح' }, { id: 'p3', left: 'ilim nurdur', right: 'العلم نور' }, { id: 'p4', left: 'dar günde dost', right: 'الصديق وقت الضيق' }, { id: 'p5', left: 'iki kuş bir taş', right: 'عصفورين بحجر' }] },
+            { id: 'tr-ar-c1-u4-l2-e7', type: 'multipleChoice', question: '"الكلمة الطيبة صدقة" ne demek?', options: [{ id: 'a', text: 'Güzel söz sadakadır' }, { id: 'b', text: 'Sadaka önemli' }, { id: 'c', text: 'Konuşmak iyidir' }, { id: 'd', text: 'Yardım etmek' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l2-e8', type: 'multipleChoice', question: '"خير الكلام ما قل ودل" ne demek?', options: [{ id: 'a', text: 'En iyi söz az ve öz olandır' }, { id: 'b', text: 'Çok konuşmak' }, { id: 'c', text: 'Az konuşmak' }, { id: 'd', text: 'Hiç konuşmamak' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-c1-u4-l3',
+          order: 3,
+          title: 'Karmaşık Yapılar',
+          xpReward: 150,
+          exercises: [
+            { id: 'tr-ar-c1-u4-l3-e1', type: 'multipleChoice', question: '"ليس فقط ... بل أيضا" ne demek?', options: [{ id: 'a', text: 'Sadece ... değil aynı zamanda' }, { id: 'b', text: 'Hiçbir şey' }, { id: 'c', text: 'Sadece' }, { id: 'd', text: 'Sonuna kadar' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l3-e2', type: 'multipleChoice', question: '"لم أر مثل هذا في حياتي" ne demek?', options: [{ id: 'a', text: 'Hayatımda böyle bir şey görmedim' }, { id: 'b', text: 'Asla görmem' }, { id: 'c', text: 'Hep görüyorum' }, { id: 'd', text: 'Görmedim' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l3-e3', type: 'multipleChoice', question: '"كلما ... كلما" ne demek?', options: [{ id: 'a', text: 'Ne kadar ... o kadar' }, { id: 'b', text: 'Sadece' }, { id: 'c', text: 'Belki' }, { id: 'd', text: 'Asla' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l3-e4', type: 'multipleChoice', question: '"الذي / التي" (alladhī / allatī) ne demek?', options: [{ id: 'a', text: '...-en / -an (relative)' }, { id: 'b', text: 'kim' }, { id: 'c', text: 'kime' }, { id: 'd', text: 'nasıl' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l3-e5', type: 'multipleChoice', question: '"بالرغم من" (bi-r-raghm min) ne demek?', options: [{ id: 'a', text: '... rağmen' }, { id: 'b', text: 'çünkü' }, { id: 'c', text: 've' }, { id: 'd', text: 'eğer' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l3-e6', type: 'matchPairs', pairs: [{ id: 'p1', left: 'sadece ... değil', right: 'ليس فقط' }, { id: 'p2', left: 'aynı zamanda', right: 'بل أيضا' }, { id: 'p3', left: 'hayatımda hiç', right: 'لم ... في حياتي' }, { id: 'p4', left: 'ne kadar ... o kadar', right: 'كلما ... كلما' }, { id: 'p5', left: '... rağmen', right: 'بالرغم من' }] },
+            { id: 'tr-ar-c1-u4-l3-e7', type: 'multipleChoice', question: '"لذلك" (li-dhālik) ne demek?', options: [{ id: 'a', text: 'bu nedenle' }, { id: 'b', text: 'eğer' }, { id: 'c', text: 'rağmen' }, { id: 'd', text: 'çünkü' }], correctOptionId: 'a' },
+            { id: 'tr-ar-c1-u4-l3-e8', type: 'multipleChoice', question: '"على أساس" (ʿalā asās) ne demek?', options: [{ id: 'a', text: '... e dayalı olarak' }, { id: 'b', text: '... için' }, { id: 'c', text: '... e karşı' }, { id: 'd', text: '... ile birlikte' }], correctOptionId: 'a' },
           ],
         },
       ],

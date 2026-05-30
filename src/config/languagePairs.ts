@@ -53,8 +53,8 @@ export const LANGUAGE_PAIRS: LanguagePairInfo[] = [
     targetName: 'İngilizce',
     targetNameEn: 'English',
     targetNativeName: 'English',
-    available: false,
-    subtitle: 'Yakında — A1 → C1',
+    available: true,
+    subtitle: 'A1 → C1 tam müfredat',
   },
   {
     source: 'tr',
@@ -65,8 +65,8 @@ export const LANGUAGE_PAIRS: LanguagePairInfo[] = [
     targetName: 'İspanyolca',
     targetNameEn: 'Spanish',
     targetNativeName: 'Español',
-    available: false,
-    subtitle: 'Yakında — A1 → C1',
+    available: true,
+    subtitle: 'A1 → C1 tam müfredat',
   },
   {
     source: 'tr',
@@ -77,8 +77,8 @@ export const LANGUAGE_PAIRS: LanguagePairInfo[] = [
     targetName: 'Fransızca',
     targetNameEn: 'French',
     targetNativeName: 'Français',
-    available: false,
-    subtitle: 'Yakında — A1 → C1',
+    available: true,
+    subtitle: 'A1 → C1 tam müfredat',
   },
   {
     source: 'tr',
@@ -89,8 +89,8 @@ export const LANGUAGE_PAIRS: LanguagePairInfo[] = [
     targetName: 'İtalyanca',
     targetNameEn: 'Italian',
     targetNativeName: 'Italiano',
-    available: false,
-    subtitle: 'Yakında — A1 → C1',
+    available: true,
+    subtitle: 'A1 → C1 tam müfredat',
   },
   {
     source: 'tr',
@@ -101,21 +101,12 @@ export const LANGUAGE_PAIRS: LanguagePairInfo[] = [
     targetName: 'Arapça',
     targetNameEn: 'Arabic',
     targetNativeName: 'العربية',
-    available: false,
-    subtitle: 'Yakında — A1 → C1',
+    available: true,
+    subtitle: 'A1 → C1 tam müfredat',
   },
-  {
-    source: 'en',
-    target: 'de',
-    title: 'German (for English speakers)',
-    titleEn: 'German (for English speakers)',
-    flag: '🇩🇪',
-    targetName: 'Almanca',
-    targetNameEn: 'German',
-    targetNativeName: 'Deutsch',
-    available: false,
-    subtitle: 'Coming soon — A1 → C1',
-  },
+  // EN → DE (yabancılar için Almanca) listede gösterilmez —
+  // sadece İngilizce UI desteklendiğinde anlamlı olur.
+  // Course dosyaları korunur (gelecek için), sadece dropdown'da gizlenir.
 ];
 
 // Default pair — kullanıcı henüz seçmediyse veya eski persist'te yoksa

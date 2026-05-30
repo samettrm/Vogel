@@ -26,26 +26,22 @@ import {
   type MotivationMeta,
 } from '../src/services/personalization';
 import type { CEFRLevel, LearningMotivation } from '../src/types';
-import { PlacementTest } from '../src/components/onboarding/PlacementTest';
 
 // ════════════════════════════════════════════════════════════════
 // ONBOARDING — 6 ADIMLI KİŞİSELLEŞTİRİLMİŞ AKIŞ
 //
-// Step 1: Welcome
-// Step 2: Motivasyon (ÇOKLU seçim 1-3) — kullanıcıyı tanıma
-// Step 3: Günlük Hedef (sadece dakika)
-// Step 4: Mini Taster ("Hallo" ne demek?)
-// Step 5: Bildirimler
-// Step 6: KİŞİSEL ÖZET — "Senin Vogel Yolculuğun" (sürpriz adım)
+// Step 0: Welcome
+// Step 1: Self-Assessment (Yeni / Biraz / Orta-ileri → B1/B2/C1)
+// Step 2: Motivasyon (ÇOKLU seçim 1-3)
+// Step 3: Günlük Hedef (dakika)
+// Step 4: Bildirimler
+// Step 5: KİŞİSEL ÖZET — "Senin Vogel Yolculuğun"
 //
-// Kişiselleştirme katmanı:
-//   - Motivasyonlar store'da çoklu olarak saklanır
-//   - personalization.ts servisi mesaj/scoring sağlar
-//   - Smart reminders bu bilgiyi kullanır
-//   - Önerilen ders bu skorlara göre öne çıkar
+// Eskiden placement test + "Hallo ne demek?" taster vardı, kaldırıldı.
+// Kullanıcı kendi seviyesini seçer; 6 dil destekli flow için pragmatik.
 // ════════════════════════════════════════════════════════════════
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 6;
 const MAX_MOTIVATIONS = 3;
 
 interface GoalOption {
@@ -64,8 +60,6 @@ const GOALS: GoalOption[] = [
   { xpValue: 50, minutes: 25, emoji: '🏆', labelKey: 'onboarding.goalIntense',  minutesKey: 'onboarding.goalMinutesIntense',  mascotKey: 'onboarding.goalMascotIntense'  },
 ];
 
-const TASTER_CORRECT_INDEX = 0; // "Merhaba"
-
 export default function OnboardingScreen() {
   const c = useThemeColors();
   const t = useT();
@@ -76,15 +70,13 @@ export default function OnboardingScreen() {
   const setActiveCourse = useUserStore((s) => s.setActiveCourse);
   const setSelectedLevel = useUserStore((s) => s.setSelectedLevel);
 
-  const [step, setStep] = useState<number>(0); // 0..6
+  const [step, setStep] = useState<number>(0); // 0..5
   const [motivations, setMotivations] = useState<LearningMotivation[]>([]);
   const [goalXp, setGoalXp] = useState<number>(20); // default Normal
-  const [tasterAnswer, setTasterAnswer] = useState<number | null>(null);
   const [notifEnabled, setNotifEnabled] = useState<boolean>(false);
   const [notifBusy, setNotifBusy] = useState(false);
-  // 🎯 Placement (seviye belirleme)
+  // 🎯 Self-assessment: kullanıcı kendi seviyesini seçer
   const [startingLevel, setStartingLevel] = useState<CEFRLevel>('A1');
-  const [showPlacementTest, setShowPlacementTest] = useState(false);
 
   // Bird mascot float animation
   const bob = useSharedValue(0);
@@ -146,8 +138,8 @@ export default function OnboardingScreen() {
       }
     } finally {
       setNotifBusy(false);
-      // Özet ekranına geç (step 6)
-      setStep(6);
+      // Özet ekranına geç (step 5)
+      setStep(5);
     }
   };
 
@@ -180,7 +172,6 @@ export default function OnboardingScreen() {
   // ─── Sonraki butonu disabled mı? ───
   const isNextDisabled = (() => {
     if (step === 2 && motivations.length === 0) return true;
-    if (step === 4 && tasterAnswer === null) return true;
     return false;
   })();
 
@@ -223,17 +214,12 @@ export default function OnboardingScreen() {
           <WelcomeStep t={t} birdStyle={birdStyle} styles={styles} />
         )}
         {step === 1 && (
-          <LevelCheckStep
+          <SelfAssessmentStep
             c={c} t={t} styles={styles}
-            startingLevel={startingLevel}
-            onChooseScratch={() => {
+            onPickLevel={(lvl) => {
               Haptics.selectionAsync().catch(() => {});
-              setStartingLevel('A1');
+              setStartingLevel(lvl);
               setStep(2);
-            }}
-            onChoosePlacement={() => {
-              Haptics.selectionAsync().catch(() => {});
-              setShowPlacementTest(true);
             }}
             birdStyle={birdStyle}
           />
@@ -257,22 +243,6 @@ export default function OnboardingScreen() {
           />
         )}
         {step === 4 && (
-          <TasterStep
-            c={c} t={t} styles={styles}
-            answer={tasterAnswer}
-            onAnswer={(idx) => {
-              if (tasterAnswer !== null) return;
-              if (idx === TASTER_CORRECT_INDEX) {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-              } else {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
-              }
-              setTasterAnswer(idx);
-            }}
-            birdStyle={birdStyle}
-          />
-        )}
-        {step === 5 && (
           <NotificationsStep
             c={c} t={t} styles={styles}
             onEnable={() => handleNotificationsChoice(true)}
@@ -281,7 +251,7 @@ export default function OnboardingScreen() {
             birdStyle={birdStyle}
           />
         )}
-        {step === 6 && (
+        {step === 5 && (
           <SummaryStep
             c={c} t={t} styles={styles}
             motivations={motivations}
@@ -293,8 +263,8 @@ export default function OnboardingScreen() {
         )}
       </ScrollView>
 
-      {/* ═══ Bottom bar: step 5+ (Notifications, Summary) kendi butonlarına sahip ═══ */}
-      {step < 5 ? (
+      {/* ═══ Bottom bar: step 4+ (Notifications, Summary) kendi butonlarına sahip ═══ */}
+      {step < 4 ? (
         <View style={styles.bottomBar}>
           {step > 0 ? (
             <Pressable
@@ -324,22 +294,6 @@ export default function OnboardingScreen() {
         </View>
       ) : null}
 
-      {/* 🎯 Placement Test Modal — step 1'de "Seviyemi test et" seçilirse açılır */}
-      {showPlacementTest ? (
-        <View style={styles.placementOverlay}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: c.bg }} edges={['top', 'bottom']}>
-            <PlacementTest
-              onComplete={(level) => {
-                setStartingLevel(level);
-                setShowPlacementTest(false);
-                // Kısa gecikmeyle bir sonraki step'e geç (kullanıcı sonucu gördükten sonra)
-                setTimeout(() => setStep(2), 250);
-              }}
-              onCancel={() => setShowPlacementTest(false)}
-            />
-          </SafeAreaView>
-        </View>
-      ) : null}
     </SafeAreaView>
   );
 }
@@ -370,68 +324,110 @@ function WelcomeStep({
 }
 
 // ─── Step 2: LevelCheck — Sıfırdan mı, yoksa seviye testi mi? ───
-function LevelCheckStep({
-  c, t, styles,
-  startingLevel: _startingLevel,
-  onChooseScratch,
-  onChoosePlacement,
+function SelfAssessmentStep({
+  c, t: _t, styles,
+  onPickLevel,
   birdStyle,
 }: {
   c: ReturnType<typeof useThemeColors>;
   t: ReturnType<typeof useT>;
   styles: StepStyles;
-  startingLevel: CEFRLevel;
-  onChooseScratch: () => void;
-  onChoosePlacement: () => void;
+  onPickLevel: (lvl: CEFRLevel) => void;
   birdStyle: ReturnType<typeof useAnimatedStyle>;
 }) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
   return (
     <Animated.View entering={FadeInRight.duration(300)} exiting={FadeOutLeft.duration(200)}>
-      {/* Mascot — ortada, küçük */}
       <View style={{ alignItems: 'center', marginBottom: spacing.lg, marginTop: spacing.sm }}>
         <Animated.View style={[styles.levelCheckMascot, birdStyle]}>
           <Text style={styles.levelCheckMascotEmoji}>🎯</Text>
         </Animated.View>
       </View>
 
-      <Text style={[styles.stepTitle, { textAlign: 'center' }]}>{t('onboarding.levelCheckTitle')}</Text>
-      <Text style={[styles.stepSubtitle, { textAlign: 'center' }]}>{t('onboarding.levelCheckSubtitle')}</Text>
+      <Text style={[styles.stepTitle, { textAlign: 'center' }]}>Seviyeni seç</Text>
+      <Text style={[styles.stepSubtitle, { textAlign: 'center' }]}>
+        En uygun seçeneği seç — istersen sonra değiştirebilirsin.
+      </Text>
 
       <View style={styles.levelCheckCardList}>
-        {/* Seçenek 1: Sıfırdan başla */}
+        {/* 🟢 Yeni başlıyorum → A1 */}
         <Pressable
-          onPress={onChooseScratch}
+          onPress={() => onPickLevel('A1')}
           style={({ pressed }) => [
             styles.levelCheckCard,
             pressed && styles.levelCheckCardPressed,
           ]}
         >
-          <Text style={styles.levelCheckEmoji}>🌱</Text>
+          <Text style={styles.levelCheckEmoji}>🟢</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.levelCheckLabel}>{t('onboarding.levelScratch')}</Text>
-            <Text style={styles.levelCheckDesc}>{t('onboarding.levelScratchDesc')}</Text>
+            <Text style={styles.levelCheckLabel}>Yeni başlıyorum</Text>
+            <Text style={styles.levelCheckDesc}>Sıfırdan A1 seviyesinden başla</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={c.textLow} />
         </Pressable>
 
-        {/* Seçenek 2: Seviye testi (vurgulu) */}
+        {/* 🟡 Biraz biliyorum → A2 */}
         <Pressable
-          onPress={onChoosePlacement}
+          onPress={() => onPickLevel('A2')}
           style={({ pressed }) => [
             styles.levelCheckCard,
-            styles.levelCheckCardHighlight,
             pressed && styles.levelCheckCardPressed,
           ]}
         >
-          <Text style={styles.levelCheckEmoji}>🎓</Text>
+          <Text style={styles.levelCheckEmoji}>🟡</Text>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.levelCheckLabel, { color: c.purpleLight }]}>
-              {t('onboarding.levelPlacement')}
-            </Text>
-            <Text style={styles.levelCheckDesc}>{t('onboarding.levelPlacementDesc')}</Text>
+            <Text style={styles.levelCheckLabel}>Biraz biliyorum</Text>
+            <Text style={styles.levelCheckDesc}>Temel sözcüklere hakimim — A2'den başla</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={c.purple} />
+          <Ionicons name="chevron-forward" size={18} color={c.textLow} />
         </Pressable>
+
+        {/* 🔴 Orta-ileri → açılır B1/B2/C1 */}
+        <Pressable
+          onPress={() => setShowAdvanced((v) => !v)}
+          style={({ pressed }) => [
+            styles.levelCheckCard,
+            pressed && styles.levelCheckCardPressed,
+          ]}
+        >
+          <Text style={styles.levelCheckEmoji}>🔴</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.levelCheckLabel}>Orta-ileri seviyedeyim</Text>
+            <Text style={styles.levelCheckDesc}>B1, B2 veya C1 seç</Text>
+          </View>
+          <Ionicons
+            name={showAdvanced ? 'chevron-down' : 'chevron-forward'}
+            size={18}
+            color={c.textLow}
+          />
+        </Pressable>
+
+        {showAdvanced ? (
+          <Animated.View entering={FadeIn.duration(200)} style={{ gap: spacing.sm, marginTop: spacing.xs }}>
+            {(['B1', 'B2', 'C1'] as CEFRLevel[]).map((lvl) => (
+              <Pressable
+                key={lvl}
+                onPress={() => onPickLevel(lvl)}
+                style={({ pressed }) => [
+                  styles.levelCheckCard,
+                  { paddingVertical: spacing.md },
+                  pressed && styles.levelCheckCardPressed,
+                ]}
+              >
+                <Text style={[styles.levelCheckEmoji, { fontSize: 22 }]}>{lvl === 'B1' ? '🥉' : lvl === 'B2' ? '🥈' : '🥇'}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.levelCheckLabel}>{lvl}</Text>
+                  <Text style={styles.levelCheckDesc}>
+                    {lvl === 'B1' ? 'Günlük konuşmaları takip edebiliyorum'
+                      : lvl === 'B2' ? 'Karmaşık konularda iletişim kurabiliyorum'
+                      : 'Akıcı ve nüanslı konuşabiliyorum'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={c.textLow} />
+              </Pressable>
+            ))}
+          </Animated.View>
+        ) : null}
       </View>
     </Animated.View>
   );
@@ -609,100 +605,7 @@ function GoalStep({
   );
 }
 
-// ─── Step 4: Taster ───
-function TasterStep({
-  c, t, styles, answer, onAnswer, birdStyle,
-}: {
-  c: ReturnType<typeof useThemeColors>;
-  t: ReturnType<typeof useT>;
-  styles: StepStyles;
-  answer: number | null;
-  onAnswer: (idx: number) => void;
-  birdStyle: ReturnType<typeof useAnimatedStyle>;
-}) {
-  const optionKeys: MessageKey[] = [
-    'onboarding.tasterOption1',
-    'onboarding.tasterOption2',
-    'onboarding.tasterOption3',
-    'onboarding.tasterOption4',
-  ];
-
-  const isAnswered = answer !== null;
-  const isCorrect = answer === TASTER_CORRECT_INDEX;
-
-  return (
-    <Animated.View entering={FadeInRight.duration(300)} exiting={FadeOutLeft.duration(200)}>
-      <Text style={styles.stepTitle}>{t('onboarding.tasterTitle')}</Text>
-      <Text style={styles.stepSubtitle}>{t('onboarding.tasterSubtitle')}</Text>
-
-      <View style={styles.questionCard}>
-        <Animated.View style={[styles.questionBird, birdStyle]}>
-          <Text style={styles.questionBirdEmoji}>🐦</Text>
-        </Animated.View>
-        <Text style={styles.questionText}>{t('onboarding.tasterQuestion')}</Text>
-      </View>
-
-      <View style={styles.optionsList}>
-        {optionKeys.map((key, idx) => {
-          const isThisSelected = answer === idx;
-          const isThisCorrect = idx === TASTER_CORRECT_INDEX;
-          const showCorrect = isAnswered && isThisCorrect;
-          const showWrong = isAnswered && isThisSelected && !isThisCorrect;
-
-          return (
-            <Pressable
-              key={idx}
-              onPress={() => onAnswer(idx)}
-              disabled={isAnswered}
-              style={({ pressed }) => [
-                styles.optionCard,
-                showCorrect && styles.optionCardCorrect,
-                showWrong && styles.optionCardWrong,
-                pressed && !isAnswered && styles.optionCardPressed,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.optionLabel,
-                  showCorrect && styles.optionLabelCorrect,
-                  showWrong && styles.optionLabelWrong,
-                ]}
-              >
-                {t(key)}
-              </Text>
-              {showCorrect ? (
-                <Ionicons name="checkmark-circle" size={20} color={c.neon} />
-              ) : showWrong ? (
-                <Ionicons name="close-circle" size={20} color={c.red} />
-              ) : null}
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {isAnswered ? (
-        <Animated.View
-          entering={FadeIn.duration(280)}
-          style={[
-            styles.feedbackBox,
-            isCorrect ? styles.feedbackBoxCorrect : styles.feedbackBoxWrong,
-          ]}
-        >
-          <Text
-            style={[
-              styles.feedbackText,
-              { color: isCorrect ? c.neonLight : c.red },
-            ]}
-          >
-            {isCorrect ? t('onboarding.tasterCorrect') : t('onboarding.tasterWrong')}
-          </Text>
-        </Animated.View>
-      ) : null}
-    </Animated.View>
-  );
-}
-
-// ─── Step 5: Notifications ───
+// ─── Step 4: Notifications ───
 function NotificationsStep({
   c, t, styles, onEnable, onSkip, busy, birdStyle,
 }: {
@@ -754,7 +657,7 @@ function NotificationsStep({
   );
 }
 
-// ─── Step 6: KİŞİSEL ÖZET — ŞAŞIRTICI ADIM ───
+// ─── Step 5: KİŞİSEL ÖZET — ŞAŞIRTICI ADIM ───
 function SummaryStep({
   c, t, styles, motivations, goalXp, notifEnabled, birdStyle, onStart,
 }: {

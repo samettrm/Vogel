@@ -7,35 +7,35 @@ import { TR_DE_B1 } from './tr-de-b1';
 import { TR_DE_B2 } from './tr-de-b2';
 import { TR_DE_C1 } from './tr-de-c1';
 
-// TR → EN (İngilizce) — PLACEHOLDER
+// TR → EN (İngilizce) — TAM MÜFREDAT
 import { TR_EN_A1 } from './tr-en-a1';
 import { TR_EN_A2 } from './tr-en-a2';
 import { TR_EN_B1 } from './tr-en-b1';
 import { TR_EN_B2 } from './tr-en-b2';
 import { TR_EN_C1 } from './tr-en-c1';
 
-// TR → ES (İspanyolca) — PLACEHOLDER
+// TR → ES (İspanyolca) — TAM MÜFREDAT
 import { TR_ES_A1 } from './tr-es-a1';
 import { TR_ES_A2 } from './tr-es-a2';
 import { TR_ES_B1 } from './tr-es-b1';
 import { TR_ES_B2 } from './tr-es-b2';
 import { TR_ES_C1 } from './tr-es-c1';
 
-// TR → FR (Fransızca) — PLACEHOLDER
+// TR → FR (Fransızca) — TAM MÜFREDAT
 import { TR_FR_A1 } from './tr-fr-a1';
 import { TR_FR_A2 } from './tr-fr-a2';
 import { TR_FR_B1 } from './tr-fr-b1';
 import { TR_FR_B2 } from './tr-fr-b2';
 import { TR_FR_C1 } from './tr-fr-c1';
 
-// TR → IT (İtalyanca) — PLACEHOLDER
+// TR → IT (İtalyanca) — TAM MÜFREDAT
 import { TR_IT_A1 } from './tr-it-a1';
 import { TR_IT_A2 } from './tr-it-a2';
 import { TR_IT_B1 } from './tr-it-b1';
 import { TR_IT_B2 } from './tr-it-b2';
 import { TR_IT_C1 } from './tr-it-c1';
 
-// TR → AR (Arapça) — PLACEHOLDER
+// TR → AR (Arapça) — TAM MÜFREDAT
 import { TR_AR_A1 } from './tr-ar-a1';
 import { TR_AR_A2 } from './tr-ar-a2';
 import { TR_AR_B1 } from './tr-ar-b1';

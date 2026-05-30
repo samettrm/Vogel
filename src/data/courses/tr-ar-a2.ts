@@ -1,46 +1,226 @@
 import type { Course } from '../../types';
 
-// ════════════════════════════════════════════════════════════════
-// TR → AR A2 — PLACEHOLDER
-//
-// ⚠️ YAKINDA: Bu dil çifti için içerik henüz hazırlanmadı.
-// AI ile TR-DE içeriğinden çevrilecek (Phase 2).
-//
-// Bu dosya iskelet — uygulamanın crash olmaması için gerekli minimum
-// veri vardır.
-// ════════════════════════════════════════════════════════════════
-
 export const TR_AR_A2: Course = {
   id: 'tr-ar-a2',
   sourceLanguage: 'tr',
   targetLanguage: 'ar',
   level: 'A2',
   title: 'Arapça A2',
-  description: 'Bu seviye için içerik yakında eklenecek.',
+  description: 'Zaman, günlük rutin, ev, alışveriş.',
   units: [
     {
       id: 'tr-ar-a2-u1',
       order: 1,
-      title: 'Yakında',
-      description: 'Bu dil çiftinin müfredatı hazırlanıyor.',
-      tags: ['daily'],
+      title: 'Zaman',
+      description: 'Saat, gün, ay.',
       lessons: [
         {
           id: 'tr-ar-a2-u1-l1',
           order: 1,
-          title: 'Placeholder',
-          xpReward: 10,
+          title: 'Saat',
+          xpReward: 100,
           exercises: [
-            {
-              id: 'tr-ar-a2-u1-l1-e1',
-              type: 'multipleChoice',
-              question: 'Bu dil çifti için içerik yakında hazır olacak.',
-              options: [
-                { id: 'a', text: 'Tamam' },
-                { id: 'b', text: 'Bekliyorum' },
-              ],
-              correctOptionId: 'a',
-            },
+            { id: 'tr-ar-a2-u1-l1-e1', type: 'multipleChoice', question: '"كم الساعة؟" (kam as-sāʿah?) ne demek?', options: [{ id: 'a', text: 'Saat kaç?' }, { id: 'b', text: 'Nasılsın?' }, { id: 'c', text: 'Nerelisin?' }, { id: 'd', text: 'Kaç yaşındasın?' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l1-e2', type: 'multipleChoice', question: '"ساعة" (sāʿah) ne demek?', options: [{ id: 'a', text: 'Saat' }, { id: 'b', text: 'Dakika' }, { id: 'c', text: 'Saniye' }, { id: 'd', text: 'Gün' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l1-e3', type: 'multipleChoice', question: '"دقيقة" (daqīqah) ne demek?', options: [{ id: 'a', text: 'Dakika' }, { id: 'b', text: 'Saat' }, { id: 'c', text: 'Saniye' }, { id: 'd', text: 'Hafta' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l1-e4', type: 'multipleChoice', question: '"نصف" (niṣf) ne demek?', options: [{ id: 'a', text: 'Yarım' }, { id: 'b', text: 'Tam' }, { id: 'c', text: 'Çeyrek' }, { id: 'd', text: 'Birkaç' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l1-e5', type: 'multipleChoice', question: '"ربع" (rubʿ) ne demek?', options: [{ id: 'a', text: 'Çeyrek' }, { id: 'b', text: 'Yarım' }, { id: 'c', text: 'Tam' }, { id: 'd', text: 'Biraz' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l1-e6', type: 'multipleChoice', question: '"وقت" (waqt) ne demek?', options: [{ id: 'a', text: 'Zaman' }, { id: 'b', text: 'Saat' }, { id: 'c', text: 'Dakika' }, { id: 'd', text: 'Anlık' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l1-e7', type: 'multipleChoice', question: '"الآن" (al-ʾān) ne demek?', options: [{ id: 'a', text: 'şimdi' }, { id: 'b', text: 'sonra' }, { id: 'c', text: 'önce' }, { id: 'd', text: 'her zaman' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-a2-u1-l2',
+          order: 2,
+          title: 'Günler',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-a2-u1-l2-e1', type: 'multipleChoice', question: '"الإثنين" (al-ithnayn) hangi gün?', options: [{ id: 'a', text: 'Pazartesi' }, { id: 'b', text: 'Salı' }, { id: 'c', text: 'Çarşamba' }, { id: 'd', text: 'Perşembe' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l2-e2', type: 'multipleChoice', question: '"الأربعاء" (al-arbiʿāʾ) hangi gün?', options: [{ id: 'a', text: 'Çarşamba' }, { id: 'b', text: 'Salı' }, { id: 'c', text: 'Perşembe' }, { id: 'd', text: 'Cuma' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l2-e3', type: 'multipleChoice', question: '"الجمعة" (al-jumʿah) hangi gün?', options: [{ id: 'a', text: 'Cuma' }, { id: 'b', text: 'Cumartesi' }, { id: 'c', text: 'Pazar' }, { id: 'd', text: 'Perşembe' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l2-e4', type: 'multipleChoice', question: '"الأحد" (al-aḥad) hangi gün?', options: [{ id: 'a', text: 'Pazar' }, { id: 'b', text: 'Cumartesi' }, { id: 'c', text: 'Pazartesi' }, { id: 'd', text: 'Cuma' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l2-e5', type: 'multipleChoice', question: '"عطلة نهاية الأسبوع" (ʿuṭlat nihāyat al-usbūʿ) ne demek?', options: [{ id: 'a', text: 'Hafta sonu' }, { id: 'b', text: 'Hafta içi' }, { id: 'c', text: 'Yarın' }, { id: 'd', text: 'Dün' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l2-e6', type: 'multipleChoice', question: '"يوم" (yawm) ne demek?', options: [{ id: 'a', text: 'Gün' }, { id: 'b', text: 'Hafta' }, { id: 'c', text: 'Ay' }, { id: 'd', text: 'Yıl' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l2-e7', type: 'multipleChoice', question: '"أسبوع" (usbūʿ) ne demek?', options: [{ id: 'a', text: 'Hafta' }, { id: 'b', text: 'Gün' }, { id: 'c', text: 'Ay' }, { id: 'd', text: 'Yıl' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-a2-u1-l3',
+          order: 3,
+          title: 'Aylar',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-a2-u1-l3-e1', type: 'multipleChoice', question: '"شهر" (shahr) ne demek?', options: [{ id: 'a', text: 'Ay (takvim)' }, { id: 'b', text: 'Gün' }, { id: 'c', text: 'Hafta' }, { id: 'd', text: 'Yıl' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l3-e2', type: 'multipleChoice', question: '"سنة" (sanah) ne demek?', options: [{ id: 'a', text: 'Yıl' }, { id: 'b', text: 'Ay' }, { id: 'c', text: 'Hafta' }, { id: 'd', text: 'Gün' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l3-e3', type: 'multipleChoice', question: '"ربيع" (rabīʿ) ne demek?', options: [{ id: 'a', text: 'İlkbahar' }, { id: 'b', text: 'Yaz' }, { id: 'c', text: 'Sonbahar' }, { id: 'd', text: 'Kış' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l3-e4', type: 'multipleChoice', question: '"صيف" (ṣayf) ne demek?', options: [{ id: 'a', text: 'Yaz' }, { id: 'b', text: 'Kış' }, { id: 'c', text: 'Sonbahar' }, { id: 'd', text: 'Bahar' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l3-e5', type: 'multipleChoice', question: '"شتاء" (shitāʾ) ne demek?', options: [{ id: 'a', text: 'Kış' }, { id: 'b', text: 'Yaz' }, { id: 'c', text: 'Sonbahar' }, { id: 'd', text: 'Bahar' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l3-e6', type: 'multipleChoice', question: '"خريف" (kharīf) ne demek?', options: [{ id: 'a', text: 'Sonbahar' }, { id: 'b', text: 'Yaz' }, { id: 'c', text: 'Kış' }, { id: 'd', text: 'İlkbahar' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u1-l3-e7', type: 'multipleChoice', question: '"اليوم" (al-yawm) ne demek?', options: [{ id: 'a', text: 'Bugün' }, { id: 'b', text: 'Yarın' }, { id: 'c', text: 'Dün' }, { id: 'd', text: 'Şimdi' }], correctOptionId: 'a' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'tr-ar-a2-u2',
+      order: 2,
+      title: 'Günlük Rutin',
+      description: 'Sabah, akşam.',
+      lessons: [
+        {
+          id: 'tr-ar-a2-u2-l1',
+          order: 1,
+          title: 'Sabah',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-a2-u2-l1-e1', type: 'multipleChoice', question: '"استيقظ" (istayqaẓa) ne demek?', options: [{ id: 'a', text: 'uyanmak' }, { id: 'b', text: 'oturmak' }, { id: 'c', text: 'yatmak' }, { id: 'd', text: 'yemek' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l1-e2', type: 'multipleChoice', question: '"استحم" (istaḥamma) ne demek?', options: [{ id: 'a', text: 'duş almak' }, { id: 'b', text: 'yıkamak' }, { id: 'c', text: 'temizlemek' }, { id: 'd', text: 'taranmak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l1-e3', type: 'multipleChoice', question: '"فطور" (fuṭūr) ne demek?', options: [{ id: 'a', text: 'Kahvaltı' }, { id: 'b', text: 'Öğle yemeği' }, { id: 'c', text: 'Akşam yemeği' }, { id: 'd', text: 'Atıştırmalık' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l1-e4', type: 'multipleChoice', question: '"غداء" (ghadāʾ) ne demek?', options: [{ id: 'a', text: 'Öğle yemeği' }, { id: 'b', text: 'Kahvaltı' }, { id: 'c', text: 'Akşam yemeği' }, { id: 'd', text: 'Tatlı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l1-e5', type: 'multipleChoice', question: '"عشاء" (ʿashāʾ) ne demek?', options: [{ id: 'a', text: 'Akşam yemeği' }, { id: 'b', text: 'Kahvaltı' }, { id: 'c', text: 'Öğle yemeği' }, { id: 'd', text: 'Tatlı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l1-e6', type: 'multipleChoice', question: '"صباح" (ṣabāḥ) ne demek?', options: [{ id: 'a', text: 'Sabah' }, { id: 'b', text: 'Akşam' }, { id: 'c', text: 'Öğle' }, { id: 'd', text: 'Gece' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l1-e7', type: 'multipleChoice', question: '"مساء" (masāʾ) ne demek?', options: [{ id: 'a', text: 'Akşam' }, { id: 'b', text: 'Sabah' }, { id: 'c', text: 'Öğle' }, { id: 'd', text: 'Gece' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-a2-u2-l2',
+          order: 2,
+          title: 'İş',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-a2-u2-l2-e1', type: 'multipleChoice', question: '"مكتب" (maktab) ne demek?', options: [{ id: 'a', text: 'Ofis' }, { id: 'b', text: 'Okul' }, { id: 'c', text: 'Mağaza' }, { id: 'd', text: 'Fabrika' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l2-e2', type: 'multipleChoice', question: '"اجتماع" (ijtimāʿ) ne demek?', options: [{ id: 'a', text: 'Toplantı' }, { id: 'b', text: 'Sunum' }, { id: 'c', text: 'Mülakat' }, { id: 'd', text: 'Konferans' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l2-e3', type: 'multipleChoice', question: '"زميل" (zamīl) ne demek?', options: [{ id: 'a', text: 'İş arkadaşı' }, { id: 'b', text: 'Patron' }, { id: 'c', text: 'Müşteri' }, { id: 'd', text: 'Tedarikçi' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l2-e4', type: 'multipleChoice', question: '"مدير" (mudīr) ne demek?', options: [{ id: 'a', text: 'Müdür / Yönetici' }, { id: 'b', text: 'Çalışan' }, { id: 'c', text: 'Müşteri' }, { id: 'd', text: 'İşçi' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l2-e5', type: 'multipleChoice', question: '"راتب" (rātib) ne demek?', options: [{ id: 'a', text: 'Maaş' }, { id: 'b', text: 'Bonus' }, { id: 'c', text: 'Komisyon' }, { id: 'd', text: 'İndirim' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l2-e6', type: 'multipleChoice', question: '"شركة" (sharikah) ne demek?', options: [{ id: 'a', text: 'Şirket' }, { id: 'b', text: 'Fabrika' }, { id: 'c', text: 'Mağaza' }, { id: 'd', text: 'Ofis' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l2-e7', type: 'multipleChoice', question: '"مشروع" (mashrūʿ) ne demek?', options: [{ id: 'a', text: 'Proje' }, { id: 'b', text: 'Plan' }, { id: 'c', text: 'Görev' }, { id: 'd', text: 'Hedef' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-a2-u2-l3',
+          order: 3,
+          title: 'Hafta sonu',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-a2-u2-l3-e1', type: 'multipleChoice', question: '"خرج" (kharaja) ne demek?', options: [{ id: 'a', text: 'çıkmak' }, { id: 'b', text: 'girmek' }, { id: 'c', text: 'kalmak' }, { id: 'd', text: 'oturmak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l3-e2', type: 'multipleChoice', question: '"استراح" (istarāḥa) ne demek?', options: [{ id: 'a', text: 'dinlenmek' }, { id: 'b', text: 'çalışmak' }, { id: 'c', text: 'koşmak' }, { id: 'd', text: 'uyumak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l3-e3', type: 'multipleChoice', question: '"حديقة" (ḥadīqah) ne demek?', options: [{ id: 'a', text: 'Park / Bahçe' }, { id: 'b', text: 'Plaj' }, { id: 'c', text: 'Dağ' }, { id: 'd', text: 'Orman' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l3-e4', type: 'multipleChoice', question: '"شاطئ" (shāṭiʾ) ne demek?', options: [{ id: 'a', text: 'Plaj' }, { id: 'b', text: 'Park' }, { id: 'c', text: 'Dağ' }, { id: 'd', text: 'Orman' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l3-e5', type: 'multipleChoice', question: '"عطلة" (ʿuṭlah) ne demek?', options: [{ id: 'a', text: 'Tatil' }, { id: 'b', text: 'Çalışma' }, { id: 'c', text: 'İş' }, { id: 'd', text: 'Görev' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l3-e6', type: 'multipleChoice', question: '"رياضة" (riyāḍah) ne demek?', options: [{ id: 'a', text: 'Spor' }, { id: 'b', text: 'Oyun' }, { id: 'c', text: 'Eğlence' }, { id: 'd', text: 'Etkinlik' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u2-l3-e7', type: 'multipleChoice', question: '"كرة القدم" (kurat al-qadam) ne demek?', options: [{ id: 'a', text: 'Futbol' }, { id: 'b', text: 'Basketbol' }, { id: 'c', text: 'Voleybol' }, { id: 'd', text: 'Tenis' }], correctOptionId: 'a' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'tr-ar-a2-u3',
+      order: 3,
+      title: 'Alışveriş',
+      description: 'Para, fiyat.',
+      lessons: [
+        {
+          id: 'tr-ar-a2-u3-l1',
+          order: 1,
+          title: 'Mağaza',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-a2-u3-l1-e1', type: 'multipleChoice', question: '"اشترى" (ishtarā) ne demek?', options: [{ id: 'a', text: 'satın almak' }, { id: 'b', text: 'satmak' }, { id: 'c', text: 'denemek' }, { id: 'd', text: 'iade etmek' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l1-e2', type: 'multipleChoice', question: '"باع" (bāʿa) ne demek?', options: [{ id: 'a', text: 'satmak' }, { id: 'b', text: 'satın almak' }, { id: 'c', text: 'kiralamak' }, { id: 'd', text: 'değişmek' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l1-e3', type: 'multipleChoice', question: '"ثمن" (thaman) ne demek?', options: [{ id: 'a', text: 'Fiyat' }, { id: 'b', text: 'Para' }, { id: 'c', text: 'İndirim' }, { id: 'd', text: 'Hesap' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l1-e4', type: 'multipleChoice', question: '"رخيص" (rakhīṣ) ne demek?', options: [{ id: 'a', text: 'Ucuz' }, { id: 'b', text: 'Pahalı' }, { id: 'c', text: 'Bedava' }, { id: 'd', text: 'İndirimli' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l1-e5', type: 'multipleChoice', question: '"غالي" (ghālī) ne demek?', options: [{ id: 'a', text: 'Pahalı' }, { id: 'b', text: 'Ucuz' }, { id: 'c', text: 'Lüks' }, { id: 'd', text: 'Özel' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l1-e6', type: 'multipleChoice', question: '"مال" (māl) ne demek?', options: [{ id: 'a', text: 'Para' }, { id: 'b', text: 'Banka' }, { id: 'c', text: 'Cüzdan' }, { id: 'd', text: 'Bakiye' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l1-e7', type: 'multipleChoice', question: '"دفع" (dafaʿa) ne demek?', options: [{ id: 'a', text: 'ödemek' }, { id: 'b', text: 'sipariş vermek' }, { id: 'c', text: 'yemek' }, { id: 'd', text: 'içmek' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-a2-u3-l2',
+          order: 2,
+          title: 'Sağlık',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-a2-u3-l2-e1', type: 'multipleChoice', question: '"رأس" (raʾs) ne demek?', options: [{ id: 'a', text: 'Baş' }, { id: 'b', text: 'Kol' }, { id: 'c', text: 'Bacak' }, { id: 'd', text: 'Ayak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l2-e2', type: 'multipleChoice', question: '"يد" (yad) ne demek?', options: [{ id: 'a', text: 'El' }, { id: 'b', text: 'Ayak' }, { id: 'c', text: 'Kol' }, { id: 'd', text: 'Parmak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l2-e3', type: 'multipleChoice', question: '"عين" (ʿayn) ne demek?', options: [{ id: 'a', text: 'Göz' }, { id: 'b', text: 'Kulak' }, { id: 'c', text: 'Burun' }, { id: 'd', text: 'Ağız' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l2-e4', type: 'multipleChoice', question: '"مريض" (marīḍ) ne demek?', options: [{ id: 'a', text: 'hasta' }, { id: 'b', text: 'sağlıklı' }, { id: 'c', text: 'iyi' }, { id: 'd', text: 'yorgun' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l2-e5', type: 'multipleChoice', question: '"دواء" (dawāʾ) ne demek?', options: [{ id: 'a', text: 'İlaç' }, { id: 'b', text: 'Tedavi' }, { id: 'c', text: 'Hap' }, { id: 'd', text: 'Şurup' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l2-e6', type: 'multipleChoice', question: '"صحة" (ṣiḥḥah) ne demek?', options: [{ id: 'a', text: 'Sağlık' }, { id: 'b', text: 'Hastalık' }, { id: 'c', text: 'Tedavi' }, { id: 'd', text: 'İyileşme' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l2-e7', type: 'multipleChoice', question: '"مشفى" (mashfā) ne demek?', options: [{ id: 'a', text: 'Hastane' }, { id: 'b', text: 'Klinik' }, { id: 'c', text: 'Eczane' }, { id: 'd', text: 'Sağlık ocağı' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-a2-u3-l3',
+          order: 3,
+          title: 'Hava durumu',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-a2-u3-l3-e1', type: 'multipleChoice', question: '"شمس" (shams) ne demek?', options: [{ id: 'a', text: 'Güneş' }, { id: 'b', text: 'Ay' }, { id: 'c', text: 'Yıldız' }, { id: 'd', text: 'Bulut' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l3-e2', type: 'multipleChoice', question: '"مطر" (maṭar) ne demek?', options: [{ id: 'a', text: 'Yağmur' }, { id: 'b', text: 'Kar' }, { id: 'c', text: 'Sis' }, { id: 'd', text: 'Rüzgar' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l3-e3', type: 'multipleChoice', question: '"ثلج" (thalj) ne demek?', options: [{ id: 'a', text: 'Kar' }, { id: 'b', text: 'Yağmur' }, { id: 'c', text: 'Buz' }, { id: 'd', text: 'Sis' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l3-e4', type: 'multipleChoice', question: '"ريح" (rīḥ) ne demek?', options: [{ id: 'a', text: 'Rüzgar' }, { id: 'b', text: 'Fırtına' }, { id: 'c', text: 'Hava' }, { id: 'd', text: 'Sis' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l3-e5', type: 'multipleChoice', question: '"حار" (ḥārr) ne demek?', options: [{ id: 'a', text: 'Sıcak' }, { id: 'b', text: 'Soğuk' }, { id: 'c', text: 'Ilık' }, { id: 'd', text: 'Serin' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l3-e6', type: 'multipleChoice', question: '"بارد" (bārid) ne demek?', options: [{ id: 'a', text: 'Soğuk' }, { id: 'b', text: 'Sıcak' }, { id: 'c', text: 'Ilık' }, { id: 'd', text: 'Serin' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u3-l3-e7', type: 'multipleChoice', question: '"طقس" (ṭaqs) ne demek?', options: [{ id: 'a', text: 'Hava durumu' }, { id: 'b', text: 'İklim' }, { id: 'c', text: 'Sıcaklık' }, { id: 'd', text: 'Atmosfer' }], correctOptionId: 'a' },
+          ],
+        },
+      ],
+    },
+    // ═════════════ ÜNİTE 4: A2 YETERLİLİK SINAV HAZIRLIĞI ═════════════
+    {
+      id: 'tr-ar-a2-u4',
+      order: 4,
+      title: 'A2 Yeterlilik Sınavı',
+      description: 'A2 yeterlilik sınavına özel: iş, yazışma, ilan, hobi.',
+      tags: ['exam'],
+      lessons: [
+        {
+          id: 'tr-ar-a2-u4-l1',
+          order: 1,
+          title: 'İş ve Meslek (العمل والمهنة)',
+          xpReward: 150,
+          exercises: [
+            { id: 'tr-ar-a2-u4-l1-e1', type: 'multipleChoice', question: '"أعمل كمعلم" (aʿmal ka-muʿallim) ne demek?', options: [{ id: 'a', text: 'Öğretmen olarak çalışıyorum' }, { id: 'b', text: 'Öğretmenle çalışıyorum' }, { id: 'c', text: 'Öğretmenim diyemem' }, { id: 'd', text: 'Öğretmen oluyorum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l1-e2', type: 'multipleChoice', question: '"ما عملك؟" (mā ʿamaluk?) ne demek?', options: [{ id: 'a', text: 'Ne iş yapıyorsun?' }, { id: 'b', text: 'Nasılsın?' }, { id: 'c', text: 'Nerelisin?' }, { id: 'd', text: 'Nereye?' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l1-e3', type: 'multipleChoice', question: '"زميل" (zamīl) ne demek?', options: [{ id: 'a', text: 'İş arkadaşı' }, { id: 'b', text: 'Patron' }, { id: 'c', text: 'Müşteri' }, { id: 'd', text: 'Yönetici' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l1-e4', type: 'multipleChoice', question: '"خبرة" (khibrah) ne demek?', options: [{ id: 'a', text: 'Deneyim' }, { id: 'b', text: 'Eğitim' }, { id: 'c', text: 'Yetenek' }, { id: 'd', text: 'Sertifika' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l1-e5', type: 'multipleChoice', question: '"دوام جزئي" (dawām juzʾī) ne demek?', options: [{ id: 'a', text: 'Yarı zamanlı' }, { id: 'b', text: 'Tam zamanlı' }, { id: 'c', text: 'Serbest' }, { id: 'd', text: 'Geçici' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l1-e6', type: 'matchPairs', pairs: [{ id: 'p1', left: 'iş yeri', right: 'مكان العمل' }, { id: 'p2', left: 'meslek', right: 'مهنة' }, { id: 'p3', left: 'iş arkadaşı', right: 'زميل' }, { id: 'p4', left: 'patron', right: 'مدير' }, { id: 'p5', left: 'maaş', right: 'راتب' }] },
+            { id: 'tr-ar-a2-u4-l1-e7', type: 'multipleChoice', question: '"شركة" (sharikah) ne demek?', options: [{ id: 'a', text: 'Şirket' }, { id: 'b', text: 'Fabrika' }, { id: 'c', text: 'Mağaza' }, { id: 'd', text: 'Ofis' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l1-e8', type: 'multipleChoice', question: '"مقابلة عمل" (muqābalat ʿamal) ne demek?', options: [{ id: 'a', text: 'İş mülakatı' }, { id: 'b', text: 'Toplantı' }, { id: 'c', text: 'Sunum' }, { id: 'd', text: 'Ders' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-a2-u4-l2',
+          order: 2,
+          title: 'Günlük Yazışma',
+          xpReward: 150,
+          exercises: [
+            { id: 'tr-ar-a2-u4-l2-e1', type: 'multipleChoice', question: '"هل يمكنك مساعدتي من فضلك؟" ne demek?', options: [{ id: 'a', text: 'Lütfen bana yardım edebilir misin?' }, { id: 'b', text: 'Bana yardım et' }, { id: 'c', text: 'Yardıma ihtiyacım yok' }, { id: 'd', text: 'Reddediyorum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l2-e2', type: 'multipleChoice', question: '"أريد..." (urīd) ne demek?', options: [{ id: 'a', text: 'İstiyorum' }, { id: 'b', text: 'Vazgeçtim' }, { id: 'c', text: 'Bilmiyorum' }, { id: 'd', text: 'Almışım' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l2-e3', type: 'multipleChoice', question: '"شكرا جزيلا" ne demek?', options: [{ id: 'a', text: 'Çok teşekkürler' }, { id: 'b', text: 'Lütfen' }, { id: 'c', text: 'Rica ederim' }, { id: 'd', text: 'Önemli değil' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l2-e4', type: 'multipleChoice', question: '"عفوا" (ʿafwan) ne demek?', options: [{ id: 'a', text: 'Rica ederim / Affedersin' }, { id: 'b', text: 'Hoşgeldin' }, { id: 'c', text: 'Lütfen' }, { id: 'd', text: 'Görüşürüz' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l2-e5', type: 'multipleChoice', question: '"أين المحطة؟" (ayna l-maḥaṭṭah?) ne demek?', options: [{ id: 'a', text: 'İstasyon nerede?' }, { id: 'b', text: 'Ne zaman?' }, { id: 'c', text: 'Kimsin?' }, { id: 'd', text: 'Ne kadar?' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l2-e6', type: 'matchPairs', pairs: [{ id: 'p1', left: 'Lütfen', right: 'من فضلك' }, { id: 'p2', left: 'Teşekkürler', right: 'شكرا' }, { id: 'p3', left: 'Rica ederim', right: 'عفوا' }, { id: 'p4', left: 'Affedersin', right: 'آسف' }, { id: 'p5', left: 'Nerede', right: 'أين' }] },
+            { id: 'tr-ar-a2-u4-l2-e7', type: 'multipleChoice', question: '"كم الثمن؟" (kam ath-thaman?) ne demek?', options: [{ id: 'a', text: 'Fiyatı ne kadar?' }, { id: 'b', text: 'Ne zaman?' }, { id: 'c', text: 'Nerede?' }, { id: 'd', text: 'Nasıl?' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l2-e8', type: 'multipleChoice', question: '"متى" (matā) ne demek?', options: [{ id: 'a', text: 'ne zaman' }, { id: 'b', text: 'nerede' }, { id: 'c', text: 'nasıl' }, { id: 'd', text: 'neden' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-a2-u4-l3',
+          order: 3,
+          title: 'İlan ve Hobi',
+          xpReward: 150,
+          exercises: [
+            { id: 'tr-ar-a2-u4-l3-e1', type: 'multipleChoice', question: '"للإيجار" (li-l-ījār) ne demek?', options: [{ id: 'a', text: 'Kiralık' }, { id: 'b', text: 'Satılık' }, { id: 'c', text: 'Aranıyor' }, { id: 'd', text: 'Bedava' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l3-e2', type: 'multipleChoice', question: '"للبيع" (li-l-bayʿ) ne demek?', options: [{ id: 'a', text: 'Satılık' }, { id: 'b', text: 'Kiralık' }, { id: 'c', text: 'Bedava' }, { id: 'd', text: 'Aranıyor' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l3-e3', type: 'multipleChoice', question: '"مطلوب" (maṭlūb) ne demek?', options: [{ id: 'a', text: 'Aranıyor' }, { id: 'b', text: 'Satılık' }, { id: 'c', text: 'Kiralık' }, { id: 'd', text: 'Yeni' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l3-e4', type: 'multipleChoice', question: '"ماذا تفعل في وقت فراغك؟" ne demek?', options: [{ id: 'a', text: 'Boş zamanında ne yaparsın?' }, { id: 'b', text: 'Ne iş yapıyorsun?' }, { id: 'c', text: 'Nerelisin?' }, { id: 'd', text: 'Adın ne?' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l3-e5', type: 'multipleChoice', question: '"أحب القراءة" (uḥibb al-qirāʾah) ne demek?', options: [{ id: 'a', text: 'Okumayı severim' }, { id: 'b', text: 'Okumuyorum' }, { id: 'c', text: 'Okurum' }, { id: 'd', text: 'Okuyacağım' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l3-e6', type: 'matchPairs', pairs: [{ id: 'p1', left: 'kiralık', right: 'للإيجار' }, { id: 'p2', left: 'satılık', right: 'للبيع' }, { id: 'p3', left: 'aranıyor', right: 'مطلوب' }, { id: 'p4', left: 'hobi', right: 'هواية' }, { id: 'p5', left: 'spor', right: 'رياضة' }] },
+            { id: 'tr-ar-a2-u4-l3-e7', type: 'multipleChoice', question: '"رياضة" (riyāḍah) ne demek?', options: [{ id: 'a', text: 'Spor' }, { id: 'b', text: 'Oyun' }, { id: 'c', text: 'Yarış' }, { id: 'd', text: 'Antrenman' }], correctOptionId: 'a' },
+            { id: 'tr-ar-a2-u4-l3-e8', type: 'multipleChoice', question: '"موسيقى" (mūsīqā) ne demek?', options: [{ id: 'a', text: 'Müzik' }, { id: 'b', text: 'Şarkı' }, { id: 'c', text: 'Dans' }, { id: 'd', text: 'Tiyatro' }], correctOptionId: 'a' },
           ],
         },
       ],

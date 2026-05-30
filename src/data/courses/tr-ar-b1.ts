@@ -1,46 +1,226 @@
 import type { Course } from '../../types';
 
-// ════════════════════════════════════════════════════════════════
-// TR → AR B1 — PLACEHOLDER
-//
-// ⚠️ YAKINDA: Bu dil çifti için içerik henüz hazırlanmadı.
-// AI ile TR-DE içeriğinden çevrilecek (Phase 2).
-//
-// Bu dosya iskelet — uygulamanın crash olmaması için gerekli minimum
-// veri vardır.
-// ════════════════════════════════════════════════════════════════
-
 export const TR_AR_B1: Course = {
   id: 'tr-ar-b1',
   sourceLanguage: 'tr',
   targetLanguage: 'ar',
   level: 'B1',
   title: 'Arapça B1',
-  description: 'Bu seviye için içerik yakında eklenecek.',
+  description: 'Orta seviye, geçmiş, gelecek, iş.',
   units: [
     {
       id: 'tr-ar-b1-u1',
       order: 1,
-      title: 'Yakında',
-      description: 'Bu dil çiftinin müfredatı hazırlanıyor.',
-      tags: ['daily'],
+      title: 'Zamanlar',
+      description: 'Geçmiş, gelecek, şartlı.',
       lessons: [
         {
           id: 'tr-ar-b1-u1-l1',
           order: 1,
-          title: 'Placeholder',
-          xpReward: 10,
+          title: 'Geçmiş zaman',
+          xpReward: 100,
           exercises: [
-            {
-              id: 'tr-ar-b1-u1-l1-e1',
-              type: 'multipleChoice',
-              question: 'Bu dil çifti için içerik yakında hazır olacak.',
-              options: [
-                { id: 'a', text: 'Tamam' },
-                { id: 'b', text: 'Bekliyorum' },
-              ],
-              correctOptionId: 'a',
-            },
+            { id: 'tr-ar-b1-u1-l1-e1', type: 'multipleChoice', question: '"أكلت" (akaltu) ne demek?', options: [{ id: 'a', text: 'Yedim' }, { id: 'b', text: 'Yiyorum' }, { id: 'c', text: 'Yiyeceğim' }, { id: 'd', text: 'Yiyordum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l1-e2', type: 'multipleChoice', question: '"أمس" (ams) ne demek?', options: [{ id: 'a', text: 'Dün' }, { id: 'b', text: 'Bugün' }, { id: 'c', text: 'Yarın' }, { id: 'd', text: 'Şimdi' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l1-e3', type: 'multipleChoice', question: '"الأسبوع الماضي" (al-usbūʿ al-māḍī) ne demek?', options: [{ id: 'a', text: 'Geçen hafta' }, { id: 'b', text: 'Bu hafta' }, { id: 'c', text: 'Önümüzdeki hafta' }, { id: 'd', text: 'Her hafta' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l1-e4', type: 'multipleChoice', question: '"ذهبت" (dhahabtu) ne demek?', options: [{ id: 'a', text: 'Gittim' }, { id: 'b', text: 'Gidiyorum' }, { id: 'c', text: 'Gideceğim' }, { id: 'd', text: 'Gidiyordum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l1-e5', type: 'multipleChoice', question: '"رأيت" (raʾaytu) ne demek?', options: [{ id: 'a', text: 'Gördüm' }, { id: 'b', text: 'Görüyorum' }, { id: 'c', text: 'Göreceğim' }, { id: 'd', text: 'Görüyordum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l1-e6', type: 'multipleChoice', question: '"كنت" (kuntu) ne demek?', options: [{ id: 'a', text: 'idim' }, { id: 'b', text: 'oldum' }, { id: 'c', text: 'olacağım' }, { id: 'd', text: 'oluyorum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l1-e7', type: 'multipleChoice', question: '"قبل" (qabla) ne demek?', options: [{ id: 'a', text: 'önce' }, { id: 'b', text: 'sonra' }, { id: 'c', text: 'şimdi' }, { id: 'd', text: 'asla' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-b1-u1-l2',
+          order: 2,
+          title: 'Gelecek zaman',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-b1-u1-l2-e1', type: 'multipleChoice', question: '"سأذهب" (saʾadhhab) ne demek?', options: [{ id: 'a', text: 'Gideceğim' }, { id: 'b', text: 'Gidiyorum' }, { id: 'c', text: 'Gittim' }, { id: 'd', text: 'Giderdim' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l2-e2', type: 'multipleChoice', question: '"غدا" (ghadan) ne demek?', options: [{ id: 'a', text: 'Yarın' }, { id: 'b', text: 'Dün' }, { id: 'c', text: 'Bugün' }, { id: 'd', text: 'Şimdi' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l2-e3', type: 'multipleChoice', question: '"العام القادم" (al-ʿām al-qādim) ne demek?', options: [{ id: 'a', text: 'Önümüzdeki yıl' }, { id: 'b', text: 'Geçen yıl' }, { id: 'c', text: 'Bu yıl' }, { id: 'd', text: 'Yıllar önce' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l2-e4', type: 'multipleChoice', question: '"سوف" (sawfa) ne demek? (gelecek)', options: [{ id: 'a', text: 'gelecek belirteci' }, { id: 'b', text: 'geçmiş' }, { id: 'c', text: 'şimdiki' }, { id: 'd', text: 'şart' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l2-e5', type: 'multipleChoice', question: '"سأكون" (saʾakūn) ne demek?', options: [{ id: 'a', text: 'olacağım' }, { id: 'b', text: 'oldum' }, { id: 'c', text: 'idim' }, { id: 'd', text: 'yım' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l2-e6', type: 'multipleChoice', question: '"بعد" (baʿda) ne demek?', options: [{ id: 'a', text: 'sonra' }, { id: 'b', text: 'önce' }, { id: 'c', text: 'iken' }, { id: 'd', text: 'eğer' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l2-e7', type: 'multipleChoice', question: '"قريبا" (qarīban) ne demek?', options: [{ id: 'a', text: 'yakında' }, { id: 'b', text: 'şimdi' }, { id: 'c', text: 'sonra' }, { id: 'd', text: 'asla' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-b1-u1-l3',
+          order: 3,
+          title: 'Şartlı',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-b1-u1-l3-e1', type: 'multipleChoice', question: '"إذا" (idhā) ne demek?', options: [{ id: 'a', text: 'eğer' }, { id: 'b', text: 'ama' }, { id: 'c', text: 've' }, { id: 'd', text: 'çünkü' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l3-e2', type: 'multipleChoice', question: '"لأن" (li-anna) ne demek?', options: [{ id: 'a', text: 'çünkü' }, { id: 'b', text: 'eğer' }, { id: 'c', text: 'ama' }, { id: 'd', text: 've' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l3-e3', type: 'multipleChoice', question: '"لكن" (lākin) ne demek?', options: [{ id: 'a', text: 'ama / fakat' }, { id: 'b', text: 'çünkü' }, { id: 'c', text: 've' }, { id: 'd', text: 'eğer' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l3-e4', type: 'multipleChoice', question: '"و" (wa) ne demek?', options: [{ id: 'a', text: 've' }, { id: 'b', text: 'eğer' }, { id: 'c', text: 'ama' }, { id: 'd', text: 'çünkü' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l3-e5', type: 'multipleChoice', question: '"أو" (aw) ne demek?', options: [{ id: 'a', text: 'veya' }, { id: 'b', text: 've' }, { id: 'c', text: 'ama' }, { id: 'd', text: 'çünkü' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l3-e6', type: 'multipleChoice', question: '"أريد أن" (urīdu an) ne demek?', options: [{ id: 'a', text: 'istiyorum' }, { id: 'b', text: 'gerekiyor' }, { id: 'c', text: 'yapabilirim' }, { id: 'd', text: 'sevdim' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u1-l3-e7', type: 'multipleChoice', question: '"يجب" (yajib) ne demek?', options: [{ id: 'a', text: 'gerekir / -meli' }, { id: 'b', text: 'olabilir' }, { id: 'c', text: 'istemek' }, { id: 'd', text: 'olur' }], correctOptionId: 'a' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'tr-ar-b1-u2',
+      order: 2,
+      title: 'İş ve Para',
+      description: 'Meslek, banka, ekonomi.',
+      lessons: [
+        {
+          id: 'tr-ar-b1-u2-l1',
+          order: 1,
+          title: 'İş yeri',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-b1-u2-l1-e1', type: 'multipleChoice', question: '"محامي" (muḥāmī) ne demek?', options: [{ id: 'a', text: 'Avukat' }, { id: 'b', text: 'Hakim' }, { id: 'c', text: 'Polis' }, { id: 'd', text: 'Doktor' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l1-e2', type: 'multipleChoice', question: '"ممرضة" (mumarriḍah) ne demek?', options: [{ id: 'a', text: 'Hemşire' }, { id: 'b', text: 'Doktor' }, { id: 'c', text: 'Eczacı' }, { id: 'd', text: 'Hasta' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l1-e3', type: 'multipleChoice', question: '"بائع" (bāʾiʿ) ne demek?', options: [{ id: 'a', text: 'Satıcı' }, { id: 'b', text: 'Müşteri' }, { id: 'c', text: 'Müdür' }, { id: 'd', text: 'Memur' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l1-e4', type: 'multipleChoice', question: '"طباخ" (ṭabbākh) ne demek?', options: [{ id: 'a', text: 'Aşçı' }, { id: 'b', text: 'Garson' }, { id: 'c', text: 'Şef' }, { id: 'd', text: 'Bulaşıkçı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l1-e5', type: 'multipleChoice', question: '"مقابلة" (muqābalah) ne demek?', options: [{ id: 'a', text: 'Mülakat' }, { id: 'b', text: 'Toplantı' }, { id: 'c', text: 'Konuşma' }, { id: 'd', text: 'Sınav' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l1-e6', type: 'multipleChoice', question: '"خبرة" (khibrah) ne demek?', options: [{ id: 'a', text: 'Deneyim' }, { id: 'b', text: 'Eğitim' }, { id: 'c', text: 'Yetenek' }, { id: 'd', text: 'Bilgi' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l1-e7', type: 'multipleChoice', question: '"عقد" (ʿaqd) ne demek?', options: [{ id: 'a', text: 'Sözleşme' }, { id: 'b', text: 'Anlaşma' }, { id: 'c', text: 'Sipariş' }, { id: 'd', text: 'Fatura' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-b1-u2-l2',
+          order: 2,
+          title: 'Para',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-b1-u2-l2-e1', type: 'multipleChoice', question: '"حساب" (ḥisāb) ne demek?', options: [{ id: 'a', text: 'Hesap' }, { id: 'b', text: 'Para' }, { id: 'c', text: 'Borç' }, { id: 'd', text: 'Faiz' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l2-e2', type: 'multipleChoice', question: '"وفر" (waffara) ne demek?', options: [{ id: 'a', text: 'biriktirmek' }, { id: 'b', text: 'harcamak' }, { id: 'c', text: 'almak' }, { id: 'd', text: 'satmak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l2-e3', type: 'multipleChoice', question: '"صرف" (ṣarafa) ne demek?', options: [{ id: 'a', text: 'harcamak' }, { id: 'b', text: 'biriktirmek' }, { id: 'c', text: 'yatırmak' }, { id: 'd', text: 'ödemek' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l2-e4', type: 'multipleChoice', question: '"قرض" (qarḍ) ne demek?', options: [{ id: 'a', text: 'Kredi / Borç' }, { id: 'b', text: 'Hisse' }, { id: 'c', text: 'Faiz' }, { id: 'd', text: 'Para' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l2-e5', type: 'multipleChoice', question: '"دينار" (dīnār) ne demek?', options: [{ id: 'a', text: 'Dinar (para birimi)' }, { id: 'b', text: 'Riyal' }, { id: 'c', text: 'Dirhem' }, { id: 'd', text: 'Sent' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l2-e6', type: 'multipleChoice', question: '"ريال" (riyāl) ne demek?', options: [{ id: 'a', text: 'Riyal (para birimi)' }, { id: 'b', text: 'Dinar' }, { id: 'c', text: 'Dirhem' }, { id: 'd', text: 'Sent' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l2-e7', type: 'multipleChoice', question: '"خصم" (khaṣm) ne demek?', options: [{ id: 'a', text: 'İndirim' }, { id: 'b', text: 'Fiyat' }, { id: 'c', text: 'Ödeme' }, { id: 'd', text: 'Vergi' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-b1-u2-l3',
+          order: 3,
+          title: 'Seyahat',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-b1-u2-l3-e1', type: 'multipleChoice', question: '"مطار" (maṭār) ne demek?', options: [{ id: 'a', text: 'Havaalanı' }, { id: 'b', text: 'Tren istasyonu' }, { id: 'c', text: 'Liman' }, { id: 'd', text: 'Durak' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l3-e2', type: 'multipleChoice', question: '"رحلة" (riḥlah) ne demek?', options: [{ id: 'a', text: 'Yolculuk / Seyahat' }, { id: 'b', text: 'Tur' }, { id: 'c', text: 'Gezi' }, { id: 'd', text: 'Uçuş' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l3-e3', type: 'multipleChoice', question: '"جواز سفر" (jawāz safar) ne demek?', options: [{ id: 'a', text: 'Pasaport' }, { id: 'b', text: 'Kimlik' }, { id: 'c', text: 'Vize' }, { id: 'd', text: 'Bilet' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l3-e4', type: 'multipleChoice', question: '"حقيبة" (ḥaqībah) ne demek?', options: [{ id: 'a', text: 'Valiz / Çanta' }, { id: 'b', text: 'Paket' }, { id: 'c', text: 'Bavul' }, { id: 'd', text: 'Sırt çantası' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l3-e5', type: 'multipleChoice', question: '"طائرة" (ṭāʾirah) ne demek?', options: [{ id: 'a', text: 'Uçak' }, { id: 'b', text: 'Helikopter' }, { id: 'c', text: 'Gemi' }, { id: 'd', text: 'Tren' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l3-e6', type: 'multipleChoice', question: '"فندق" (funduq) ne demek?', options: [{ id: 'a', text: 'Otel' }, { id: 'b', text: 'Pansiyon' }, { id: 'c', text: 'Motel' }, { id: 'd', text: 'Apart' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u2-l3-e7', type: 'multipleChoice', question: '"حجز" (ḥajz) ne demek?', options: [{ id: 'a', text: 'Rezervasyon' }, { id: 'b', text: 'Talep' }, { id: 'c', text: 'Onay' }, { id: 'd', text: 'İptal' }], correctOptionId: 'a' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'tr-ar-b1-u3',
+      order: 3,
+      title: 'Görüşler ve Duygular',
+      description: 'Fikir, duygu.',
+      lessons: [
+        {
+          id: 'tr-ar-b1-u3-l1',
+          order: 1,
+          title: 'Görüşler',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-b1-u3-l1-e1', type: 'multipleChoice', question: '"أعتقد" (aʿtaqid) ne demek?', options: [{ id: 'a', text: 'inanıyorum / sanırım' }, { id: 'b', text: 'biliyorum' }, { id: 'c', text: 'istiyorum' }, { id: 'd', text: 'hatırlıyorum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l1-e2', type: 'multipleChoice', question: '"في رأيي" (fī raʾyī) ne demek?', options: [{ id: 'a', text: 'Bence' }, { id: 'b', text: 'Belki' }, { id: 'c', text: 'Mutlaka' }, { id: 'd', text: 'Açıkça' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l1-e3', type: 'multipleChoice', question: '"موافق" (muwāfiq) ne demek?', options: [{ id: 'a', text: 'Hemfikir / Aynı fikirde' }, { id: 'b', text: 'Karşı' }, { id: 'c', text: 'Şüpheli' }, { id: 'd', text: 'Belki' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l1-e4', type: 'multipleChoice', question: '"غير موافق" (ghayr muwāfiq) ne demek?', options: [{ id: 'a', text: 'Aynı fikirde değil' }, { id: 'b', text: 'Aynı fikirde' }, { id: 'c', text: 'Bilmiyor' }, { id: 'd', text: 'Tartışmıyor' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l1-e5', type: 'multipleChoice', question: '"ربما" (rubbamā) ne demek?', options: [{ id: 'a', text: 'belki' }, { id: 'b', text: 'kesin' }, { id: 'c', text: 'asla' }, { id: 'd', text: 'her zaman' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l1-e6', type: 'multipleChoice', question: '"بالطبع" (bi-ṭ-ṭabʿ) ne demek?', options: [{ id: 'a', text: 'tabii ki' }, { id: 'b', text: 'belki' }, { id: 'c', text: 'asla' }, { id: 'd', text: 'şüpheli' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l1-e7', type: 'multipleChoice', question: '"فكرة" (fikrah) ne demek?', options: [{ id: 'a', text: 'Fikir' }, { id: 'b', text: 'Düşünce' }, { id: 'c', text: 'Plan' }, { id: 'd', text: 'İstek' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-b1-u3-l2',
+          order: 2,
+          title: 'Duygular',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-b1-u3-l2-e1', type: 'multipleChoice', question: '"سعيد" (saʿīd) ne demek?', options: [{ id: 'a', text: 'Mutlu' }, { id: 'b', text: 'Üzgün' }, { id: 'c', text: 'Kızgın' }, { id: 'd', text: 'Yorgun' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l2-e2', type: 'multipleChoice', question: '"حزين" (ḥazīn) ne demek?', options: [{ id: 'a', text: 'Üzgün' }, { id: 'b', text: 'Mutlu' }, { id: 'c', text: 'Kızgın' }, { id: 'd', text: 'Heyecanlı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l2-e3', type: 'multipleChoice', question: '"غاضب" (ghāḍib) ne demek?', options: [{ id: 'a', text: 'Kızgın' }, { id: 'b', text: 'Üzgün' }, { id: 'c', text: 'Mutlu' }, { id: 'd', text: 'Korkmuş' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l2-e4', type: 'multipleChoice', question: '"متعب" (mutʿab) ne demek?', options: [{ id: 'a', text: 'Yorgun' }, { id: 'b', text: 'Enerjik' }, { id: 'c', text: 'Uyumuş' }, { id: 'd', text: 'Aç' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l2-e5', type: 'multipleChoice', question: '"خائف" (khāʾif) ne demek?', options: [{ id: 'a', text: 'Korkmuş' }, { id: 'b', text: 'Cesur' }, { id: 'c', text: 'Mutlu' }, { id: 'd', text: 'Heyecanlı' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l2-e6', type: 'multipleChoice', question: '"حب" (ḥubb) ne demek?', options: [{ id: 'a', text: 'Aşk / Sevgi' }, { id: 'b', text: 'Nefret' }, { id: 'c', text: 'Saygı' }, { id: 'd', text: 'Mutluluk' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l2-e7', type: 'multipleChoice', question: '"أمل" (amal) ne demek?', options: [{ id: 'a', text: 'Umut' }, { id: 'b', text: 'Korku' }, { id: 'c', text: 'Sevgi' }, { id: 'd', text: 'Nefret' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-b1-u3-l3',
+          order: 3,
+          title: 'Karşılaştırma',
+          xpReward: 100,
+          exercises: [
+            { id: 'tr-ar-b1-u3-l3-e1', type: 'multipleChoice', question: '"أكبر" (akbar) ne demek?', options: [{ id: 'a', text: 'daha büyük / en büyük' }, { id: 'b', text: 'daha küçük' }, { id: 'c', text: 'küçük' }, { id: 'd', text: 'büyük' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l3-e2', type: 'multipleChoice', question: '"أصغر" (aṣghar) ne demek?', options: [{ id: 'a', text: 'daha küçük / en küçük' }, { id: 'b', text: 'daha büyük' }, { id: 'c', text: 'büyük' }, { id: 'd', text: 'küçük' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l3-e3', type: 'multipleChoice', question: '"أحسن" (aḥsan) ne demek?', options: [{ id: 'a', text: 'daha iyi / en iyi' }, { id: 'b', text: 'daha kötü' }, { id: 'c', text: 'iyi' }, { id: 'd', text: 'kötü' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l3-e4', type: 'multipleChoice', question: '"أسوأ" (aswaʾ) ne demek?', options: [{ id: 'a', text: 'daha kötü / en kötü' }, { id: 'b', text: 'daha iyi' }, { id: 'c', text: 'iyi' }, { id: 'd', text: 'kötü' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l3-e5', type: 'multipleChoice', question: '"أجمل" (ajmal) ne demek?', options: [{ id: 'a', text: 'daha güzel / en güzel' }, { id: 'b', text: 'daha çirkin' }, { id: 'c', text: 'güzel' }, { id: 'd', text: 'çirkin' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l3-e6', type: 'multipleChoice', question: '"من" (min) ne demek? (karşılaştırma)', options: [{ id: 'a', text: '-den' }, { id: 'b', text: '-e' }, { id: 'c', text: '-de' }, { id: 'd', text: '-ye' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u3-l3-e7', type: 'multipleChoice', question: '"الأطول" (al-aṭwal) ne demek?', options: [{ id: 'a', text: 'En uzun' }, { id: 'b', text: 'Daha uzun' }, { id: 'c', text: 'Uzun' }, { id: 'd', text: 'Kısa' }], correctOptionId: 'a' },
+          ],
+        },
+      ],
+    },
+    // ═════════════ ÜNİTE 4: B1 YETERLİLİK SINAV HAZIRLIĞI ═════════════
+    {
+      id: 'tr-ar-b1-u4',
+      order: 4,
+      title: 'B1 Yeterlilik Sınavı',
+      description: 'B1 yeterlilik sınavına özel: görüş, resmi mektup, bağlaçlar, medya.',
+      tags: ['exam'],
+      lessons: [
+        {
+          id: 'tr-ar-b1-u4-l1',
+          order: 1,
+          title: 'Görüş Bildirme',
+          xpReward: 150,
+          exercises: [
+            { id: 'tr-ar-b1-u4-l1-e1', type: 'multipleChoice', question: '"في رأيي" (fī raʾyī) ne demek?', options: [{ id: 'a', text: 'Bence / Fikrime göre' }, { id: 'b', text: 'Yapamam' }, { id: 'c', text: 'Hatırlıyorum' }, { id: 'd', text: 'Biliyorum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l1-e2', type: 'multipleChoice', question: '"أنا موافق معك" ne demek?', options: [{ id: 'a', text: 'Sana katılıyorum' }, { id: 'b', text: 'Sana karşıyım' }, { id: 'c', text: 'Bilmiyorum' }, { id: 'd', text: 'Yardım edeceğim' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l1-e3', type: 'multipleChoice', question: '"لست موافقا لأن..." ne demek?', options: [{ id: 'a', text: 'Katılmıyorum çünkü' }, { id: 'b', text: 'Katılıyorum çünkü' }, { id: 'c', text: 'Bilmiyorum' }, { id: 'd', text: 'Anlıyorum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l1-e4', type: 'multipleChoice', question: '"أعتقد أن..." (aʿtaqid anna) ne demek?', options: [{ id: 'a', text: 'inanıyorum ki / düşünüyorum ki' }, { id: 'b', text: 'biliyorum' }, { id: 'c', text: 'istiyorum' }, { id: 'd', text: 'hatırlıyorum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l1-e5', type: 'multipleChoice', question: '"من جهة ... من جهة أخرى" ne demek?', options: [{ id: 'a', text: 'bir yandan ... öbür yandan' }, { id: 'b', text: 'önce ... sonra' }, { id: 'c', text: 'eğer ... o zaman' }, { id: 'd', text: 'çünkü ... bu yüzden' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l1-e6', type: 'matchPairs', pairs: [{ id: 'p1', left: 'Bence', right: 'في رأيي' }, { id: 'p2', left: 'Katılıyorum', right: 'موافق' }, { id: 'p3', left: 'Katılmıyorum', right: 'غير موافق' }, { id: 'p4', left: 'Düşünüyorum', right: 'أعتقد' }, { id: 'p5', left: 'Eminim', right: 'متأكد' }] },
+            { id: 'tr-ar-b1-u4-l1-e7', type: 'multipleChoice', question: '"مهم" (muhimm) ne demek?', options: [{ id: 'a', text: 'Önemli' }, { id: 'b', text: 'Önemsiz' }, { id: 'c', text: 'Açık' }, { id: 'd', text: 'Gizli' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l1-e8', type: 'multipleChoice', question: '"بالطبع" (bi-ṭ-ṭabʿ) ne demek?', options: [{ id: 'a', text: 'Tabii ki' }, { id: 'b', text: 'Belki' }, { id: 'c', text: 'Asla' }, { id: 'd', text: 'Belirsiz' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-b1-u4-l2',
+          order: 2,
+          title: 'Resmi Mektup (رسالة رسمية)',
+          xpReward: 150,
+          exercises: [
+            { id: 'tr-ar-b1-u4-l2-e1', type: 'multipleChoice', question: 'Resmi mektup başlangıcı?', options: [{ id: 'a', text: 'السيد المحترم / السيدة المحترمة' }, { id: 'b', text: 'مرحبا' }, { id: 'c', text: 'أهلا' }, { id: 'd', text: 'صديقي' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l2-e2', type: 'multipleChoice', question: '"تفضلوا بقبول فائق الاحترام" ne demek?', options: [{ id: 'a', text: 'Saygılarımla' }, { id: 'b', text: 'Sevgiler' }, { id: 'c', text: 'Görüşürüz' }, { id: 'd', text: 'Hoşçakal' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l2-e3', type: 'multipleChoice', question: '"أكتب إليكم لطلب..." ne demek?', options: [{ id: 'a', text: '... talep etmek için yazıyorum' }, { id: 'b', text: 'Yazmıyorum' }, { id: 'c', text: 'Anlamadım' }, { id: 'd', text: 'Reddetmek için' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l2-e4', type: 'multipleChoice', question: '"أود التقدم لـ..." ne demek?', options: [{ id: 'a', text: '... için başvurmak istiyorum' }, { id: 'b', text: 'Vazgeçtim' }, { id: 'c', text: 'Bilmiyorum' }, { id: 'd', text: 'Reddediyorum' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l2-e5', type: 'multipleChoice', question: '"مرفق" (murfaq) ne demek?', options: [{ id: 'a', text: 'Ek / Ekli' }, { id: 'b', text: 'Çıkartılmış' }, { id: 'c', text: 'Kaybolmuş' }, { id: 'd', text: 'Sonra' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l2-e6', type: 'matchPairs', pairs: [{ id: 'p1', left: 'Sayın Bay', right: 'السيد المحترم' }, { id: 'p2', left: 'Saygılarımla', right: 'مع الاحترام' }, { id: 'p3', left: 'Başvurmak', right: 'التقدم' }, { id: 'p4', left: 'Bilgi almak', right: 'الاستفسار' }, { id: 'p5', left: 'Ek', right: 'مرفق' }] },
+            { id: 'tr-ar-b1-u4-l2-e7', type: 'multipleChoice', question: '"طلب" (ṭalab) ne demek?', options: [{ id: 'a', text: 'Talep / Başvuru' }, { id: 'b', text: 'Cevap' }, { id: 'c', text: 'Mektup' }, { id: 'd', text: 'Form' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l2-e8', type: 'multipleChoice', question: '"وظيفة" (waẓīfah) ne demek?', options: [{ id: 'a', text: 'İş / Pozisyon' }, { id: 'b', text: 'Para' }, { id: 'c', text: 'Şirket' }, { id: 'd', text: 'Ofis' }], correctOptionId: 'a' },
+          ],
+        },
+        {
+          id: 'tr-ar-b1-u4-l3',
+          order: 3,
+          title: 'Bağlaçlar ve Medya',
+          xpReward: 150,
+          exercises: [
+            { id: 'tr-ar-b1-u4-l3-e1', type: 'multipleChoice', question: '"مع ذلك" (maʿa dhālik) ne demek?', options: [{ id: 'a', text: 'yine de / bununla birlikte' }, { id: 'b', text: 'çünkü' }, { id: 'c', text: 'eğer' }, { id: 'd', text: 've' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l3-e2', type: 'multipleChoice', question: '"رغم أن" (raghma anna) ne demek?', options: [{ id: 'a', text: 'rağmen' }, { id: 'b', text: 'çünkü' }, { id: 'c', text: 've' }, { id: 'd', text: 'eğer' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l3-e3', type: 'multipleChoice', question: '"لذلك" (li-dhālik) ne demek?', options: [{ id: 'a', text: 'bu yüzden' }, { id: 'b', text: 'çünkü' }, { id: 'c', text: 'ama' }, { id: 'd', text: 've' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l3-e4', type: 'multipleChoice', question: '"وسائل التواصل الاجتماعي" ne demek?', options: [{ id: 'a', text: 'Sosyal medya' }, { id: 'b', text: 'Haber' }, { id: 'c', text: 'TV' }, { id: 'd', text: 'Gazete' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l3-e5', type: 'multipleChoice', question: '"هاتف ذكي" (hātif dhakī) ne demek?', options: [{ id: 'a', text: 'Akıllı telefon' }, { id: 'b', text: 'Bilgisayar' }, { id: 'c', text: 'Tablet' }, { id: 'd', text: 'Saat' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l3-e6', type: 'matchPairs', pairs: [{ id: 'p1', left: 'rağmen', right: 'رغم' }, { id: 'p2', left: 'bu yüzden', right: 'لذلك' }, { id: 'p3', left: 'çünkü', right: 'لأن' }, { id: 'p4', left: 'sosyal medya', right: 'وسائل التواصل' }, { id: 'p5', left: 'akıllı telefon', right: 'هاتف ذكي' }] },
+            { id: 'tr-ar-b1-u4-l3-e7', type: 'multipleChoice', question: '"أخبار" (akhbār) ne demek?', options: [{ id: 'a', text: 'Haberler' }, { id: 'b', text: 'Hikaye' }, { id: 'c', text: 'Bilgi' }, { id: 'd', text: 'Gazete' }], correctOptionId: 'a' },
+            { id: 'tr-ar-b1-u4-l3-e8', type: 'multipleChoice', question: '"إنترنت" (intirnit) ne demek?', options: [{ id: 'a', text: 'İnternet' }, { id: 'b', text: 'Bilgisayar' }, { id: 'c', text: 'TV' }, { id: 'd', text: 'Telefon' }], correctOptionId: 'a' },
           ],
         },
       ],

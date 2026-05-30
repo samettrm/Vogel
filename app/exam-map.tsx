@@ -28,11 +28,20 @@ export default function ExamMapScreen() {
   const c = useThemeColors();
   const completedLessons = useUserStore((s) => s.completedLessons);
   const isPremium = useUserStore((s) => s.isPremium);
+  // 🎯 Aktif dil çifti — kullanıcının seçtiği dile göre sınav unit'i filtrelenir
+  const activeCourse = useUserStore((s) => s.activeCourse);
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const examLevels = useMemo<ExamLevel[]>(() => {
     const result: ExamLevel[] = [];
     for (const course of ALL_COURSES) {
+      // Sadece aktif dil çiftine ait kursları göster (source + target eşleşmeli)
+      if (
+        course.sourceLanguage !== activeCourse.source ||
+        course.targetLanguage !== activeCourse.target
+      ) {
+        continue;
+      }
       const examUnit = course.units.find((u) => u.tags?.includes('exam'));
       if (!examUnit) continue;
       const completedCount = examUnit.lessons.filter((l) => completedLessons.has(l.id)).length;
@@ -48,7 +57,7 @@ export default function ExamMapScreen() {
       });
     }
     return result;
-  }, [completedLessons]);
+  }, [completedLessons, activeCourse.source, activeCourse.target]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>

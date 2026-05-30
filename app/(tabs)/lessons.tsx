@@ -21,7 +21,7 @@ import { useUserStore } from '../../src/store/useUserStore';
 import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import { useT } from '../../src/i18n';
 import { scoreUnitForUser } from '../../src/services/personalization';
-import type { CEFRLevel, Lesson, Unit } from '../../src/types';
+import type { CEFRLevel, Lesson, LanguageCode, Unit } from '../../src/types';
 
 // ════════════════════════════════════════════════════════════════
 // LESSONS SCREEN — 330 ders listesi
@@ -48,13 +48,18 @@ type LessonItem = {
 
 type StatusFilter = 'all' | 'exam';
 
-// 🚀 PERF: Module-level lazy cache — sadece bir kere hesaplanır
+// 🚀 PERF: Module-level lazy cache — her dil çifti için ayrı cache
+// (aktif dil değişirse map'ten okur, yeniden iterate etmez)
 type StaticItem = Omit<LessonItem, 'status' | 'correctCount' | 'isLocked'>;
-let STATIC_ITEMS_CACHE: StaticItem[] | null = null;
-function getStaticItems(): StaticItem[] {
-  if (STATIC_ITEMS_CACHE) return STATIC_ITEMS_CACHE;
+const STATIC_ITEMS_CACHE_BY_PAIR: Map<string, StaticItem[]> = new Map();
+function getStaticItems(source: LanguageCode, target: LanguageCode): StaticItem[] {
+  const key = `${source}-${target}`;
+  const cached = STATIC_ITEMS_CACHE_BY_PAIR.get(key);
+  if (cached) return cached;
   const items: StaticItem[] = [];
   for (const course of ALL_COURSES) {
+    // 🎯 Sadece aktif dil çiftine ait kursları al
+    if (course.sourceLanguage !== source || course.targetLanguage !== target) continue;
     for (const unit of course.units) {
       for (const lesson of unit.lessons) {
         items.push({
@@ -68,7 +73,7 @@ function getStaticItems(): StaticItem[] {
       }
     }
   }
-  STATIC_ITEMS_CACHE = items;
+  STATIC_ITEMS_CACHE_BY_PAIR.set(key, items);
   return items;
 }
 
@@ -82,6 +87,8 @@ export default function LessonsScreen() {
   const lessonExerciseProgress = useUserStore((s) => s.lessonExerciseProgress);
   const learningMotivations = useUserStore((s) => s.learningMotivations);
   const isPremium = useUserStore((s) => s.isPremium);
+  // 🎯 Aktif dil çifti — dersler bu çifte göre filtrelenir
+  const activeCourse = useUserStore((s) => s.activeCourse);
 
   // ✨ Yeterlilik sınavı kart — şimşek ışıltısı
   const examShineAnim = useRef(new Animated.Value(-100)).current;
@@ -150,8 +157,13 @@ export default function LessonsScreen() {
     // ── Erişilebilir ders ID'leri — her kurs için kilit mantığı ──
     // Tamamlanmış veya sıradaki (current) dersler açık; geri kalanlar kilitli.
     // Sınav üniteleri: premium kullanıcılar için her zaman açık.
+    // 🎯 Sadece aktif dil çiftine ait kurslar için hesapla.
     const accessibleIds = new Set<string>();
     for (const course of ALL_COURSES) {
+      if (
+        course.sourceLanguage !== activeCourse.source ||
+        course.targetLanguage !== activeCourse.target
+      ) continue;
       const flatAll = course.units.flatMap((u) => u.lessons);
       let foundCurrent = false;
       for (const lesson of flatAll) {
@@ -170,7 +182,7 @@ export default function LessonsScreen() {
       }
     }
 
-    const statics = getStaticItems();
+    const statics = getStaticItems(activeCourse.source, activeCourse.target);
     const result: LessonItem[] = new Array(statics.length);
     for (let i = 0; i < statics.length; i++) {
       const s = statics[i];
@@ -189,7 +201,7 @@ export default function LessonsScreen() {
       result[i] = { ...s, status, correctCount, isLocked: !accessibleIds.has(s.lesson.id) };
     }
     return result;
-  }, [completedLessons, lessonExerciseProgress, isPremium]);
+  }, [completedLessons, lessonExerciseProgress, isPremium, activeCourse.source, activeCourse.target]);
 
   const filteredItems = useMemo(() => {
     // Premium değilse sınav derslerini hiç gösterme — gate gösterilecek
