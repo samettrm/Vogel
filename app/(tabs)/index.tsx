@@ -154,6 +154,16 @@ function MapScreenContent() {
   //   - Smooth scroll SADECE current lesson görünür değilse + lesson değiştiyse.
   const lastScrolledForLessonRef = useRef<string | null>(null);
 
+  // 📐 V6: Viewport/content dimension tracking (precise lesson centering)
+  //   - viewportHeightRef → FlatList onLayout ile set
+  //   - contentHeightRef → onContentSizeChange ile set
+  //   - lesson focus için targetY = lessonY - viewportHeight * 0.45 (45% center)
+  const viewportHeightRef = useRef(0);
+  const contentHeightRef = useRef(0);
+  const LESSON_HEIGHT = 124; // Sabit (getItemLayout ile aynı)
+  const UNIT_HEADER_HEIGHT = 40;
+  const UNIT_BOTTOM_MARGIN = 80;
+
   // ─── Sticky bölüm başlığı (Duolingo tarzı) ──────────────────────────
   // Scroll edilince o anki ünitenin adı üstte sabit bantla gösterilir
   const stickyUnitRef = useRef<Unit | null>(null);
@@ -206,44 +216,112 @@ function MapScreenContent() {
     [],
   );
 
-  // 📜 Hedef scroll Y koordinatı — current lesson'ın tam görünür olacağı konum
-  //    Önceden bu useEffect'lerden SONRA tanımlıydı, TDZ hatası riski vardı.
-  //    Şimdi yukarı taşındı — useEffect/useFocusEffect güvenli kullanabilir.
+  // 📐 V6: Lesson Y koordinatı — content içindeki Y pozisyonu
+  //   = sum(previous unit heights) + unit header + lessonIndex * lesson_height
+  const computeLessonY = useCallback((lessonId: string): number => {
+    let unitY = 0;
+    for (let i = 0; i < course.units.length; i++) {
+      const unit = course.units[i];
+      const lessonIdx = unit?.lessons?.findIndex((l) => l.id === lessonId) ?? -1;
+      if (lessonIdx >= 0) {
+        return unitY + UNIT_HEADER_HEIGHT + lessonIdx * LESSON_HEIGHT;
+      }
+      unitY += (unit?.lessons?.length ?? 0) * LESSON_HEIGHT + UNIT_HEADER_HEIGHT + UNIT_BOTTOM_MARGIN;
+    }
+    return 0;
+  }, [course.units]);
+
+  // 📐 V6: Hedef scroll Y — lesson'ı 45% viewport center'a koy
+  //   targetY = lessonY - vh * 0.45 + LESSON_HEIGHT / 2
+  //   Clamp to [0, maxY] (maxY = contentHeight - viewportHeight)
   const targetScrollY = useMemo(() => {
     if (currentUnitIndex < 0 || !currentLessonId) return 0;
-    let offset = 0;
-    for (let i = 0; i < currentUnitIndex; i++) {
-      const unit = course.units[i];
-      offset += (unit?.lessons?.length ?? 0) * 124 + 40 + 80;
-    }
-    const currentUnit = course.units[currentUnitIndex];
-    const lessonIndexInUnit = currentUnit?.lessons.findIndex(
-      (l) => l.id === currentLessonId,
-    ) ?? 0;
-    const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
-    return Math.max(0, offset - viewOffsetValue);
-  }, [currentUnitIndex, currentLessonId, course.units]);
+    const lessonY = computeLessonY(currentLessonId);
+    const vh = viewportHeightRef.current || 800; // Default 800 ise henüz layout olmadı
+    const rawTargetY = lessonY - vh * 0.45 + LESSON_HEIGHT / 2;
+    return Math.max(0, rawTargetY);
+  }, [currentUnitIndex, currentLessonId, computeLessonY]);
 
-  // 📜 V5 FIX (2026-05-30) — Restore-first, then track
+  // 📐 V6: Tek focusActiveLesson fonksiyonu (user spec)
+  //   1. lessonY hesapla
+  //   2. viewport/content hazır mı kontrol
+  //   3. visibility check (30-70% center)
+  //   4. Hedef Y'ye scrollToOffset (animated parametreli)
+  const focusActiveLesson = useCallback((lessonId: string, reason: string, animated = true) => {
+    const lessonY = computeLessonY(lessonId);
+    const vh = viewportHeightRef.current;
+    const ch = contentHeightRef.current;
+
+    console.warn('[MAP_FOCUS_READY]', {
+      lessonId,
+      hasY: lessonY > 0,
+      viewportHeight: vh,
+      contentHeight: ch,
+      reason,
+    });
+
+    if (vh <= 0) {
+      console.warn('[MAP_FOCUS_DEFER]', { lessonId, reason, why: 'viewport-not-ready' });
+      return false;
+    }
+
+    // Visibility check: lesson center'ı viewport'un 30-70% arasında mı?
+    const currentY = currentScrollY.current;
+    const lessonCenterInViewport = (lessonY + LESSON_HEIGHT / 2) - currentY;
+    const isNearCenter =
+      lessonCenterInViewport > vh * 0.30 &&
+      lessonCenterInViewport < vh * 0.70;
+
+    if (isNearCenter) {
+      console.warn('[MAP_SCROLL_SKIP]', {
+        lessonId,
+        reason,
+        why: 'already-centered',
+        lessonCenterInViewport: Math.round(lessonCenterInViewport),
+        vh30: Math.round(vh * 0.30),
+        vh70: Math.round(vh * 0.70),
+      });
+      return true;
+    }
+
+    // Compute target Y: lesson center at 45% of viewport
+    const rawTargetY = lessonY - vh * 0.45 + LESSON_HEIGHT / 2;
+    const maxY = ch > 0 ? Math.max(0, ch - vh) : Infinity;
+    const targetY = Math.max(0, Math.min(rawTargetY, maxY));
+
+    console.warn('[MAP_SCROLL_TO]', {
+      lessonId,
+      targetY: Math.round(targetY),
+      lessonY,
+      rawTargetY: Math.round(rawTargetY),
+      vh,
+      ch,
+      reason,
+      animated,
+    });
+
+    isProgrammaticScrollRef.current = true;
+    try {
+      listRef.current?.scrollToOffset({ offset: targetY, animated });
+    } catch {}
+    setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 700 : 100);
+    return true;
+  }, [computeLessonY]);
+
+  // 📐 V6 FIX (2026-05-30 — user spec exact)
   //
-  // User spec:
-  //   1. Lesson'a girerken scroll Y kaydet (handleScroll onScroll ile current)
-  //   2. Lesson'dan dönünce ÖNCE savedY restore (animated: false) — sessizce
-  //   3. Restore sonrası aktif lesson visible mı kontrol
-  //   4. Visible → no-op
-  //   5. Not visible → smooth scroll (InteractionManager)
+  // User v5 feedback:
+  //   - Kamera "Bölüm 2: Kişisel Bilgi" başlığı civarında kalıyor
+  //   - Aktif yeşil play button ekranın altında / yarım görünüyor
+  //   - Lesson node merkeze alınmıyor
   //
-  // ⚠️ KRITIK FARK V4 ile:
-  //   V4 sadece visibility check yapıyordu, currentScrollY.current'a güveniyordu.
-  //   Eğer FlatList freezeOnBlur sonrası y=0'a düşüyorsa, currentScrollY stale
-  //   kalıyor → "lesson visible" yanlış kararı veriyordu → kamera y=0'da kalıyordu.
-  //
-  //   V5: HER focus'ta önce restore — FlatList state'i kaybetmemiş bile olsa
-  //   no-op olur, kaybetmişse fix eder. Sonra visibility check + smooth scroll.
-  //
-  // lastScrolledForLessonRef:
-  //   - SADECE aynı activeLessonId tekrarını engeller
-  //   - Yeni activeLessonId geldiyse engellenmiyor (her seferinde focus logic çalışır)
+  // V6 user spec:
+  //   1. Lesson Y'sini PRECISE hesapla (lesson item için)
+  //   2. viewport/content dimensions track et (onLayout/onContentSizeChange)
+  //   3. focusActiveLesson(lessonId, reason) — tek fonksiyon
+  //   4. Visibility = lesson center 30-70% viewport içinde mi
+  //   5. Hedef: lesson 45% viewport center
+  //   6. Restore savedY önce (flash önle), sonra focus
   useFocusEffect(
     useCallback(() => {
       if (!hasHydrated || currentUnitIndex < 0 || !currentLessonId) return;
@@ -251,99 +329,39 @@ function MapScreenContent() {
       // 1️⃣ İlk render — FlatList initialScrollIndex kendi handle eder
       if (lastScrolledForLessonRef.current === null) {
         lastScrolledForLessonRef.current = currentLessonId;
-        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
+        console.warn('[MAP_ACTIVE_LESSON]', {
           activeLessonId: currentLessonId,
-          reason: 'initial-mount-no-scroll',
-          shouldScroll: false,
+          reason: 'initial-mount-skip',
         });
         return;
       }
 
-      // 2️⃣ Aynı lesson — sadece restore (yeni scroll yok)
-      const isSameLesson = lastScrolledForLessonRef.current === currentLessonId;
-
+      // 2️⃣ ÖNCE saved scroll Y'yi sessizce restore et (flash önle)
       const savedY = currentScrollY.current;
-
-      // 3️⃣ ÖNCE saved scroll Y'yi sessizce restore et
-      //    (FlatList y=0'a düştüyse fix eder; düşmediyse no-op)
-      //    Bu HER focus'ta yapılır — same lesson ya da yeni lesson, fark etmez.
-      console.warn('[MAP_SCROLL_RESTORE]', {
-        scrollY: savedY,
-        isSameLesson,
-      });
-      try {
-        listRef.current?.scrollToOffset({
-          offset: savedY,
-          animated: false, // ⚡ Sessizce, animasyon YOK
-        });
-      } catch {}
-
-      // 4️⃣ Same lesson + restore yapıldı → bitti
-      if (isSameLesson) {
-        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
-          activeLessonId: currentLessonId,
-          reason: 'same-lesson-restore-only',
-          shouldScroll: false,
-        });
-        return;
-      }
-
-      // 5️⃣ Yeni lesson — visibility check (restore sonrası)
-      const distance = Math.abs(savedY - targetScrollY);
-      const TOLERANCE = 350;
-      const visible = distance <= TOLERANCE;
-
-      if (visible) {
-        lastScrolledForLessonRef.current = currentLessonId;
-        console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
-          activeLessonId: currentLessonId,
-          currentY: savedY,
-          targetY: targetScrollY,
-          distance,
-          visible: true,
-          reason: 'new-lesson-visible-no-scroll',
-          shouldScroll: false,
-        });
-        return;
-      }
-
-      // 6️⃣ Yeni lesson far → smooth scroll (active lesson tracking)
-      const currentUnit = course.units[currentUnitIndex];
-      if (!currentUnit) return;
-      const lessonIndexInUnit = currentUnit.lessons.findIndex((l) => l.id === currentLessonId);
-      if (lessonIndexInUnit < 0) return;
-      const viewOffsetValue = 40 - 100 - lessonIndexInUnit * 124;
-
-      console.warn('[MAP_SCROLL_FOCUS_LESSON]', {
-        activeLessonId: currentLessonId,
-        currentY: savedY,
-        targetY: targetScrollY,
-        distance,
-        visible: false,
-        reason: 'new-lesson-far-smooth-tracking',
-        shouldScroll: true,
-      });
-
-      isProgrammaticScrollRef.current = true;
-      const handle = InteractionManager.runAfterInteractions(() => {
+      console.warn('[MAP_SCROLL_RESTORE]', { scrollY: savedY });
+      if (savedY > 0) {
         try {
-          listRef.current?.scrollToIndex({
-            index: currentUnitIndex,
-            animated: true,
-            viewPosition: 0,
-            viewOffset: viewOffsetValue,
-          });
-        } catch {
-          // onScrollToIndexFailed fallback
-        }
+          listRef.current?.scrollToOffset({ offset: savedY, animated: false });
+        } catch {}
+      }
+
+      // 3️⃣ Layout idle olunca focusActiveLesson çalıştır
+      //    InteractionManager → viewport/content dimensions hazır olur
+      console.warn('[MAP_ACTIVE_LESSON]', {
+        activeLessonId: currentLessonId,
+        previousLessonId: lastScrolledForLessonRef.current,
+        reason: 'focus-event',
+      });
+
+      const handle = InteractionManager.runAfterInteractions(() => {
+        focusActiveLesson(currentLessonId, 'useFocusEffect', true);
         lastScrolledForLessonRef.current = currentLessonId;
-        setTimeout(() => { isProgrammaticScrollRef.current = false; }, 700);
       });
 
       return () => {
         handle.cancel?.();
       };
-    }, [hasHydrated, currentUnitIndex, currentLessonId, course.units, targetScrollY]),
+    }, [hasHydrated, currentUnitIndex, currentLessonId, focusActiveLesson]),
   );
 
   // 📜 Animated.Value listener → her frame'de FlatList scroll güncelle
@@ -703,6 +721,19 @@ function MapScreenContent() {
           onScrollToIndexFailed={onScrollToIndexFailed}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          onLayout={(e) => {
+            const h = e.nativeEvent.layout.height;
+            if (h > 0 && h !== viewportHeightRef.current) {
+              viewportHeightRef.current = h;
+              console.warn('[MAP_VIEWPORT_LAYOUT]', { viewportHeight: h });
+            }
+          }}
+          onContentSizeChange={(_w, h) => {
+            if (h > 0 && h !== contentHeightRef.current) {
+              contentHeightRef.current = h;
+              console.warn('[MAP_CONTENT_SIZE]', { contentHeight: h });
+            }
+          }}
         />
 
         </View>{/* /mapArea */}
