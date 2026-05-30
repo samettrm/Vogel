@@ -209,6 +209,9 @@ function MapScreenContent() {
   // 📊 V9: Lesson değişimi takibi — currentLessonId değiştiyse lesson_complete
   const previousLessonIdRef = useRef<string | null>(null);
 
+  // 💾 V27: Lesson'a girmeden önceki scroll pozisyonu (lesson dönüşünde restore için)
+  const savedScrollYBeforeLessonRef = useRef<number | null>(null);
+
   // ─── Sticky bölüm başlığı (Duolingo tarzı) ──────────────────────────
   // Scroll edilince o anki ünitenin adı üstte sabit bantla gösterilir
   const stickyUnitRef = useRef<Unit | null>(null);
@@ -530,14 +533,32 @@ function MapScreenContent() {
         return;
       }
 
-      // 🔒 V26: Lesson exit'inden geliyorsak auto-scroll YAPMA — çıkılan ders pozisyonunda kal
+      // 🔒 V27: Lesson exit'inden geliyorsak SAVED SCROLL'U RESTORE et
+      //   FlatList lesson sırasında scroll position'ını kaybedebilir (y=0'a düşer).
+      //   handleLessonPress'te SAKLADIĞIMIZ position'ı geri yükle.
+      //   Auto-scroll (current/next focus) YAPILMAZ.
       if (mapNavState.fromLesson) {
         mapNavState.fromLesson = false; // Flag consume
-        previousLessonIdRef.current = nextPlayableLessonId; // Refref güncelle
-        console.warn('[MAP_FOCUS_LESSON_EXIT_PRESERVE]', {
+        previousLessonIdRef.current = nextPlayableLessonId; // Ref güncelle
+        const savedY = savedScrollYBeforeLessonRef.current;
+        console.warn('[MAP_FOCUS_LESSON_EXIT_RESTORE]', {
           lessonId: nextPlayableLessonId,
+          savedScrollY: savedY != null ? Math.round(savedY) : null,
           currentScrollY: Math.round(currentScrollY.current),
         });
+
+        // Saved position varsa instant restore (animasyon YOK, zıplama yok)
+        if (savedY != null && savedY >= 0) {
+          // İki frame sonrası restore (FlatList layout settle olsun)
+          setTimeout(() => {
+            try {
+              listRef.current?.scrollToOffset({ offset: savedY, animated: false });
+              console.warn('[MAP_SCROLL_RESTORED]', { offset: Math.round(savedY) });
+            } catch (e) {
+              console.warn('[MAP_SCROLL_RESTORE_FAIL]', { error: String(e) });
+            }
+          }, 50);
+        }
         return;
       }
 
@@ -747,6 +768,13 @@ function MapScreenContent() {
   }, [completedLessons, currentLessonId, lessonExerciseProgress, examLessonIds]);
 
   const handleLessonPress = useCallback((lesson: Lesson) => {
+    // V27: Lesson'a girmeden önce SCROLL POSITION'I SAKLA
+    //   Map'e döndüğünde bu pozisyonu restore edeceğiz.
+    savedScrollYBeforeLessonRef.current = currentScrollY.current;
+    console.warn('[MAP_SAVE_SCROLL_BEFORE_LESSON]', {
+      lessonId: lesson.id,
+      savedScrollY: Math.round(currentScrollY.current),
+    });
     router.push(`/lesson/${lesson.id}`);
   }, [router]);
 
