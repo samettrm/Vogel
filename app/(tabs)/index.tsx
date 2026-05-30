@@ -517,17 +517,17 @@ function MapScreenContent() {
   //   V13 progress sync gate KALIYOR (login sırasında spinner).
   //   focusActiveLesson FONKSIYONU duruyor ama useFocusEffect'ten ÇAĞRILMIYOR.
   //   Sadece handleScrollToCurrent (kullanıcı butona basınca) çağırır.
-  // 📍 V22: TRACKING with TAB-PRESERVE
-  //   - Initial mount (app açılış) → scrollToIndex current lesson area'ya
+  // 📍 V23: HER FOCUS'TA TRACKING
+  //   - Initial mount → scrollToIndex current lesson area'ya
   //   - Lesson complete → scrollToIndex new current'a
-  //   - Tab focus (same lesson) → NO scroll (preserve user's position)
+  //   - Tab focus (Profile/Dersler → Map) → scrollToIndex current'a (preserve YOK)
   //
-  //   scrollToIndex kullanıyoruz çünkü FlatList internal layout knowledge ile
-  //   güvenli scroll yapar. Estimate clamp-to-0 bug YOK.
+  //   scrollToIndex FlatList internal layout knowledge ile güvenli scroll.
+  //   Snap-to-top bug YOK. Her zaman current lesson area'sı gösterilir.
   useFocusEffect(
     useCallback(() => {
       if (!hasHydrated || !nextPlayableLessonId) {
-        console.warn('[MAP_FOCUS_V22_EARLY_RETURN]', { hasHydrated, nextPlayableLessonId });
+        console.warn('[MAP_FOCUS_V23_EARLY_RETURN]', { hasHydrated, nextPlayableLessonId });
         return;
       }
 
@@ -535,15 +535,6 @@ function MapScreenContent() {
       const isInitialMount = oldLessonId === null;
       const isLessonChange = oldLessonId !== null && oldLessonId !== nextPlayableLessonId;
       previousLessonIdRef.current = nextPlayableLessonId;
-
-      // Tab focus (same lesson, map zaten mount) → preserve position, no scroll
-      if (!isInitialMount && !isLessonChange) {
-        console.warn('[MAP_FOCUS_PRESERVE]', {
-          lessonId: nextPlayableLessonId,
-          currentScrollY: Math.round(currentScrollY.current),
-        });
-        return;
-      }
 
       // Find unit and lesson within
       const unitIdx = course.units.findIndex((u) =>
@@ -559,8 +550,13 @@ function MapScreenContent() {
       const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
       const viewOffset = anchorY - lessonOffsetInUnit;
 
-      const reason = isInitialMount ? 'initial_mount' : 'lesson_complete';
-      console.warn('[MAP_FOCUS_SCROLL_V22]', {
+      const reason = isInitialMount
+        ? 'initial_mount'
+        : isLessonChange
+        ? 'lesson_complete'
+        : 'tab_focus';
+
+      console.warn('[MAP_FOCUS_SCROLL_V23]', {
         reason,
         nextPlayableLessonId,
         unitIdx,
@@ -580,7 +576,7 @@ function MapScreenContent() {
               viewOffset,
             });
           } catch (e) {
-            console.warn('[MAP_SCROLL_FAIL_V22]', { error: String(e) });
+            console.warn('[MAP_SCROLL_FAIL_V23]', { error: String(e) });
           }
           setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
         }, 500);
