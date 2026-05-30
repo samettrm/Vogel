@@ -163,8 +163,12 @@ function MapScreenContent() {
 
   // 🛡 V7: User-scroll override guard
   //   Kullanıcı manuel kaydırma yaptıktan sonra 1.5sn boyunca auto-scroll skip.
-  //   Bu sayede "ders dönüşü auto-scroll" kullanıcının manuel scroll'unu override etmez.
   const lastUserScrollTime = useRef(0);
+
+  // 📍 V8: Gerçek unit Y koordinatları (onLayout ile ölçülür)
+  //   getItemLayout formülü hatalı (32px birikiyor). Bu ref gerçek Y'leri tutar.
+  //   Her unit wrapper'ı onLayout ile kendi Y'sini buraya yazar.
+  const unitYMap = useRef<Record<string, number>>({});
 
   // ─── Sticky bölüm başlığı (Duolingo tarzı) ──────────────────────────
   // Scroll edilince o anki ünitenin adı üstte sabit bantla gösterilir
@@ -218,17 +222,48 @@ function MapScreenContent() {
     [],
   );
 
-  // 📐 V6: Lesson Y koordinatı — content içindeki Y pozisyonu
-  //   = sum(previous unit heights) + unit header + lessonIndex * lesson_height
+  // 📐 V8: Lesson Y koordinatı — GERÇEK measured Y kullan
+  //   1. unitYMap'ten unit'in gerçek Y'sini al (onLayout ile ölçülmüş)
+  //   2. Unit içinde lesson Y'si:
+  //      MapPath header height + FIRST_NODE_OFFSET_Y (40) + lessonIdx * NODE_SPACING_Y (124)
+  //      MapPath header ≈ 76px (header + bottom margin)
+  //   3. Eğer unit henüz onLayout ile ölçülmemişse → fallback formül
+  //
+  //   📌 MAPPATH İÇ YAPISI (MapPath.tsx):
+  //      - headerWrap: padding/text → ~64px high
+  //      - headerWrap marginBottom: spacing.base (12)
+  //      - pathContainer: NODE_AREA/2 offset (FIRST_NODE_OFFSET_Y=40)
+  //      - lesson i'nin merkezi: pathContainer içinde i * 124 + 40
+  //      - lesson 0 → unit içinde y = HEADER_AREA + 40 = ~76 + 40 = ~116
+  //      - lesson 1 → ~116 + 124 = ~240
+  const MAPPATH_HEADER_AREA = 76; // headerWrap height + marginBottom
   const computeLessonY = useCallback((lessonId: string): number => {
-    let unitY = 0;
     for (let i = 0; i < course.units.length; i++) {
       const unit = course.units[i];
       const lessonIdx = unit?.lessons?.findIndex((l) => l.id === lessonId) ?? -1;
-      if (lessonIdx >= 0) {
-        return unitY + UNIT_HEADER_HEIGHT + lessonIdx * LESSON_HEIGHT;
+      if (lessonIdx < 0) continue;
+
+      // GERÇEK unit Y (onLayout ile ölçüldü)
+      const realUnitY = unitYMap.current[unit.id];
+      if (realUnitY != null) {
+        // Lesson Y = unit Y + header area + first lesson offset + lesson index spacing
+        // lesson merkezi: realUnitY + 76 (header) + 40 (first offset) + idx * 124
+        const lessonY = realUnitY + MAPPATH_HEADER_AREA + 40 + lessonIdx * 124;
+        return lessonY;
       }
-      unitY += (unit?.lessons?.length ?? 0) * LESSON_HEIGHT + UNIT_HEADER_HEIGHT + UNIT_BOTTOM_MARGIN;
+
+      // Fallback (henüz onLayout fire etmediyse)
+      let estimatedUnitY = 0;
+      for (let j = 0; j < i; j++) {
+        const prevUnit = course.units[j];
+        const measured = unitYMap.current[prevUnit.id];
+        if (measured != null) {
+          estimatedUnitY = measured + (prevUnit?.lessons?.length ?? 0) * 124 + MAPPATH_HEADER_AREA + 56;
+        } else {
+          estimatedUnitY += (prevUnit?.lessons?.length ?? 0) * 124 + MAPPATH_HEADER_AREA + 56;
+        }
+      }
+      return estimatedUnitY + MAPPATH_HEADER_AREA + 40 + lessonIdx * 124;
     }
     return 0;
   }, [course.units]);
@@ -551,14 +586,27 @@ function MapScreenContent() {
   const styles = useMemo(() => makeStyles(c), [c]);
 
   // 🚀 PERF: FlatList renderItem ve keyExtractor stable callback'lar
+  // 📍 V8: Her unit View wrapper'a sarılı. onLayout ile gerçek Y yakalanır.
+  //   layout.y = unit'in FlatList içindeki gerçek Y koordinatı (header dahil).
+  //   Bu değer formülden 32px farklı olabilir (header'ın gerçek yüksekliğine göre).
   const renderUnit = useCallback(
     ({ item }: { item: Unit }) => (
-      <MapPath
-        unit={item}
-        unitOrder={item.order}
-        getLessonInfo={getLessonInfo}
-        onLessonPress={handleLessonPress}
-      />
+      <View
+        onLayout={(e) => {
+          const y = e.nativeEvent.layout.y;
+          if (unitYMap.current[item.id] !== y) {
+            unitYMap.current[item.id] = y;
+            console.warn('[MAP_UNIT_Y]', { unitId: item.id, y: Math.round(y) });
+          }
+        }}
+      >
+        <MapPath
+          unit={item}
+          unitOrder={item.order}
+          getLessonInfo={getLessonInfo}
+          onLessonPress={handleLessonPress}
+        />
+      </View>
     ),
     [getLessonInfo, handleLessonPress],
   );
