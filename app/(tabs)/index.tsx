@@ -546,7 +546,7 @@ function MapScreenContent() {
 
       // ScrollToIndex with viewOffset (V14 method — proven works)
       const vh = viewportHeightRef.current || 800;
-      const anchorY = vh * 0.35; // Lesson upper area (BAŞLA bubble higher)
+      const anchorY = vh * 0.25; // Lesson upper area (BAŞLA bubble higher)
       const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
       const viewOffset = anchorY - lessonOffsetInUnit;
 
