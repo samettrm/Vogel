@@ -390,20 +390,53 @@ function MapScreenContent() {
     const usableTop = TOP_RESERVED;
     const usableBottom = vh - BOTTOM_RESERVED;
     // 📌 V15: BAŞLA balonu node'un 52px YUKARISINDA absolute positioned.
-    //   Sadece node merkezini hesaba katarsak balon+node combo aşağıda görünür.
-    //   Lesson node'u biraz yukarı kaydır → balon + node combo tam center'da olsun.
-    //   BUBBLE_COMPENSATION = 30 (balon yarısı + triangle, görsel tahmin)
     const BUBBLE_COMPENSATION = 30;
     const rawCenter = (usableTop + usableBottom) / 2;
     const usableCenter = rawCenter - BUBBLE_COMPENSATION;
 
-    // Lesson'ın unit içindeki Y'si (CENTER):
-    //   MapPath header (~76) + FIRST_NODE_OFFSET (40) + idx * NODE_SPACING (124)
-    const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
+    // 🎯 V16: STRATEGY 1 — Precise scroll using REAL measurements (drift-free)
+    //   Lesson layout ölçüldüyse → scrollToOffset ile EXAKT konum
+    //   Bu, getItemLayout formülündeki küçük hataların unitler arası drift'ini önler
+    const measuredUnitY = unitYMap.current[unit.id];
+    const measuredPathY = pathYMap.current[unit.id];
+    const measuredLessonLayout = lessonLayoutsMap.current[actualLessonId];
 
-    // viewOffset = unit_top'un viewport top'tan uzaklığı
-    //   Lesson center'ı usableCenter'a getirmek için:
-    //   unit_top = usableCenter - lessonOffsetInUnit
+    if (measuredUnitY != null && measuredPathY != null && measuredLessonLayout) {
+      const lessonCenterY =
+        measuredUnitY +
+        measuredPathY +
+        measuredLessonLayout.y +
+        measuredLessonLayout.height / 2;
+      const ch = contentHeightRef.current;
+      const maxY = ch > 0 ? Math.max(0, ch - vh) : Infinity;
+      const targetY = Math.max(0, Math.min(lessonCenterY - usableCenter, maxY));
+
+      console.warn('[MAP_SCROLL_PRECISE]', {
+        reason,
+        force,
+        lessonId: actualLessonId,
+        unitIdx,
+        lessonIdx,
+        lessonCenterY: Math.round(lessonCenterY),
+        usableCenter: Math.round(usableCenter),
+        targetY: Math.round(targetY),
+        vh,
+        animated,
+      });
+
+      isProgrammaticScrollRef.current = true;
+      try {
+        listRef.current?.scrollToOffset({ offset: targetY, animated });
+      } catch (e) {
+        console.warn('[MAP_SCROLL_FAIL]', { error: String(e) });
+      }
+      setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 700 : 150);
+      return true;
+    }
+
+    // 🔄 V16: STRATEGY 2 — Fallback scrollToIndex with viewOffset (measurements not ready)
+    //   Bu, IDk render'da kullanılır. Sonraki focus'larda STRATEGY 1 (precise) çalışır.
+    const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
     const viewOffset = usableCenter - lessonOffsetInUnit;
 
     console.warn('[MAP_SCROLL_TO]', {
@@ -417,6 +450,7 @@ function MapScreenContent() {
       viewOffset: Math.round(viewOffset),
       vh,
       animated,
+      strategy: 'scrollToIndex-fallback',
     });
 
     isProgrammaticScrollRef.current = true;
