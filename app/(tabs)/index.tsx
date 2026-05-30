@@ -424,45 +424,14 @@ function MapScreenContent() {
       console.warn('[MAP_SCROLL_FAIL]', { error: String(e) });
     }
 
-    // 🎯 V12 REFINEMENT: scrollToIndex APPROXIMATE; 500ms sonra measured Y varsa precise scroll
-    //   getItemLayout formülü tam tutmuyor olabilir → scrollToIndex hafif yanlış yere koyar
-    //   500ms sonra unitY + pathY + lessonLayout var ise scrollToOffset ile düzelt
-    setTimeout(() => {
-      const unitYMeasured = unitYMap.current[unit.id];
-      const pathYMeasured = pathYMap.current[unit.id];
-      const lessonLayoutMeasured = lessonLayoutsMap.current[actualLessonId];
-      if (unitYMeasured != null && pathYMeasured != null && lessonLayoutMeasured) {
-        const lessonCenterY = unitYMeasured + pathYMeasured + lessonLayoutMeasured.y + lessonLayoutMeasured.height / 2;
-        const targetY = Math.max(0, lessonCenterY - usableCenter);
-        const currentY = currentScrollY.current;
-        const drift = Math.abs(targetY - currentY);
+    // ❌ V14: REFINEMENT STEP KALDIRILDI
+    //   V12'de scrollToIndex sonrası 500ms'de scrollToOffset(measured Y) yapılıyordu.
+    //   Ama measured unitY/pathY/lessonLayout bazen STALE veya YANLIŞ değerlerle dönüyordu →
+    //   refinement camera'yı YANLIŞ konuma (genelde y=0) atıyordu.
+    //   USER FEEDBACK: "doğru yere gidiyor, hemen ardından ilk bölüme atıyor"
+    //   Çözüm: refinement YOK. Sadece scrollToIndex (yeterince doğru).
 
-        console.warn('[MAP_SCROLL_REFINE]', {
-          lessonId: actualLessonId,
-          measuredCenterY: Math.round(lessonCenterY),
-          currentScrollY: Math.round(currentY),
-          targetY: Math.round(targetY),
-          drift: Math.round(drift),
-        });
-
-        // Sadece 30px+ drift varsa düzelt (titreşim önle)
-        if (drift > 30) {
-          isProgrammaticScrollRef.current = true;
-          try {
-            listRef.current?.scrollToOffset({ offset: targetY, animated: true });
-          } catch {}
-        }
-      } else {
-        console.warn('[MAP_SCROLL_REFINE_SKIP]', {
-          lessonId: actualLessonId,
-          hasUnitY: unitYMeasured != null,
-          hasPathY: pathYMeasured != null,
-          hasLessonLayout: lessonLayoutMeasured != null,
-        });
-      }
-    }, animated ? 500 : 200);
-
-    setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 1200 : 250);
+    setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 700 : 150);
     return true;
   }, [completedLessons, nextPlayableLessonId, course.units]);
 
@@ -935,7 +904,10 @@ function MapScreenContent() {
           windowSize={5}
           updateCellsBatchingPeriod={50}
           getItemLayout={getItemLayout}
-          initialScrollIndex={Math.max(0, currentUnitIndex)}
+          // ❌ V14: initialScrollIndex KALDIRILDI
+          //   FlatList mount'ta initialScrollIndex'e scroll yapıyordu → race condition.
+          //   focusActiveLesson zaten useFocusEffect'te çalışıp doğru yere scroll yapacak.
+          //   initialScrollIndex={Math.max(0, currentUnitIndex)}
           onScrollToIndexFailed={onScrollToIndexFailed}
           onScroll={handleScroll}
           scrollEventThrottle={16}
