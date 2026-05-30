@@ -16,6 +16,11 @@ interface MapPathProps {
     wrong: number;
   };
   onLessonPress: (lesson: Lesson) => void;
+  // 📍 V9: Layout reporting for precise lesson focus
+  //   onPathLayout fires when pathContainer mounts → Y within unit container
+  //   onLessonNodeLayout fires when each lesson nodeWrap mounts → Y/height within pathContainer
+  onPathLayout?: (unitId: string, yInUnit: number) => void;
+  onLessonNodeLayout?: (lessonId: string, yInPath: number, height: number) => void;
 }
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -24,18 +29,20 @@ const NODE_AREA = 110;
 const FIRST_NODE_OFFSET_Y = 40;
 const ZIG_PATTERN = [0, 56, 80, 56, 0, -56, -80, -56];
 
-export function MapPath({ unit, unitOrder, getLessonInfo, onLessonPress }: MapPathProps) {
+export function MapPath({ unit, unitOrder, getLessonInfo, onLessonPress, onPathLayout, onLessonNodeLayout }: MapPathProps) {
   return (
     <MapPathImpl
       unit={unit}
       unitOrder={unitOrder}
       getLessonInfo={getLessonInfo}
       onLessonPress={onLessonPress}
+      onPathLayout={onPathLayout}
+      onLessonNodeLayout={onLessonNodeLayout}
     />
   );
 }
 
-function MapPathInner({ unit, unitOrder, getLessonInfo, onLessonPress }: MapPathProps) {
+function MapPathInner({ unit, unitOrder, getLessonInfo, onLessonPress, onPathLayout, onLessonNodeLayout }: MapPathProps) {
   const c = useThemeColors();
   const t = useT();
   const lessons = unit.lessons;
@@ -89,7 +96,10 @@ function MapPathInner({ unit, unitOrder, getLessonInfo, onLessonPress }: MapPath
         <View style={styles.headerHighlight} pointerEvents="none" />
       </View>
 
-      <View style={[styles.pathContainer, { height: totalHeight + spacing.lg }]}>
+      <View
+        style={[styles.pathContainer, { height: totalHeight + spacing.lg }]}
+        onLayout={(e) => onPathLayout?.(unit.id, e.nativeEvent.layout.y)}
+      >
         {pathD !== '' && (
           <Svg
             width={SCREEN_WIDTH}
@@ -125,6 +135,9 @@ function MapPathInner({ unit, unitOrder, getLessonInfo, onLessonPress }: MapPath
                 styles.nodeWrap,
                 { top: y - NODE_AREA / 2, left: x - NODE_AREA / 2 },
               ]}
+              onLayout={(e) =>
+                onLessonNodeLayout?.(lesson.id, e.nativeEvent.layout.y, e.nativeEvent.layout.height)
+              }
             >
               <LessonNode
                 state={info.state}

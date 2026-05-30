@@ -163,12 +163,29 @@ function MapScreenContent() {
 
   // 🛡 V7: User-scroll override guard
   //   Kullanıcı manuel kaydırma yaptıktan sonra 1.5sn boyunca auto-scroll skip.
+  //   ⚠️ V9: lesson_complete focus için force=true ile bypass edilir.
   const lastUserScrollTime = useRef(0);
 
-  // 📍 V8: Gerçek unit Y koordinatları (onLayout ile ölçülür)
-  //   getItemLayout formülü hatalı (32px birikiyor). Bu ref gerçek Y'leri tutar.
-  //   Her unit wrapper'ı onLayout ile kendi Y'sini buraya yazar.
+  // 📍 V9: 3-katmanlı Y ölçümü (formül YOK, sadece onLayout)
+  //   1. unitYMap     → unit View wrapper'ı içindeki Y (FlatList content içinde)
+  //   2. pathYMap     → pathContainer'ın unit içindeki Y (header'ın altı)
+  //   3. lessonLayouts → her lesson nodeWrap'ının pathContainer içindeki Y + height
+  //
+  //   Compose: lessonAbsCenter = unitY + pathY + lessonLayout.y + lessonLayout.height/2
   const unitYMap = useRef<Record<string, number>>({});
+  const pathYMap = useRef<Record<string, number>>({});
+  const lessonLayoutsMap = useRef<Record<string, { y: number; height: number }>>({});
+
+  // 📌 V9: Pending focus — layout/viewport ready olmadığında queue'la
+  const pendingFocusRef = useRef<{
+    lessonId: string;
+    reason: string;
+    force: boolean;
+    animated: boolean;
+  } | null>(null);
+
+  // 📊 V9: Lesson değişimi takibi — currentLessonId değiştiyse lesson_complete
+  const previousLessonIdRef = useRef<string | null>(null);
 
   // ─── Sticky bölüm başlığı (Duolingo tarzı) ──────────────────────────
   // Scroll edilince o anki ünitenin adı üstte sabit bantla gösterilir
@@ -222,131 +239,137 @@ function MapScreenContent() {
     [],
   );
 
-  // 📐 V8: Lesson Y koordinatı — GERÇEK measured Y kullan
-  //   1. unitYMap'ten unit'in gerçek Y'sini al (onLayout ile ölçülmüş)
-  //   2. Unit içinde lesson Y'si:
-  //      MapPath header height + FIRST_NODE_OFFSET_Y (40) + lessonIdx * NODE_SPACING_Y (124)
-  //      MapPath header ≈ 76px (header + bottom margin)
-  //   3. Eğer unit henüz onLayout ile ölçülmemişse → fallback formül
+  // 📐 V9: Lesson center Y'sini GERÇEK ölçümlerden hesapla (3-katmanlı compose)
   //
-  //   📌 MAPPATH İÇ YAPISI (MapPath.tsx):
-  //      - headerWrap: padding/text → ~64px high
-  //      - headerWrap marginBottom: spacing.base (12)
-  //      - pathContainer: NODE_AREA/2 offset (FIRST_NODE_OFFSET_Y=40)
-  //      - lesson i'nin merkezi: pathContainer içinde i * 124 + 40
-  //      - lesson 0 → unit içinde y = HEADER_AREA + 40 = ~76 + 40 = ~116
-  //      - lesson 1 → ~116 + 124 = ~240
-  const MAPPATH_HEADER_AREA = 76; // headerWrap height + marginBottom
-  const computeLessonY = useCallback((lessonId: string): number => {
-    for (let i = 0; i < course.units.length; i++) {
-      const unit = course.units[i];
-      const lessonIdx = unit?.lessons?.findIndex((l) => l.id === lessonId) ?? -1;
-      if (lessonIdx < 0) continue;
-
-      // GERÇEK unit Y (onLayout ile ölçüldü)
-      const realUnitY = unitYMap.current[unit.id];
-      if (realUnitY != null) {
-        // Lesson Y = unit Y + header area + first lesson offset + lesson index spacing
-        // lesson merkezi: realUnitY + 76 (header) + 40 (first offset) + idx * 124
-        const lessonY = realUnitY + MAPPATH_HEADER_AREA + 40 + lessonIdx * 124;
-        return lessonY;
+  //   absoluteCenter = unitY + pathY + lessonLayout.y + lessonLayout.height/2
+  //                    └─ FlatList içinde unit start
+  //                          └─ unit içinde pathContainer start (header'ın altı)
+  //                                └─ pathContainer içinde lesson nodeWrap top
+  //                                                          └─ nodeWrap merkezi
+  //
+  //   Hiçbiri ölçülmediyse null döner → pending focus mekanizması devreye girer.
+  const computeLessonCenterY = useCallback((lessonId: string): number | null => {
+    // Hangi unit?
+    let unitId: string | null = null;
+    for (const u of course.units) {
+      if (u.lessons.some((l) => l.id === lessonId)) {
+        unitId = u.id;
+        break;
       }
-
-      // Fallback (henüz onLayout fire etmediyse)
-      let estimatedUnitY = 0;
-      for (let j = 0; j < i; j++) {
-        const prevUnit = course.units[j];
-        const measured = unitYMap.current[prevUnit.id];
-        if (measured != null) {
-          estimatedUnitY = measured + (prevUnit?.lessons?.length ?? 0) * 124 + MAPPATH_HEADER_AREA + 56;
-        } else {
-          estimatedUnitY += (prevUnit?.lessons?.length ?? 0) * 124 + MAPPATH_HEADER_AREA + 56;
-        }
-      }
-      return estimatedUnitY + MAPPATH_HEADER_AREA + 40 + lessonIdx * 124;
     }
-    return 0;
+    if (!unitId) return null;
+
+    const unitY = unitYMap.current[unitId];
+    const pathY = pathYMap.current[unitId];
+    const lessonLayout = lessonLayoutsMap.current[lessonId];
+
+    if (unitY == null || pathY == null || !lessonLayout) {
+      return null;
+    }
+
+    return unitY + pathY + lessonLayout.y + lessonLayout.height / 2;
   }, [course.units]);
 
-  // 📐 V7: Hedef scroll Y — lesson'ı 50% viewport center'a koy (true center)
-  //   targetY = lessonY - vh * 0.5 + LESSON_HEIGHT / 2
-  //   Clamp to [0, maxY] (maxY = contentHeight - viewportHeight)
-  const targetScrollY = useMemo(() => {
-    if (currentUnitIndex < 0 || !currentLessonId) return 0;
-    const lessonY = computeLessonY(currentLessonId);
-    const vh = viewportHeightRef.current || 800;
-    const rawTargetY = lessonY - vh * 0.5 + LESSON_HEIGHT / 2;
-    return Math.max(0, rawTargetY);
-  }, [currentUnitIndex, currentLessonId, computeLessonY]);
+  // 📐 V9: Usable area sabitleri (header + bottom tab dışı)
+  const TOP_RESERVED = 80;     // Header area (Welcome, level chip)
+  const BOTTOM_RESERVED = 110; // Bottom tab + safe area
 
-  // 📐 V7: Tek focusActiveLesson fonksiyonu — Gemini analiz fix
-  //   1. lessonY hesapla (PRECISE per-lesson)
-  //   2. User-scroll guard (1.5sn içinde manuel scroll varsa SKIP)
-  //   3. viewport/content hazır mı kontrol
-  //   4. Visibility check (lesson center 30-70% viewport)
-  //   5. Hedef Y'ye scrollToOffset (50% center)
-  const focusActiveLesson = useCallback((lessonId: string, reason: string, animated = true) => {
-    const lessonY = computeLessonY(lessonId);
+  // 📐 V9: Hedef scroll Y (sticky button için tahmin)
+  const targetScrollY = useMemo(() => {
+    if (!currentLessonId) return 0;
+    const lessonCenterY = computeLessonCenterY(currentLessonId);
+    const vh = viewportHeightRef.current || 800;
+    if (lessonCenterY == null) return 0;
+    const usableTop = TOP_RESERVED;
+    const usableBottom = vh - BOTTOM_RESERVED;
+    const usableCenter = (usableTop + usableBottom) / 2;
+    return Math.max(0, lessonCenterY - usableCenter);
+  }, [currentLessonId, computeLessonCenterY]);
+
+  // 📐 V9: focusActiveLesson — usable center + force flag + pending mekanizma
+  //   1. Lesson center Y'sini ölç (3-layer compose); yoksa pending
+  //   2. Viewport/content hazır mı? Yoksa pending
+  //   3. User-scroll guard (force=true ile bypass)
+  //   4. Visibility check (usable area'nın 35-65% center'ında ise skip, force=true ile bypass)
+  //   5. Smooth scroll usable center'a
+  const focusActiveLesson = useCallback((
+    lessonId: string,
+    reason: string,
+    opts?: { animated?: boolean; force?: boolean },
+  ): boolean => {
+    const animated = opts?.animated ?? true;
+    const force = opts?.force ?? false;
+
+    const lessonCenterY = computeLessonCenterY(lessonId);
     const vh = viewportHeightRef.current;
     const ch = contentHeightRef.current;
 
-    console.warn('[MAP_FOCUS_READY]', {
-      lessonId,
-      hasY: lessonY > 0,
-      viewportHeight: vh,
-      contentHeight: ch,
-      reason,
-    });
-
-    // ⚠️ V7 user-scroll guard: kullanıcı 1.5sn içinde manuel kaydırdıysa override etme
-    const timeSinceUserScroll = Date.now() - lastUserScrollTime.current;
-    if (lastUserScrollTime.current > 0 && timeSinceUserScroll < 1500) {
-      console.warn('[MAP_SCROLL_SKIP]', {
+    if (lessonCenterY == null || vh <= 0 || ch <= 0) {
+      pendingFocusRef.current = { lessonId, reason, force, animated };
+      console.warn('[MAP_FOCUS_PENDING]', {
         lessonId,
         reason,
-        why: 'user-scrolled-recently',
-        timeSinceUserScroll,
+        force,
+        hasLessonY: lessonCenterY != null,
+        vh,
+        ch,
       });
-      return true;
-    }
-
-    if (vh <= 0) {
-      console.warn('[MAP_FOCUS_DEFER]', { lessonId, reason, why: 'viewport-not-ready' });
       return false;
     }
 
-    // Visibility check: lesson center'ı viewport'un 30-70% arasında mı?
-    const currentY = currentScrollY.current;
-    const lessonCenterInViewport = (lessonY + LESSON_HEIGHT / 2) - currentY;
-    const isNearCenter =
-      lessonCenterInViewport > vh * 0.30 &&
-      lessonCenterInViewport < vh * 0.70;
+    // User-scroll guard — force=true ise bypass
+    if (!force) {
+      const timeSinceUserScroll = Date.now() - lastUserScrollTime.current;
+      if (lastUserScrollTime.current > 0 && timeSinceUserScroll < 1500) {
+        console.warn('[MAP_SCROLL_SKIP]', {
+          lessonId,
+          reason,
+          why: 'user-scrolled-recently',
+          timeSinceUserScroll,
+        });
+        return true;
+      }
+    }
 
-    if (isNearCenter) {
+    // Usable area
+    const usableTop = TOP_RESERVED;
+    const usableBottom = vh - BOTTOM_RESERVED;
+    const usableCenter = (usableTop + usableBottom) / 2;
+
+    // Visibility check (35-65% of usable area)
+    const lessonScreenCenterY = lessonCenterY - currentScrollY.current;
+    const lower = usableTop + (usableBottom - usableTop) * 0.35;
+    const upper = usableTop + (usableBottom - usableTop) * 0.65;
+    const isNearCenter = lessonScreenCenterY >= lower && lessonScreenCenterY <= upper;
+
+    if (!force && isNearCenter) {
       console.warn('[MAP_SCROLL_SKIP]', {
         lessonId,
         reason,
-        why: 'already-centered',
-        lessonCenterInViewport: Math.round(lessonCenterInViewport),
-        vh30: Math.round(vh * 0.30),
-        vh70: Math.round(vh * 0.70),
+        why: 'already-near-center',
+        lessonScreenCenterY: Math.round(lessonScreenCenterY),
+        lower: Math.round(lower),
+        upper: Math.round(upper),
       });
       return true;
     }
 
-    // 50% center: lesson center exactly at vh/2
-    const rawTargetY = lessonY - vh * 0.5 + LESSON_HEIGHT / 2;
-    const maxY = ch > 0 ? Math.max(0, ch - vh) : Infinity;
-    const targetY = Math.max(0, Math.min(rawTargetY, maxY));
+    // Target Y = lessonCenter - usableCenter
+    let targetY = lessonCenterY - usableCenter;
+    const maxY = Math.max(0, ch - vh);
+    targetY = Math.max(0, Math.min(targetY, maxY));
 
     console.warn('[MAP_SCROLL_TO]', {
       lessonId,
+      reason,
+      force,
+      lessonCenterY: Math.round(lessonCenterY),
       targetY: Math.round(targetY),
-      lessonY,
-      rawTargetY: Math.round(rawTargetY),
       vh,
       ch,
-      reason,
+      usableTop,
+      usableBottom,
+      usableCenter: Math.round(usableCenter),
       animated,
     });
 
@@ -354,29 +377,51 @@ function MapScreenContent() {
     try {
       listRef.current?.scrollToOffset({ offset: targetY, animated });
     } catch {}
-    setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 700 : 100);
+    setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 600 : 100);
     return true;
-  }, [computeLessonY]);
+  }, [computeLessonCenterY]);
 
-  // 📐 V7 FIX (2026-05-30 — Gemini analiz + video review)
-  //
-  // V6 feedback:
-  //   - "App auto-scrolls back to old position after user manually scrolls"
-  //   - "Bölüm 2 → Bölüm 3 manuel scroll'u override ediliyor"
-  //
-  // V7 fixes:
-  //   ✅ User-scroll guard: kullanıcı 1.5sn içinde scroll yaptıysa SKIP
-  //   ✅ True 50% center: 0.45 → 0.5
-  //   ✅ useFocusEffect (already from v6, expo-router → react-navigation)
-  //   ✅ getItemLayout sabit (already from v6)
-  //   ✅ Precise per-lesson Y (computeLessonY) — no stale state
+  // 📌 V9: tryPendingFocus — layout/viewport hazır olduğunda pending'i fire et
+  const tryPendingFocus = useCallback(() => {
+    const pending = pendingFocusRef.current;
+    if (!pending) return;
+
+    const lessonCenterY = computeLessonCenterY(pending.lessonId);
+    const vh = viewportHeightRef.current;
+    const ch = contentHeightRef.current;
+    if (lessonCenterY == null || vh <= 0 || ch <= 0) return;
+
+    pendingFocusRef.current = null;
+    console.warn('[MAP_PENDING_FIRE]', {
+      lessonId: pending.lessonId,
+      reason: pending.reason,
+    });
+
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
+        focusActiveLesson(pending.lessonId, pending.reason, {
+          animated: pending.animated,
+          force: pending.force,
+        });
+      }, 100);
+    });
+  }, [computeLessonCenterY, focusActiveLesson]);
+
+  // 📐 V9 FIX (2026-05-30 — user spec exact)
+  //   - Lesson_complete: currentLessonId değişti → force=true (user-scroll guard bypass)
+  //   - Tab focus: currentLessonId aynı → force=false (visibility check + guard)
+  //   - Saved scroll restore YOK (user spec: "saved scroll restore edip orada bırakma")
+  //   - Pending mekanizma: layout/viewport ready olunca otomatik fire
   useFocusEffect(
     useCallback(() => {
-      if (!hasHydrated || currentUnitIndex < 0 || !currentLessonId) return;
+      if (!hasHydrated || !currentLessonId) return;
 
-      // 1️⃣ İlk render — FlatList initialScrollIndex kendi handle eder
-      if (lastScrolledForLessonRef.current === null) {
-        lastScrolledForLessonRef.current = currentLessonId;
+      const oldLessonId = previousLessonIdRef.current;
+      const isLessonChange = oldLessonId !== null && oldLessonId !== currentLessonId;
+      previousLessonIdRef.current = currentLessonId;
+
+      // İlk mount — FlatList initialScrollIndex kendi handle eder, scroll yapma
+      if (oldLessonId === null) {
         console.warn('[MAP_ACTIVE_LESSON]', {
           activeLessonId: currentLessonId,
           reason: 'initial-mount-skip',
@@ -384,32 +429,31 @@ function MapScreenContent() {
         return;
       }
 
-      // 2️⃣ ÖNCE saved scroll Y'yi sessizce restore et (flash önle)
-      const savedY = currentScrollY.current;
-      console.warn('[MAP_SCROLL_RESTORE]', { scrollY: savedY });
-      if (savedY > 0) {
-        try {
-          listRef.current?.scrollToOffset({ offset: savedY, animated: false });
-        } catch {}
-      }
+      const reason = isLessonChange ? 'lesson_complete' : 'tab_focus';
+      const force = isLessonChange; // Lesson değiştiyse force=true
 
-      // 3️⃣ Layout idle olunca focusActiveLesson çalıştır
-      //    InteractionManager → viewport/content dimensions hazır olur
       console.warn('[MAP_ACTIVE_LESSON]', {
         activeLessonId: currentLessonId,
-        previousLessonId: lastScrolledForLessonRef.current,
-        reason: 'focus-event',
+        previousLessonId: oldLessonId,
+        reason,
+        force,
       });
 
+      // Tab focus için user-scroll time'ı sıfırla (tab geçişi guard'a takılmasın)
+      if (reason === 'tab_focus') {
+        lastUserScrollTime.current = 0;
+      }
+
       const handle = InteractionManager.runAfterInteractions(() => {
-        focusActiveLesson(currentLessonId, 'useFocusEffect', true);
-        lastScrolledForLessonRef.current = currentLessonId;
+        setTimeout(() => {
+          focusActiveLesson(currentLessonId, reason, { animated: true, force });
+        }, 80);
       });
 
       return () => {
         handle.cancel?.();
       };
-    }, [hasHydrated, currentUnitIndex, currentLessonId, focusActiveLesson]),
+    }, [hasHydrated, currentLessonId, focusActiveLesson]),
   );
 
   // 📜 Animated.Value listener → her frame'de FlatList scroll güncelle
@@ -586,29 +630,49 @@ function MapScreenContent() {
   const styles = useMemo(() => makeStyles(c), [c]);
 
   // 🚀 PERF: FlatList renderItem ve keyExtractor stable callback'lar
-  // 📍 V8: Her unit View wrapper'a sarılı. onLayout ile gerçek Y yakalanır.
-  //   layout.y = unit'in FlatList içindeki gerçek Y koordinatı (header dahil).
-  //   Bu değer formülden 32px farklı olabilir (header'ın gerçek yüksekliğine göre).
+  // 📍 V9: 3-katmanlı onLayout — unit wrapper + pathContainer + her lesson nodeWrap
+  //   unitYMap        ← bu View'ın onLayout (FlatList content içinde)
+  //   pathYMap        ← MapPath içindeki pathContainer onLayout
+  //   lessonLayoutsMap ← MapPath içindeki her lesson nodeWrap onLayout
+  const onUnitLayout = useCallback((unitId: string, y: number) => {
+    if (unitYMap.current[unitId] !== y) {
+      unitYMap.current[unitId] = y;
+      console.warn('[MAP_UNIT_Y]', { unitId, y: Math.round(y) });
+      tryPendingFocus();
+    }
+  }, [tryPendingFocus]);
+
+  const onPathLayout = useCallback((unitId: string, y: number) => {
+    if (pathYMap.current[unitId] !== y) {
+      pathYMap.current[unitId] = y;
+      console.warn('[MAP_PATH_Y]', { unitId, y: Math.round(y) });
+      tryPendingFocus();
+    }
+  }, [tryPendingFocus]);
+
+  const onLessonNodeLayout = useCallback((lessonId: string, y: number, height: number) => {
+    const prev = lessonLayoutsMap.current[lessonId];
+    if (!prev || prev.y !== y || prev.height !== height) {
+      lessonLayoutsMap.current[lessonId] = { y, height };
+      console.warn('[MAP_LESSON_LAYOUT]', { lessonId, y: Math.round(y), height: Math.round(height) });
+      tryPendingFocus();
+    }
+  }, [tryPendingFocus]);
+
   const renderUnit = useCallback(
     ({ item }: { item: Unit }) => (
-      <View
-        onLayout={(e) => {
-          const y = e.nativeEvent.layout.y;
-          if (unitYMap.current[item.id] !== y) {
-            unitYMap.current[item.id] = y;
-            console.warn('[MAP_UNIT_Y]', { unitId: item.id, y: Math.round(y) });
-          }
-        }}
-      >
+      <View onLayout={(e) => onUnitLayout(item.id, e.nativeEvent.layout.y)}>
         <MapPath
           unit={item}
           unitOrder={item.order}
           getLessonInfo={getLessonInfo}
           onLessonPress={handleLessonPress}
+          onPathLayout={onPathLayout}
+          onLessonNodeLayout={onLessonNodeLayout}
         />
       </View>
     ),
-    [getLessonInfo, handleLessonPress],
+    [getLessonInfo, handleLessonPress, onUnitLayout, onPathLayout, onLessonNodeLayout],
   );
 
   const keyExtractor = useCallback((u: Unit) => u.id, []);
@@ -795,12 +859,14 @@ function MapScreenContent() {
             if (h > 0 && h !== viewportHeightRef.current) {
               viewportHeightRef.current = h;
               console.warn('[MAP_VIEWPORT_LAYOUT]', { viewportHeight: h });
+              tryPendingFocus();
             }
           }}
           onContentSizeChange={(_w, h) => {
             if (h > 0 && h !== contentHeightRef.current) {
               contentHeightRef.current = h;
               console.warn('[MAP_CONTENT_SIZE]', { contentHeight: h });
+              tryPendingFocus();
             }
           }}
         />
