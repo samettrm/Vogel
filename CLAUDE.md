@@ -277,6 +277,13 @@ const hearts = useUserStore((s) => s.hearts);
 7. **Race condition fix (sync)** — `signOut` sırasında upload timer iptal mantığını kaldırma.
 8. **`HEART_REFILL_MINUTES`** — prod 300, test için 1'e geçirirsen commit'leme.
 9. **Sentry `enabled: !!SENTRY_DSN`** — DSN yoksa init atlanmamalı, sadece veri gönderilmemeli (App Start Span uyarısı için kritik).
+10. **🔒 Map scroll konfigürasyonu** ([app/(tabs)/index.tsx](app/(tabs)/index.tsx)) — USER ONAYLI V33 ayarları (2026-05-30):
+    - `anchorY = vh * 0.25` — **ASLA DEĞIŞTIRME**, user'ın final kararı
+    - **Tab/menu → Map** geçişi → `animated:true` smooth scroll. **DOKUNMA**, user "iyi çalışıyor" dedi
+    - **Initial mount + lesson_complete** → `animated:false` silent jump + `mapVisible` opacity overlay (top flash önle)
+    - **Lesson exit (X)** → V29 moduleSavedScrollY restore (instant snap)
+    - `mapNavState.lessonReturnMode` 'exit' vs 'complete' branching ([app/lesson/[lessonId].tsx](app/lesson/[lessonId].tsx) goHome)
+    - 33 iterasyon sonrası user onaylı son hal — kırılgan, dikkatli dokun
 
 ## 12. Test akışı
 

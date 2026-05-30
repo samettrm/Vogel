@@ -718,8 +718,11 @@ function MapScreenContent() {
       const lessonIdx = unit.lessons.findIndex((l) => l.id === nextPlayableLessonId);
 
       // ScrollToIndex with viewOffset (V14 method — proven works)
+      // 🔒 LOCKED CONFIGURATION (2026-05-30, user confirmed):
+      //   anchorY = vh * 0.25 — USER FINAL DECISION, DO NOT CHANGE
+      //   Tab focus smooth scroll davranışı USER ONAYLI, DOKUNMA
       const vh = viewportHeightRef.current || 800;
-      const anchorY = vh * 0.25; // Lesson upper area (BAŞLA bubble higher)
+      const anchorY = vh * 0.25; // 🔒 LOCKED — DO NOT CHANGE
       const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
       const viewOffset = anchorY - lessonOffsetInUnit;
 
