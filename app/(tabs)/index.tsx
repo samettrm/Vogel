@@ -14,7 +14,7 @@ import { MapPath } from '../../src/components/map/MapPath';
 import { TopStatusBar } from '../../src/components/map/TopStatusBar';
 import { ReviewBanner } from '../../src/components/review/ReviewBanner';
 import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
-import { ALL_COURSES, AVAILABLE_LEVELS, getCourseByLevel } from '../../src/data/courses';
+import { ALL_COURSES, AVAILABLE_LEVELS, getCourseByLevel, getCourseByPairAndLevel } from '../../src/data/courses';
 import { useT } from '../../src/i18n';
 import { useUserStore } from '../../src/store/useUserStore';
 import { mapNavState } from '../../src/utils/navState';
@@ -112,6 +112,8 @@ function MapScreenContent() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const resetProgressForTesting = useUserStore((s) => s.resetProgressForTesting);
   const selectedLevel = useUserStore((s) => s.selectedLevel);
+  // 🌍 Multi-language: active source/target language pair (default TR-DE)
+  const activeCourseStore = useUserStore((s) => s.activeCourse);
   const setSelectedLevel = useUserStore((s) => s.setSelectedLevel);
   const isPremium = useUserStore((s) => s.isPremium);
 
@@ -233,9 +235,19 @@ function MapScreenContent() {
   const stickyAnim = useRef(new Animated.Value(0)).current;
   const listHeaderHeight = useRef(0);
 
+  // 🌍 Pair-aware course resolution:
+  //   activeCourse.source + target ile seçili dil çiftini bul
+  //   Fallback: TR-DE varsayar (eski davranış)
   const course = useMemo(
-    () => getCourseByLevel(selectedLevel) ?? ALL_COURSES[0],
-    [selectedLevel],
+    () =>
+      getCourseByPairAndLevel(
+        activeCourseStore.source,
+        activeCourseStore.target,
+        selectedLevel,
+      ) ??
+      getCourseByLevel(selectedLevel) ??
+      ALL_COURSES[0],
+    [selectedLevel, activeCourseStore.source, activeCourseStore.target],
   );
 
   const flatLessons = useMemo(

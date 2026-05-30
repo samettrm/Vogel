@@ -13,6 +13,7 @@ export const LANGUAGES: Record<LanguageCode, Language> = {
   fr: { code: 'fr', name: 'Fransızca', nativeName: 'Français', flag: '🇫🇷' },
   es: { code: 'es', name: 'İspanyolca', nativeName: 'Español', flag: '🇪🇸' },
   it: { code: 'it', name: 'İtalyanca', nativeName: 'Italiano', flag: '🇮🇹' },
+  ar: { code: 'ar', name: 'Arapça', nativeName: 'العربية', flag: '🇸🇦' },
 };
 
 export const LANGUAGE_LIST: Language[] = Object.values(LANGUAGES);

@@ -1,4 +1,4 @@
-export type LanguageCode = 'tr' | 'de' | 'en' | 'fr' | 'es' | 'it';
+export type LanguageCode = 'tr' | 'de' | 'en' | 'fr' | 'es' | 'it' | 'ar';
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
 
 export type Language = {

@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from '../../utils/haptics';
 import { radius, spacing, textStyles, useThemeColors } from '../../theme';
 import { useUserStore } from '../../store/useUserStore';
+import { LanguageSwitcherModal } from './LanguageSwitcherModal';
 // ════════════════════════════════════════════════════════════════
 // TOP STATUS BAR — Ana sayfa üst bilgi şeridi
 //
@@ -21,6 +22,7 @@ const FLAG_BY_LANG: Record<string, string> = {
 export function TopStatusBar() {
   const c = useThemeColors();
   const router = useRouter();
+  const [langSwitcherVisible, setLangSwitcherVisible] = useState(false);
 
   const xp       = useUserStore((s) => s.xp);
   const hearts   = useUserStore((s) => s.hearts);
@@ -28,6 +30,11 @@ export function TopStatusBar() {
   const streak   = useUserStore((s) => s.streak);
   const activeCourse = useUserStore((s) => s.activeCourse);
   const targetFlag = FLAG_BY_LANG[activeCourse.target] ?? '🌐';
+
+  const openLanguageSwitcher = () => {
+    Haptics.selectionAsync().catch(() => {});
+    setLangSwitcherVisible(true);
+  };
 
   // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -51,10 +58,22 @@ export function TopStatusBar() {
 
   return (
     <View style={styles.container}>
-      {/* Bayrak — sade pill, border yok */}
-      <Pressable style={({ pressed }) => [styles.flagBtn, pressed && styles.flagBtnPressed]}>
+      {/* Bayrak — tıklayınca dil seçim modalı açılır */}
+      <Pressable
+        onPress={openLanguageSwitcher}
+        style={({ pressed }) => [styles.flagBtn, pressed && styles.flagBtnPressed]}
+        accessibilityRole="button"
+        accessibilityLabel="Dil seç"
+      >
         <Text style={styles.flag}>{targetFlag}</Text>
+        <Ionicons name="chevron-down" size={12} color={c.textMed} style={{ marginLeft: 2 }} />
       </Pressable>
+
+      {/* Dil seçim modalı */}
+      <LanguageSwitcherModal
+        visible={langSwitcherVisible}
+        onClose={() => setLangSwitcherVisible(false)}
+      />
 
       {/* ─── Tek grup pill: 🔥 | ❤️ | ⚡ ─── */}
       <View style={styles.group}>
@@ -102,8 +121,10 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       paddingVertical: spacing.sm,
       backgroundColor: c.bg,
     },
-    // Bayrak butonu — minimal pill, border yok
+    // Bayrak butonu — minimal pill, chevron-down ile dropdown belirtisi
     flagBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
       paddingHorizontal: 10,
       paddingVertical: 6,
       borderRadius: radius.pill,
