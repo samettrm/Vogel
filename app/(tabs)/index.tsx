@@ -154,15 +154,17 @@ function MapScreenContent() {
   //   - Smooth scroll SADECE current lesson görünür değilse + lesson değiştiyse.
   const lastScrolledForLessonRef = useRef<string | null>(null);
 
-  // 📐 V6: Viewport/content dimension tracking (precise lesson centering)
-  //   - viewportHeightRef → FlatList onLayout ile set
-  //   - contentHeightRef → onContentSizeChange ile set
-  //   - lesson focus için targetY = lessonY - viewportHeight * 0.45 (45% center)
+  // 📐 V7: Viewport/content dimension tracking (precise lesson centering)
   const viewportHeightRef = useRef(0);
   const contentHeightRef = useRef(0);
-  const LESSON_HEIGHT = 124; // Sabit (getItemLayout ile aynı)
+  const LESSON_HEIGHT = 124;
   const UNIT_HEADER_HEIGHT = 40;
   const UNIT_BOTTOM_MARGIN = 80;
+
+  // 🛡 V7: User-scroll override guard
+  //   Kullanıcı manuel kaydırma yaptıktan sonra 1.5sn boyunca auto-scroll skip.
+  //   Bu sayede "ders dönüşü auto-scroll" kullanıcının manuel scroll'unu override etmez.
+  const lastUserScrollTime = useRef(0);
 
   // ─── Sticky bölüm başlığı (Duolingo tarzı) ──────────────────────────
   // Scroll edilince o anki ünitenin adı üstte sabit bantla gösterilir
@@ -231,22 +233,23 @@ function MapScreenContent() {
     return 0;
   }, [course.units]);
 
-  // 📐 V6: Hedef scroll Y — lesson'ı 45% viewport center'a koy
-  //   targetY = lessonY - vh * 0.45 + LESSON_HEIGHT / 2
+  // 📐 V7: Hedef scroll Y — lesson'ı 50% viewport center'a koy (true center)
+  //   targetY = lessonY - vh * 0.5 + LESSON_HEIGHT / 2
   //   Clamp to [0, maxY] (maxY = contentHeight - viewportHeight)
   const targetScrollY = useMemo(() => {
     if (currentUnitIndex < 0 || !currentLessonId) return 0;
     const lessonY = computeLessonY(currentLessonId);
-    const vh = viewportHeightRef.current || 800; // Default 800 ise henüz layout olmadı
-    const rawTargetY = lessonY - vh * 0.45 + LESSON_HEIGHT / 2;
+    const vh = viewportHeightRef.current || 800;
+    const rawTargetY = lessonY - vh * 0.5 + LESSON_HEIGHT / 2;
     return Math.max(0, rawTargetY);
   }, [currentUnitIndex, currentLessonId, computeLessonY]);
 
-  // 📐 V6: Tek focusActiveLesson fonksiyonu (user spec)
-  //   1. lessonY hesapla
-  //   2. viewport/content hazır mı kontrol
-  //   3. visibility check (30-70% center)
-  //   4. Hedef Y'ye scrollToOffset (animated parametreli)
+  // 📐 V7: Tek focusActiveLesson fonksiyonu — Gemini analiz fix
+  //   1. lessonY hesapla (PRECISE per-lesson)
+  //   2. User-scroll guard (1.5sn içinde manuel scroll varsa SKIP)
+  //   3. viewport/content hazır mı kontrol
+  //   4. Visibility check (lesson center 30-70% viewport)
+  //   5. Hedef Y'ye scrollToOffset (50% center)
   const focusActiveLesson = useCallback((lessonId: string, reason: string, animated = true) => {
     const lessonY = computeLessonY(lessonId);
     const vh = viewportHeightRef.current;
@@ -259,6 +262,18 @@ function MapScreenContent() {
       contentHeight: ch,
       reason,
     });
+
+    // ⚠️ V7 user-scroll guard: kullanıcı 1.5sn içinde manuel kaydırdıysa override etme
+    const timeSinceUserScroll = Date.now() - lastUserScrollTime.current;
+    if (lastUserScrollTime.current > 0 && timeSinceUserScroll < 1500) {
+      console.warn('[MAP_SCROLL_SKIP]', {
+        lessonId,
+        reason,
+        why: 'user-scrolled-recently',
+        timeSinceUserScroll,
+      });
+      return true;
+    }
 
     if (vh <= 0) {
       console.warn('[MAP_FOCUS_DEFER]', { lessonId, reason, why: 'viewport-not-ready' });
@@ -284,8 +299,8 @@ function MapScreenContent() {
       return true;
     }
 
-    // Compute target Y: lesson center at 45% of viewport
-    const rawTargetY = lessonY - vh * 0.45 + LESSON_HEIGHT / 2;
+    // 50% center: lesson center exactly at vh/2
+    const rawTargetY = lessonY - vh * 0.5 + LESSON_HEIGHT / 2;
     const maxY = ch > 0 ? Math.max(0, ch - vh) : Infinity;
     const targetY = Math.max(0, Math.min(rawTargetY, maxY));
 
@@ -308,20 +323,18 @@ function MapScreenContent() {
     return true;
   }, [computeLessonY]);
 
-  // 📐 V6 FIX (2026-05-30 — user spec exact)
+  // 📐 V7 FIX (2026-05-30 — Gemini analiz + video review)
   //
-  // User v5 feedback:
-  //   - Kamera "Bölüm 2: Kişisel Bilgi" başlığı civarında kalıyor
-  //   - Aktif yeşil play button ekranın altında / yarım görünüyor
-  //   - Lesson node merkeze alınmıyor
+  // V6 feedback:
+  //   - "App auto-scrolls back to old position after user manually scrolls"
+  //   - "Bölüm 2 → Bölüm 3 manuel scroll'u override ediliyor"
   //
-  // V6 user spec:
-  //   1. Lesson Y'sini PRECISE hesapla (lesson item için)
-  //   2. viewport/content dimensions track et (onLayout/onContentSizeChange)
-  //   3. focusActiveLesson(lessonId, reason) — tek fonksiyon
-  //   4. Visibility = lesson center 30-70% viewport içinde mi
-  //   5. Hedef: lesson 45% viewport center
-  //   6. Restore savedY önce (flash önle), sonra focus
+  // V7 fixes:
+  //   ✅ User-scroll guard: kullanıcı 1.5sn içinde scroll yaptıysa SKIP
+  //   ✅ True 50% center: 0.45 → 0.5
+  //   ✅ useFocusEffect (already from v6, expo-router → react-navigation)
+  //   ✅ getItemLayout sabit (already from v6)
+  //   ✅ Precise per-lesson Y (computeLessonY) — no stale state
   useFocusEffect(
     useCallback(() => {
       if (!hasHydrated || currentUnitIndex < 0 || !currentLessonId) return;
@@ -382,6 +395,14 @@ function MapScreenContent() {
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
       currentScrollY.current = y;
+
+      // 🛡 V7: User-scroll detection
+      //   Programmatik scroll (auto-scroll) DEĞİLSE → kullanıcı manuel kaydırdı
+      //   lastUserScrollTime'ı güncelle → focusActiveLesson 1.5sn boyunca skip eder
+      if (!isProgrammaticScrollRef.current) {
+        lastUserScrollTime.current = Date.now();
+      }
+
       // 🔍 Log throttle — sadece 200px+ değişimde log bas (log spam yok)
       if (Math.abs(y - lastLoggedScrollY.current) > 200) {
         console.warn('[MAP_SCROLL_SAVE]', { scrollY: Math.round(y) });
