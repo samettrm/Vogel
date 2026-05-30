@@ -33,33 +33,44 @@ import type { CEFRLevel, Lesson, Unit } from '../../src/types';
 // (Cache mantığı kaldırıldı — scrollToIndex ile her ders bittiğinde current unit'e snap)
 
 // ════════════════════════════════════════════════════════════════
-// 🚨 FORCING TEST MODE (2026-05-30)
+// 🛡 MAP ENTRY GUARD (2026-05-30 — AI consensus)
 //
-// User'ın talebi: Bu dosyanın gerçekten map giriş dosyası olup olmadığını
-// kanıtlamak için, conditions'sız ZORUNLU /onboarding'e yönlendir.
+// Root guard'a güvenmiyoruz. Map ekranı kendi içinde korunuyor:
+//   1. hasHydrated === false → null render (splash görünür)
+//   2. onboardingCompleted !== true VEYA hasCompletedPlacement !== true
+//      → <Redirect href="/onboarding" />
+//   3. Aksi halde → MapScreenContent (gerçek harita)
 //
-// Eğer hala harita açılıyorsa:
-//   → Bu dosya gerçek "/" route giriş dosyası DEĞİL
-//   → Başka bir route harita'yı render ediyor
+// STRICT EŞİTLİK: undefined/null/false → "not completed" sayılır.
+// Lesson progress, completedLessons, xp gibi state'lere BAKILMAZ.
 //
-// Eğer onboarding açılırsa:
-//   → Bu dosya doğru route
-//   → Önceki davranışta state değerleri yanlışlıkla true geliyordu
-//
-// MapScreenContent değişmedi, sadece HomeScreen wrapper koşulsuz yönlendiriyor.
+// Bu wrapper pattern hooks-rules'u ihlal etmez — wrapper sadece 3 hook
+// kullanır, inner component (MapScreenContent) her zaman aynı hook
+// sırasıyla render olur (sadece guard geçerse).
 // ════════════════════════════════════════════════════════════════
 export default function HomeScreen() {
-  const router = useRouter();
+  const hasHydrated = useUserStore((s) => s.hasHydrated);
+  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
+  const hasCompletedPlacement = useUserStore((s) => s.hasCompletedPlacement);
 
-  console.warn('[FORCING_TEST] HomeScreen component RENDER edildi — forcing redirect');
+  console.warn('[MAP_GUARD]', {
+    hasHydrated,
+    onboardingCompleted,
+    hasCompletedPlacement,
+    onboardingCompletedStrict: onboardingCompleted === true,
+    placementStrict: hasCompletedPlacement === true,
+    timestamp: Date.now(),
+  });
 
-  useEffect(() => {
-    console.warn('[FORCING_TEST] useEffect fired, router.replace(/onboarding) çağrılıyor');
-    router.replace('/onboarding');
-    console.warn('[FORCING_TEST] router.replace() döndü');
-  }, [router]);
+  if (!hasHydrated) {
+    return null;
+  }
 
-  return null;
+  if (onboardingCompleted !== true || hasCompletedPlacement !== true) {
+    return <Redirect href="/onboarding" />;
+  }
+
+  return <MapScreenContent />;
 }
 
 function MapScreenContent() {

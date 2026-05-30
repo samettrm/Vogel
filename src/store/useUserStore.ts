@@ -987,7 +987,7 @@ export const useUserStore = create<UserState>()(
         // recentlyUnlocked + pendingLevelUp persist edilmez (transient)
       }),
       merge: (persistedState, currentState) => {
-        const state = persistedState as Partial<UserState>;
+        const state = (persistedState ?? {}) as Partial<UserState>;
         console.warn('[MERGE]', {
           hasPersistedState: persistedState !== undefined && persistedState !== null,
           onboardingCompletedInPersist: state?.onboardingCompleted,
@@ -998,6 +998,11 @@ export const useUserStore = create<UserState>()(
           timestamp: Date.now(),
         });
 
+        // 🚨 FRESH INSTALL FIX (2026-05-30):
+        // persistedState undefined/null ise (fresh install, AsyncStorage boş):
+        //   - state'i {} olarak normalize ettik (yukarıda)
+        //   - state.completedLessons gibi accesslar artık throw etmez (undefined döner)
+        //   - normalizeCompletedLessons(undefined) → boş Set döner (mevcut helper)
         const rawCompleted = normalizeCompletedLessons(state.completedLessons);
         const lessonProgress = normalizeLessonProgress(
           state.lessonExerciseProgress,
