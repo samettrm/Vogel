@@ -220,6 +220,12 @@ function MapScreenContent() {
   // 💾 V30: Hangi lesson'a girildi (return sonrası bottom-tab check için)
   const lastOpenedLessonIdRef = useRef<string | null>(null);
 
+  // 🎬 V32: Map visibility — top-flash prevention
+  //   FlatList y=0'da mount oluyor, sonra scroll aşağı atıyor → user "top flash" görüyor.
+  //   mapVisible=false iken FlatList görünmez (opacity:0). Scroll positioned olduktan sonra true.
+  //   Initial mount + lesson_complete'te hide. Tab focus + lesson_exit'te NO hide.
+  const [mapVisible, setMapVisible] = useState(false);
+
   // ─── Sticky bölüm başlığı (Duolingo tarzı) ──────────────────────────
   // Scroll edilince o anki ünitenin adı üstte sabit bantla gösterilir
   const stickyUnitRef = useRef<Unit | null>(null);
@@ -271,6 +277,12 @@ function MapScreenContent() {
       applyHeartRefills();
     }
   }, [hasHydrated, applyHeartRefills]);
+
+  // 🎬 V32: Initial mount → 700ms sonra mapVisible=true (scroll positioned olur o aralıkta)
+  useEffect(() => {
+    const t = setTimeout(() => setMapVisible(true), 700);
+    return () => clearTimeout(t);
+  }, []);
 
   // 📜 Current unit index — hangi ünitede current lesson var?
   const currentUnitIndex = useMemo(() => {
@@ -576,6 +588,9 @@ function MapScreenContent() {
             reason: 'lesson_complete_focus',
           });
 
+          // V32: Hide map while scrolling (top flash prevention)
+          setMapVisible(false);
+
           const handle = InteractionManager.runAfterInteractions(() => {
             setTimeout(() => {
               isProgrammaticScrollRef.current = true;
@@ -590,6 +605,8 @@ function MapScreenContent() {
                 console.warn('[LESSON_COMPLETE_FOCUS_FAIL]', { error: String(e) });
               }
               setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
+              // V32: Scroll animasyonu bittikten sonra map'i göster
+              setTimeout(() => setMapVisible(true), 700);
             }, 300);
           });
           return () => { handle.cancel?.(); };
@@ -717,6 +734,12 @@ function MapScreenContent() {
         anchorY: Math.round(anchorY),
       });
 
+      // V32: Initial mount ve lesson_change'de hide map (top flash önle).
+      //   Tab focus'ta hide ETME (zaten yumuşak akıyor).
+      if (isInitialMount || isLessonChange) {
+        setMapVisible(false);
+      }
+
       const handle = InteractionManager.runAfterInteractions(() => {
         setTimeout(() => {
           isProgrammaticScrollRef.current = true;
@@ -731,6 +754,10 @@ function MapScreenContent() {
             console.warn('[MAP_SCROLL_FAIL_V23]', { error: String(e) });
           }
           setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
+          // V32: Scroll bittikten sonra map'i göster (initial/lesson_change için)
+          if (isInitialMount || isLessonChange) {
+            setTimeout(() => setMapVisible(true), 700);
+          }
         }, 500);
       });
 
@@ -1134,6 +1161,8 @@ function MapScreenContent() {
           keyExtractor={keyExtractor}
           ListHeaderComponent={ListHeader}
           ListFooterComponent={ListFooter}
+          // V32: Top-flash prevention — mapVisible=false iken opacity:0 (görünmez ama render ediliyor)
+          style={!mapVisible ? { opacity: 0 } : undefined}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={false}
