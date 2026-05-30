@@ -204,10 +204,34 @@ function MapScreenContent() {
     [course],
   );
 
-  const currentLessonId = useMemo(() => {
-    const next = flatLessons.find((l) => !completedLessons.has(l.id));
-    return next?.id ?? null;
-  }, [flatLessons, completedLessons]);
+  // 📍 V11: nextPlayableLessonId — units sırasıyla taranır, completedLessons'da olmayan ilk lesson
+  //   USER SPEC: focus hedefi her zaman BU olmalı, currentLessonId (state) değil.
+  //   currentLessonId stale olabilir (login/sync sonrası), helper her zaman fresh hesaplar.
+  const nextPlayableLessonId = useMemo(() => {
+    for (const unit of course.units) {
+      for (const lesson of unit.lessons) {
+        if (!completedLessons.has(lesson.id)) {
+          console.warn('[NEXT_PLAYABLE_CALC]', {
+            unitId: unit.id,
+            unitOrder: unit.order,
+            lessonId: lesson.id,
+            completedCount: completedLessons.size,
+          });
+          return lesson.id;
+        }
+      }
+    }
+    // Tüm dersler tamamlandı → son dersi göster
+    const lastUnit = course.units[course.units.length - 1];
+    const lastLesson = lastUnit?.lessons?.[lastUnit.lessons.length - 1];
+    console.warn('[NEXT_PLAYABLE_ALL_COMPLETED]', {
+      fallbackLessonId: lastLesson?.id,
+    });
+    return lastLesson?.id ?? null;
+  }, [course.units, completedLessons]);
+
+  // currentLessonId LEGACY (sticky button + scroll target için aynı kalır)
+  const currentLessonId = nextPlayableLessonId;
 
   useEffect(() => {
     if (hasHydrated) {
@@ -286,16 +310,11 @@ function MapScreenContent() {
     return Math.max(0, lessonCenterY - usableCenter);
   }, [currentLessonId, computeLessonCenterY]);
 
-  // 📐 V10: focusActiveLesson — DELTA-BASED skip, USER SPEC EXACT
-  //   1. Layout ready? yoksa pending
-  //   2. delta = |lessonCenterY - viewportCenterInContent|
-  //   3. !force && delta < 80 → skip (zaten yakın merkez)
-  //   4. Aksi halde scroll yapılır (force=true her durumda scroll)
-  //
-  //   KALDIRILAN (user spec):
-  //     ❌ User-scroll guard (focus event'i sırasında değil)
-  //     ❌ "Already-near-center" visibility check (delta yerine)
-  //     ❌ Same lessonId skip (artık delta belirler)
+  // 📐 V11: focusActiveLesson — target validation + force-render fallback
+  //   1. Validation: lessonId completedLessons'da mı? Bug → recompute
+  //   2. Layout ready? Yoksa force-render (scrollToIndex) + pending
+  //   3. Delta-based skip (!force && delta < 80)
+  //   4. Precise scroll to usable center
   const focusActiveLesson = useCallback((
     lessonId: string,
     reason: string,
@@ -306,29 +325,77 @@ function MapScreenContent() {
 
     console.warn('[MAP_FOCUS_REQUEST]', { reason, lessonId, force });
 
-    const lessonCenterY = computeLessonCenterY(lessonId);
+    // ⚠️ V11: TARGET VALIDATION — focus hedefi completed lesson'a yapılıyorsa BUG
+    const isTargetCompleted = completedLessons.has(lessonId);
+    let actualLessonId = lessonId;
+    if (isTargetCompleted) {
+      console.warn('[MAP_TARGET_BUG_COMPLETED_LESSON]', {
+        focusLessonId: lessonId,
+        nextPlayableLessonId,
+        completedCount: completedLessons.size,
+      });
+      // Recompute target → use next playable
+      if (nextPlayableLessonId && !completedLessons.has(nextPlayableLessonId)) {
+        actualLessonId = nextPlayableLessonId;
+      }
+    }
+
+    console.warn('[MAP_TARGET_COMPARE]', {
+      requestedLessonId: lessonId,
+      actualLessonId,
+      nextPlayableLessonId,
+      isTargetCompleted,
+    });
+
+    const lessonCenterY = computeLessonCenterY(actualLessonId);
     const vh = viewportHeightRef.current;
     const ch = contentHeightRef.current;
+    const layoutFound = lessonLayoutsMap.current[actualLessonId];
 
     console.warn('[MAP_ACTIVE_LAYOUT_FOUND]', {
-      lessonId,
+      lessonId: actualLessonId,
       hasLessonY: lessonCenterY != null,
       vh,
       ch,
-      layout: lessonLayoutsMap.current[lessonId],
+      layout: layoutFound,
     });
 
-    // Layout/viewport hazır değilse pending'e ekle
+    // Layout/viewport hazır değilse pending'e ekle + FORCE RENDER
     if (lessonCenterY == null || vh <= 0 || ch <= 0) {
-      pendingFocusRef.current = { lessonId, reason, force, animated };
+      pendingFocusRef.current = { lessonId: actualLessonId, reason, force, animated };
       console.warn('[MAP_FOCUS_PENDING]', {
-        lessonId,
+        lessonId: actualLessonId,
         reason,
         force,
         hasLessonY: lessonCenterY != null,
         vh,
         ch,
       });
+
+      // 🔄 V11 force-render: Lesson layout ölçülmediyse FlatList'e unit'i render ettir
+      //   Unit virtualization yüzünden offscreen ise onLayout fire etmez.
+      //   scrollToIndex unit'e yaklaştırır → render → onLayout fire → tryPendingFocus
+      if (layoutFound == null && vh > 0) {
+        const unitIdx = course.units.findIndex((u) =>
+          u.lessons.some((l) => l.id === actualLessonId),
+        );
+        if (unitIdx >= 0) {
+          console.warn('[MAP_FORCE_RENDER]', {
+            unitIdx,
+            lessonId: actualLessonId,
+            why: 'layout-not-measured',
+          });
+          isProgrammaticScrollRef.current = true;
+          try {
+            listRef.current?.scrollToIndex({
+              index: unitIdx,
+              animated: false,
+              viewPosition: 0.5,
+            });
+          } catch {}
+          setTimeout(() => { isProgrammaticScrollRef.current = false; }, 200);
+        }
+      }
       return false;
     }
 
@@ -355,7 +422,7 @@ function MapScreenContent() {
     // Tek skip koşulu: force değil VE delta < 80
     if (!force && delta < 80) {
       console.warn('[MAP_SCROLL_SKIP]', {
-        lessonId,
+        lessonId: actualLessonId,
         reason,
         why: 'delta-under-80',
         delta: Math.round(delta),
@@ -369,7 +436,7 @@ function MapScreenContent() {
     targetY = Math.max(0, Math.min(targetY, maxY));
 
     console.warn('[MAP_SCROLL_TO]', {
-      lessonId,
+      lessonId: actualLessonId,
       reason,
       force,
       lessonCenterY: Math.round(lessonCenterY),
@@ -388,7 +455,7 @@ function MapScreenContent() {
     }
     setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 600 : 100);
     return true;
-  }, [computeLessonCenterY]);
+  }, [computeLessonCenterY, completedLessons, nextPlayableLessonId, course.units]);
 
   // 📌 V9: tryPendingFocus — layout/viewport hazır olduğunda pending'i fire et
   const tryPendingFocus = useCallback(() => {
@@ -416,23 +483,17 @@ function MapScreenContent() {
     });
   }, [computeLessonCenterY, focusActiveLesson]);
 
-  // 📐 V10 FIX (user spec exact)
-  //   Her focus'ta aktif lesson'a scroll talep edilir (force veya delta-check ile).
-  //   Skip mantığı SADECE focusActiveLesson içinde (delta < 80).
-  //   useFocusEffect HİÇBİR ZAMAN skip etmez — her zaman talepte bulunur.
-  //
-  //   reason rules:
-  //     - isInitialMount → 'initial_mount', force=true
-  //     - isLessonChange → 'lesson_complete', force=true
-  //     - same lessonId  → 'tab_focus', force=false (delta belirler)
+  // 📐 V11 FIX (user spec exact)
+  //   Her focus'ta `nextPlayableLessonId` hesaplanır (currentLessonId state değil).
+  //   nextPlayableLessonId completedLessons üzerinden FRESH hesaplanır.
   useFocusEffect(
     useCallback(() => {
-      if (!hasHydrated || !currentLessonId) return;
+      if (!hasHydrated || !nextPlayableLessonId) return;
 
       const oldLessonId = previousLessonIdRef.current;
       const isInitialMount = oldLessonId === null;
-      const isLessonChange = oldLessonId !== null && oldLessonId !== currentLessonId;
-      previousLessonIdRef.current = currentLessonId;
+      const isLessonChange = oldLessonId !== null && oldLessonId !== nextPlayableLessonId;
+      previousLessonIdRef.current = nextPlayableLessonId;
 
       let reason: string;
       let force: boolean;
@@ -448,7 +509,7 @@ function MapScreenContent() {
       }
 
       console.warn('[MAP_CURRENT_ACTIVE]', {
-        activeLessonId: currentLessonId,
+        nextPlayableLessonId,
         previousLessonId: oldLessonId,
         completedLessonsCount: completedLessons.size,
         reason,
@@ -457,14 +518,14 @@ function MapScreenContent() {
 
       const handle = InteractionManager.runAfterInteractions(() => {
         setTimeout(() => {
-          focusActiveLesson(currentLessonId, reason, { animated: !isInitialMount, force });
+          focusActiveLesson(nextPlayableLessonId, reason, { animated: !isInitialMount, force });
         }, 300);
       });
 
       return () => {
         handle.cancel?.();
       };
-    }, [hasHydrated, currentLessonId, completedLessons.size, focusActiveLesson]),
+    }, [hasHydrated, nextPlayableLessonId, completedLessons.size, focusActiveLesson]),
   );
 
   // 📜 Animated.Value listener → her frame'de FlatList scroll güncelle
