@@ -517,16 +517,79 @@ function MapScreenContent() {
   //   V13 progress sync gate KALIYOR (login sırasında spinner).
   //   focusActiveLesson FONKSIYONU duruyor ama useFocusEffect'ten ÇAĞRILMIYOR.
   //   Sadece handleScrollToCurrent (kullanıcı butona basınca) çağırır.
+  // 📍 V22: TRACKING with TAB-PRESERVE
+  //   - Initial mount (app açılış) → scrollToIndex current lesson area'ya
+  //   - Lesson complete → scrollToIndex new current'a
+  //   - Tab focus (same lesson) → NO scroll (preserve user's position)
+  //
+  //   scrollToIndex kullanıyoruz çünkü FlatList internal layout knowledge ile
+  //   güvenli scroll yapar. Estimate clamp-to-0 bug YOK.
   useFocusEffect(
     useCallback(() => {
-      console.warn('[MAP_FOCUS_EFFECT_FIRE_V21]', {
-        v: 'V21_NO_AUTO_SCROLL',
-        hasHydrated,
+      if (!hasHydrated || !nextPlayableLessonId) {
+        console.warn('[MAP_FOCUS_V22_EARLY_RETURN]', { hasHydrated, nextPlayableLessonId });
+        return;
+      }
+
+      const oldLessonId = previousLessonIdRef.current;
+      const isInitialMount = oldLessonId === null;
+      const isLessonChange = oldLessonId !== null && oldLessonId !== nextPlayableLessonId;
+      previousLessonIdRef.current = nextPlayableLessonId;
+
+      // Tab focus (same lesson, map zaten mount) → preserve position, no scroll
+      if (!isInitialMount && !isLessonChange) {
+        console.warn('[MAP_FOCUS_PRESERVE]', {
+          lessonId: nextPlayableLessonId,
+          currentScrollY: Math.round(currentScrollY.current),
+        });
+        return;
+      }
+
+      // Find unit and lesson within
+      const unitIdx = course.units.findIndex((u) =>
+        u.lessons.some((l) => l.id === nextPlayableLessonId),
+      );
+      if (unitIdx < 0) return;
+      const unit = course.units[unitIdx];
+      const lessonIdx = unit.lessons.findIndex((l) => l.id === nextPlayableLessonId);
+
+      // ScrollToIndex with viewOffset (V14 method — proven works)
+      const vh = viewportHeightRef.current || 800;
+      const anchorY = vh * 0.45; // Slightly above center (BAŞLA bubble visible)
+      const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
+      const viewOffset = anchorY - lessonOffsetInUnit;
+
+      const reason = isInitialMount ? 'initial_mount' : 'lesson_complete';
+      console.warn('[MAP_FOCUS_SCROLL_V22]', {
+        reason,
         nextPlayableLessonId,
+        unitIdx,
+        lessonIdx,
+        viewOffset: Math.round(viewOffset),
+        anchorY: Math.round(anchorY),
       });
-      // ⛔ Auto-scroll devre dışı — user manuel kontrol ediyor
-      // useFocusEffect bir callback bekliyor ama içinde scroll YOK.
-    }, [hasHydrated, nextPlayableLessonId]),
+
+      const handle = InteractionManager.runAfterInteractions(() => {
+        setTimeout(() => {
+          isProgrammaticScrollRef.current = true;
+          try {
+            listRef.current?.scrollToIndex({
+              index: unitIdx,
+              animated: true,
+              viewPosition: 0,
+              viewOffset,
+            });
+          } catch (e) {
+            console.warn('[MAP_SCROLL_FAIL_V22]', { error: String(e) });
+          }
+          setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
+        }, 500);
+      });
+
+      return () => {
+        handle.cancel?.();
+      };
+    }, [hasHydrated, nextPlayableLessonId, course.units]),
   );
 
   // 📜 Animated.Value listener → her frame'de FlatList scroll güncelle
@@ -1004,9 +1067,8 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       alignItems: 'center', justifyContent: 'center',
       opacity: 0.45,
     },
-    // V20: "VAGON" mantığı için BIG paddingBottom — son lesson'ları da center'a alabilelim
-    //   Padding eklemezsek FlatList son lesson'ı center'a scroll edemez (max scrollY clamp)
-    scrollContent: { paddingTop: spacing.sm, paddingBottom: 600 },
+    // V22: Normal padding (V14 baseline)
+    scrollContent: { paddingTop: spacing.sm, paddingBottom: spacing.xxl },
     // 👋 Günlük karşılama
     greetingWrap: {
       paddingHorizontal: spacing.base,
