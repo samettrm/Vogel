@@ -534,10 +534,15 @@ function MapScreenContent() {
         force,
       });
 
+      // 🎯 V18: SADECE TEK SCROLL — 500ms delay (measurements hazır olunca), HER ZAMAN animated
+      //   Bu sayede:
+      //   - 500ms layout settle olur, onLayout fire eder
+      //   - focusActiveLesson scrollToOffset (precise measured Y) çalıştırır
+      //   - Smooth animated scroll → "yumuşak akış"
       const handle = InteractionManager.runAfterInteractions(() => {
         setTimeout(() => {
-          focusActiveLesson(nextPlayableLessonId, reason, { animated: !isInitialMount, force });
-        }, 300);
+          focusActiveLesson(nextPlayableLessonId, reason, { animated: true, force: true });
+        }, 500);
       });
 
       return () => {
