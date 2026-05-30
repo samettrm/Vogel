@@ -33,6 +33,12 @@ import type { CEFRLevel, Lesson, Unit } from '../../src/types';
 
 // (Cache mantığı kaldırıldı — scrollToIndex ile her ders bittiğinde current unit'e snap)
 
+// 💾 V29: MODULE-LEVEL scroll Y persistence
+//   Component unmount olsa bile bu değişken hayatta kalır.
+//   handleScroll bunu sürekli günceller → her zaman güncel scroll Y burada.
+//   Lesson exit dönüşünde useFocusEffect bu değeri restore eder.
+let moduleSavedScrollY = 0;
+
 // ════════════════════════════════════════════════════════════════
 // 🛡 MAP ENTRY GUARD (2026-05-30 — AI consensus)
 //
@@ -533,24 +539,25 @@ function MapScreenContent() {
         return;
       }
 
-      // 🔒 V28: Lesson exit'inden geliyorsak SAVED SCROLL'U RESTORE et (multiple attempts)
-      //   FlatList lesson sırasında scroll position'ını kaybedebilir (y=0'a düşer).
-      //   IMMEDIATE + MULTIPLE RETRIES — "tepeye zıplama" engellenir.
+      // 🔒 V29: LESSON EXIT — MODULE-LEVEL scroll Y'yi restore et
+      //   moduleSavedScrollY component unmount olsa bile yaşıyor.
+      //   handleScroll bunu sürekli güncelliyor.
+      //   Bu sayede scroll position TAM olarak korunur.
       if (mapNavState.fromLesson) {
         mapNavState.fromLesson = false; // Flag consume
-        previousLessonIdRef.current = nextPlayableLessonId; // Ref güncelle
-        const savedY = savedScrollYBeforeLessonRef.current;
-        console.warn('[MAP_FOCUS_LESSON_EXIT_RESTORE_V28]', {
+        previousLessonIdRef.current = nextPlayableLessonId;
+        const savedY = moduleSavedScrollY; // V29: MODULE-LEVEL
+        console.warn('[MAP_FOCUS_LESSON_EXIT_RESTORE_V29]', {
           lessonId: nextPlayableLessonId,
-          savedScrollY: savedY != null ? Math.round(savedY) : null,
+          moduleSavedScrollY: Math.round(savedY),
           currentScrollY: Math.round(currentScrollY.current),
         });
 
-        if (savedY != null && savedY > 0) {
+        if (savedY > 0) {
           const doRestore = (attempt: number) => {
             try {
               listRef.current?.scrollToOffset({ offset: savedY, animated: false });
-              console.warn('[MAP_SCROLL_RESTORED_V28]', {
+              console.warn('[MAP_SCROLL_RESTORED_V29]', {
                 offset: Math.round(savedY),
                 attempt,
                 currentScrollY: Math.round(currentScrollY.current),
@@ -559,15 +566,14 @@ function MapScreenContent() {
               console.warn('[MAP_SCROLL_RESTORE_FAIL]', { attempt, error: String(e) });
             }
           };
-
-          // IMMEDIATE (synchronous - FlatList ready ise hemen)
+          // Aggressive multi-restore — any race condition durumda restore kaybetmesin
           doRestore(0);
-          // requestAnimationFrame — next paint frame
           requestAnimationFrame(() => doRestore(1));
-          // Multiple retries — race condition'a karşı
-          setTimeout(() => doRestore(2), 50);
-          setTimeout(() => doRestore(3), 150);
-          setTimeout(() => doRestore(4), 300);
+          setTimeout(() => doRestore(2), 30);
+          setTimeout(() => doRestore(3), 80);
+          setTimeout(() => doRestore(4), 150);
+          setTimeout(() => doRestore(5), 300);
+          setTimeout(() => doRestore(6), 500);
         }
         return;
       }
@@ -647,6 +653,7 @@ function MapScreenContent() {
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
       currentScrollY.current = y;
+      moduleSavedScrollY = y; // V29: Module-level persistence
 
       // 🛡 V7: User-scroll detection
       //   Programmatik scroll (auto-scroll) DEĞİLSE → kullanıcı manuel kaydırdı
