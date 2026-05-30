@@ -440,46 +440,42 @@ function MapScreenContent() {
       return true;
     }
 
-    // 📌 V19: STRATEGY 2 — Pending (measurements not ready, queue and use scrollToIndex)
-    //   User spec: "Eğer lesson layout hazır değilse scroll iptal edilmeyecek. Pending'e alınacak."
-    //   onLayout/onContentSizeChange tetiklediğinde tryPendingFocus fire eder.
-    //   Ama bekleyemeyiz → scrollToIndex ile yine yaklaşık scroll yapılır.
+    // 📌 V20: STRATEGY 2 — Estimated scrollToOffset (NO scrollToIndex, NO refinement)
+    //   User spec ("vagon"): Sadece scrollToOffset, tek smooth animation.
+    //   Measurements yoksa getItemLayout formülü ile estimate hesaplanır.
+    //   Pending'e ekle ki onLayout fire edince precise refinement yapılsın.
     pendingFocusRef.current = { lessonId: actualLessonId, reason, force: true, animated: true };
 
-    const lessonOffsetInUnit = 76 + 40 + lessonIdx * 124;
-    const viewOffset = anchorY - lessonOffsetInUnit;
+    // Estimated lessonCenterY using getItemLayout formula (lessons * 124 + 170 per unit)
+    let estimatedCenterY = listHeaderHeight.current;
+    for (let i = 0; i < unitIdx; i++) {
+      estimatedCenterY += (course.units[i]?.lessons?.length ?? 0) * 124 + 170;
+    }
+    // Within unit: header(76) + first_offset(40) + idx*124 = lesson center
+    estimatedCenterY += 76 + 40 + lessonIdx * 124;
+
+    const ch2 = contentHeightRef.current;
+    const maxY2 = ch2 > 0 ? Math.max(0, ch2 - vh) : Infinity;
+    const targetScrollY2 = Math.max(0, Math.min(estimatedCenterY - anchorY, maxY2));
 
     console.warn('[CAMERA_LOCK_PENDING]', {
       nextPlayableLessonId: actualLessonId,
       unitIdx,
       lessonIdx,
-      lessonOffsetInUnit,
+      estimatedCenterY: Math.round(estimatedCenterY),
       viewportHeight: vh,
       anchorY: Math.round(anchorY),
-      viewOffset: Math.round(viewOffset),
+      targetScrollY: Math.round(targetScrollY2),
       reason,
     });
 
     isProgrammaticScrollRef.current = true;
     try {
-      listRef.current?.scrollToIndex({
-        index: unitIdx,
-        animated,
-        viewPosition: 0,
-        viewOffset,
-      });
+      listRef.current?.scrollToOffset({ offset: targetScrollY2, animated: true });
     } catch (e) {
       console.warn('[MAP_SCROLL_FAIL]', { error: String(e) });
     }
-
-    // ❌ V14: REFINEMENT STEP KALDIRILDI
-    //   V12'de scrollToIndex sonrası 500ms'de scrollToOffset(measured Y) yapılıyordu.
-    //   Ama measured unitY/pathY/lessonLayout bazen STALE veya YANLIŞ değerlerle dönüyordu →
-    //   refinement camera'yı YANLIŞ konuma (genelde y=0) atıyordu.
-    //   USER FEEDBACK: "doğru yere gidiyor, hemen ardından ilk bölüme atıyor"
-    //   Çözüm: refinement YOK. Sadece scrollToIndex (yeterince doğru).
-
-    setTimeout(() => { isProgrammaticScrollRef.current = false; }, animated ? 700 : 150);
+    setTimeout(() => { isProgrammaticScrollRef.current = false; }, 800);
     return true;
   }, [completedLessons, nextPlayableLessonId, course.units]);
 
@@ -1038,7 +1034,9 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       alignItems: 'center', justifyContent: 'center',
       opacity: 0.45,
     },
-    scrollContent: { paddingTop: spacing.sm, paddingBottom: spacing.xxl },
+    // V20: "VAGON" mantığı için BIG paddingBottom — son lesson'ları da center'a alabilelim
+    //   Padding eklemezsek FlatList son lesson'ı center'a scroll edemez (max scrollY clamp)
+    scrollContent: { paddingTop: spacing.sm, paddingBottom: 600 },
     // 👋 Günlük karşılama
     greetingWrap: {
       paddingHorizontal: spacing.base,
