@@ -47,6 +47,7 @@ export const ensureFamilyOwner = onCall<{}, Promise<EnsureFamilyOwnerResult>>(
       entitlementExpiresAt: null,
       memberLimit: MEMBER_LIMIT,
       members: [ownerMember],
+      memberUids: [uid],
       currentInviteCode: null,
       currentInviteExpiresAt: null,
     };

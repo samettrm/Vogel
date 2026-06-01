@@ -19,10 +19,11 @@ service cloud.firestore {
     // ─────────────────────────────────────────────────────────────
 
     // Aile dokümanı: owner + members okuyabilir
+    // memberUids alanı server-side maintained (cloud functions): hızlı + rules-safe lookup
     match /families/{ownerUid} {
       allow read: if request.auth != null && (
         request.auth.uid == ownerUid
-        || isMemberOfFamily(resource.data, request.auth.uid)
+        || (resource.data.memberUids is list && request.auth.uid in resource.data.memberUids)
       );
       allow write: if false; // sadece Cloud Functions (admin SDK bypass)
     }
@@ -48,11 +49,4 @@ service cloud.firestore {
       allow read, write: if false;
     }
   }
-}
-
-// Member listesi içinde uid aramak için helper
-function isMemberOfFamily(familyData, uid) {
-  return familyData.members != null
-    && familyData.members.size() > 0
-    && uid in familyData.members.map(m => m.uid);
 }

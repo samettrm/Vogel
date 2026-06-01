@@ -56,9 +56,13 @@ export const removeFamilyMember = onCall<RemoveMemberData, Promise<RemoveMemberR
 
       const now = Timestamp.now();
       const filtered = family.members.filter((m) => m.uid !== memberUid);
+      const filteredUids = (family.memberUids || family.members.map((m) => m.uid)).filter(
+        (u) => u !== memberUid,
+      );
 
       txn.update(familyRef, {
         members: filtered,
+        memberUids: filteredUids,
         updatedAt: now,
       });
 

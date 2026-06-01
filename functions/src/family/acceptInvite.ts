@@ -117,9 +117,10 @@ export const acceptInvite = onCall<AcceptInviteData, Promise<AcceptInviteResult>
       // Yeni üye nesnesi oluştur
       const newMember = await buildMember(uid, 'member');
 
-      // Atomic write: family.members'a ekle + user/familyRef yaz
+      // Atomic write: family.members + family.memberUids'e ekle + user/familyRef yaz
       txn.update(familyRef, {
         members: FieldValue.arrayUnion(newMember),
+        memberUids: FieldValue.arrayUnion(uid),
         updatedAt: now,
       });
 

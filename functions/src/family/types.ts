@@ -34,6 +34,12 @@ export interface FamilyDoc {
   entitlementExpiresAt: Timestamp | null;
   memberLimit: number;
   members: FamilyMember[];
+  /**
+   * Sadece UID'leri içeren flat list — security rules'ta hızlı lookup için
+   * (Firestore rules dilinde .map(m => m.uid) gibi lambda desteklenmiyor).
+   * members ile birlikte tutulmalı (Cloud Functions ikisini de güncelle).
+   */
+  memberUids: string[];
   currentInviteCode: string | null;
   currentInviteExpiresAt: Timestamp | null;
 }
