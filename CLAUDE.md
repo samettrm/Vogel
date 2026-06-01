@@ -10,7 +10,7 @@ Bu dosya, projede çalışacak her Claude oturumunun (ya da insan geliştiricini
 
 ## 1. Proje özeti
 
-Vogel — Türkçe → Almanca yönünde Duolingo benzeri dil öğrenme uygulaması. iOS + Android hedefli, App Store/TestFlight'a yayında. Lesson map, XP/can/streak sistemi, başarımlar, günlük görevler, spaced repetition tekrar merkezi, premium abonelik (RC), Goethe/TELC sınav ekranı.
+Vogel — Türkçe → Almanca yönünde Duolingo benzeri dil öğrenme uygulaması. iOS + Android hedefli, App Store/TestFlight'a yayında. Lesson map, XP/can/streak sistemi, başarımlar, günlük görevler, spaced repetition tekrar merkezi, premium abonelik (RC), Goethe/TELC sınav ekranı, **AdMob banner reklamları (premium kullanıcıda otomatik kapalı)**.
 
 - **Bundle ID:** `com.yenipc002.Vogel`
 - **App version:** 1.0.2 (`app.json`)
@@ -30,6 +30,7 @@ Storage: AsyncStorage + expo-secure-store ~15.0.8 (lazy)
 Errors:  @sentry/react-native ~7.2.0
 Anim:    react-native-reanimated 4 + react-native-svg 15
 Audio:   expo-av (⚠️ deprecated, SDK 55'te kalkacak) + expo-speech
+Ads:     react-native-google-mobile-ads 15 (AdMob) + expo-tracking-transparency (ATT)
 ```
 
 Eklenen tüm native modüller **lazy require** (bkz. §7).
@@ -286,6 +287,7 @@ const hearts = useUserStore((s) => s.hearts);
     - **Lesson exit (X)** → V29 moduleSavedScrollY restore (instant snap)
     - `mapNavState.lessonReturnMode` 'exit' vs 'complete' branching ([app/lesson/[lessonId].tsx](app/lesson/[lessonId].tsx) goHome)
     - 33 iterasyon sonrası user onaylı son hal — kırılgan, dikkatli dokun
+11. **"Reklamsız" iddiaları + Privacy Policy AdMob paragrafları** — AdMob entegre (commit `c91a173`: [src/config/admob.ts](src/config/admob.ts), [src/services/ads.ts](src/services/ads.ts), [src/components/ads/AdBanner.tsx](src/components/ads/AdBanner.tsx)). "Reklamsız" pazarlama metinleri **gerçek bir premium vaadi**, yanıltıcı değil. Privacy Policy'deki "Google AdMob kullanıyoruz" paragrafı gerçeklikle uyumlu. Daha önce 2 kez yanlışlıkla kaldırıldı (`1b4e136`, `6083fd5`), 2 kez revert edildi (`fe1cbd2`, `112a800`). Apple Review 5.1.1/3.1.2 endişesi gerekçesiyle bile bu metinler dokunulmaz. Etkilenen dosyalar: `app/(tabs)/profile.tsx`, `app/privacy-policy.tsx`, `docs/STORE_LISTING.md`, `docs/privacy.html`, `src/components/lesson/NoHeartsScreen.tsx`, `src/components/paywall/PaywallModal.tsx`, `src/components/shop/PremiumCard.tsx`, `src/components/shop/PremiumPlansCard.tsx`, `src/i18n/index.ts`. **Bu dosyalardaki "reklamsız/ad-free" referansını silme!**
 
 ## 12. Test akışı
 

@@ -131,6 +131,8 @@ Tüm submit öncesi maddeler tamamlandı. Şu an Apple inceleme bekleniyor (24-4
 
 ## ✅ Yakın zamanda tamamlananlar (referans için)
 
+- ✅ **AdMob entegrasyonu — Banner + SDK init + ATT prompt** (commit `c91a173`, 2026-05-26)
+  - ⚠️ **DİKKAT:** "Reklamsız" iddiası ve Privacy Policy AdMob paragrafı KALICI olarak kalmalı. 2 kez yanlış kaldırma, 2 kez revert oldu (1b4e136→fe1cbd2, 6083fd5→112a800). [CLAUDE.md §11.10](CLAUDE.md)
 - ✅ **TestFlight build f341b31 cihazda test edildi — crash yok** (2026-05-26)
 - ✅ **Privacy Policy app içi + ASC URL** (https://samettrm.github.io/Vogel/privacy.html) (2026-05-26)
 - ✅ **App Store Connect IAP onayı — 3 ürün de onaylı** (monthly/yearly/family) (2026-05-26)
