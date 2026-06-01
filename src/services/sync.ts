@@ -1,6 +1,7 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { firebaseDb, isFirebaseConfigured } from '../config/firebase';
 import { useUserStore } from '../store/useUserStore';
+import { useFamilyStore } from '../store/useFamilyStore';
 import {
   getLearnedWords,
   setLearnedWords,
@@ -303,6 +304,8 @@ export async function clearLocalProgress(): Promise<void> {
     });
     await setLearnedWords([]);
     await setExamScores({});
+    // Family state'i temizle (logout'ta stale family listener kalmasın)
+    useFamilyStore.getState().clearFamily();
   } catch (e) {
     if (__DEV__) console.warn('[Sync] Clear hatası:', e);
   }

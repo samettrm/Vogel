@@ -91,6 +91,11 @@ export default function ShopScreen() {
     const result = await purchasePlan(rcPackage);
     if (result.ok) {
       if (typeof makePremium === 'function') makePremium(planId);
+      // Family planı satın alındıysa Firestore'da family doc oluştur
+      if (planId === 'family') {
+        const { ensureFamilyOwner } = await import('../../src/services/family');
+        ensureFamilyOwner().catch(() => {});
+      }
     } else if (!result.cancelled && result.message) {
       Alert.alert(t('shop.purchaseFailed'), result.message);
     }

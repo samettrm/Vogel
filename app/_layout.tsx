@@ -16,7 +16,9 @@ import { AppState, LogBox, type AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Sentry from '@sentry/react-native';
+import * as Linking from 'expo-linking';
 import { useUserStore } from '../src/store/useUserStore';
+import { useFamilyStore } from '../src/store/useFamilyStore';
 
 console.warn('[FILE_LOAD] app/_layout.tsx loaded');
 import { AchievementToast } from '../src/components/achievements/AchievementToast';
@@ -256,6 +258,10 @@ function RootLayout() {
         <SmartReminderRefresher />
         {/* 💎 Premium senkronizasyonu — RC entitlement'ı store'a yazar */}
         <PremiumSyncer />
+        {/* 👨‍👩‍👧 Family senkronizasyonu — Firestore family doc + familyRef listener'lar */}
+        <FamilySyncer />
+        {/* 🔗 Deep link handler — vogel://invite/<code> yakalama */}
+        <DeepLinkHandler />
         {/* 📺 AdMob ATT prompt — onboarding bitince bir kez göster */}
         <AdsInitializer />
         {/* 🔄 Auth senkronizasyonu — giriş/ilerleme senkronizasyonu */}
@@ -541,9 +547,20 @@ function PremiumSyncer() {
   const setPremium = useUserStore((s) => s.setPremium);
   // 🔑 User değişimini izle — login/logout sonrası premium yeniden çek
   const userUid = useAuthStore((s) => s.user?.uid ?? null);
+  // 👨‍👩‍👧 Family üzerinden premium — Firestore listener'lar üzerinden gelen state
+  const isFamilyPremium = useFamilyStore((s) => s.isFamilyPremium);
 
   const checkPremium = useCallback(async () => {
     if (!hasHydrated) return;
+
+    // 👨‍👩‍👧 Family üzerinden premium varsa öncelik ver — RC çağrısı bekleme
+    if (isFamilyPremium) {
+      setPremium(true);
+      // activePlanId'yi 'family' yap (member için bilgilendirme amaçlı)
+      useUserStore.setState({ activePlanId: 'family' });
+      return;
+    }
+
     try {
       const mod = await import('../src/services/purchases');
       const isPremium = await mod.checkIsPremiumSafe();
@@ -564,11 +581,9 @@ function PremiumSyncer() {
     } catch {
       // RC yok / ağ hatası — mevcut değerlere dokunma
     }
-  }, [hasHydrated, setPremium]);
+  }, [hasHydrated, setPremium, isFamilyPremium]);
 
-  // ☁️ Hydration + user değişimi → premium re-check.
-  // userUid değişince Firebase user değişti demektir (login/logout/switch);
-  // RC'ye yeni user için sor.
+  // ☁️ Hydration + user + family değişimi → premium re-check.
   useEffect(() => {
     checkPremium();
   }, [checkPremium, userUid]);
@@ -585,6 +600,100 @@ function PremiumSyncer() {
     });
     return () => sub.remove();
   }, [checkPremium]);
+
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FAMILY SYNCER — Firestore family doc + familyRef canlı listener'ları.
+//
+// Owner ise kendi family doc'unu izler, member ise familyRef'ten ownerUid
+// alıp ona subscribe eder. Logout'ta clear (useFamilyStore.clearFamily).
+//
+// Cloud authoritative — useFamilyStore persist EDİLMEZ.
+// ════════════════════════════════════════════════════════════════
+function FamilySyncer() {
+  const user = useAuthStore((s) => s.user);
+
+  useEffect(() => {
+    if (!user) {
+      useFamilyStore.getState().clearFamily();
+      return;
+    }
+
+    const uid = user.uid;
+    let unsubDoc: (() => void) | null = null;
+    let unsubRef: (() => void) | null = null;
+    let currentOwnerListenerUid: string | null = null;
+
+    const ensureDocListener = (mod: typeof import('../src/services/family'), ownerUid: string) => {
+      if (currentOwnerListenerUid === ownerUid) return;
+      currentOwnerListenerUid = ownerUid;
+      unsubDoc?.();
+      unsubDoc = mod.subscribeToFamilyDoc(ownerUid, (doc) => {
+        useFamilyStore.getState().setFamilyDoc(doc, uid);
+      });
+    };
+
+    import('../src/services/family')
+      .then((mod) => {
+        // 1. Owner senaryosu: kendi uid'inin family doc'una subscribe
+        ensureDocListener(mod, uid);
+
+        // 2. Member senaryosu: familyRef listener — ownerUid değişince doc listener'ı switch et
+        unsubRef = mod.subscribeToFamilyRef(uid, (ref) => {
+          useFamilyStore.getState().setFamilyRef(ref);
+          if (ref?.ownerUid && ref.removedAt == null) {
+            ensureDocListener(mod, ref.ownerUid);
+          }
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      unsubDoc?.();
+      unsubRef?.();
+      // Logout sırasında family state'i temizle (race condition fix §11.7)
+      useFamilyStore.getState().clearFamily();
+    };
+  }, [user]);
+
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// DEEP LINK HANDLER — vogel://invite/<code> yakalama.
+//
+// İlk açılış (cold start) ve sonraki URL event'lerini dinler.
+// Stack mount edildikten sonra router.push tetiklenebilir.
+// ════════════════════════════════════════════════════════════════
+function DeepLinkHandler() {
+  const router = useRouter();
+  const hasHydrated = useUserStore((s) => s.hasHydrated);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+
+    const tryHandle = (url: string | null) => {
+      if (!url) return;
+      const match = url.match(/invite\/([A-Z0-9]+)/i);
+      if (match && match[1]) {
+        router.push(`/invite/${match[1].toUpperCase()}`);
+      }
+    };
+
+    // Cold start URL
+    Linking.getInitialURL().then(tryHandle).catch(() => {});
+
+    // Sonraki URL event'leri
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      tryHandle(url);
+    });
+
+    return () => {
+      sub.remove();
+    };
+  }, [hasHydrated, router]);
 
   return null;
 }

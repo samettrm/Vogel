@@ -35,6 +35,9 @@ export default function SettingsScreen() {
   const learningMotivations = useUserStore((s) => s.learningMotivations);
   const setLearningMotivations = useUserStore((s) => s.setLearningMotivations);
 
+  // Premium durumu (Aile Planı section'ı sadece premium'da görünür)
+  const isPremium = useUserStore((s) => s.isPremium);
+
   // Ses + Haptic — store'dan kalıcı
   const soundOn = useUserStore((s) => s.soundEnabled);
   const hapticOn = useUserStore((s) => s.hapticEnabled);
@@ -174,8 +177,23 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        {/* AİLE PLANI — sadece premium kullanıcılarda görünür */}
+        {isPremium && (
+          <Section title={t('family.title')} index={5} c={c}>
+            <LinkRow
+              c={c}
+              icon="people"
+              tone={c.neon}
+              toneBg={c.neonBg}
+              label={t('family.settingsLinkTitle')}
+              description={t('family.settingsLinkSubtitle')}
+              onPress={() => router.push('/family')}
+            />
+          </Section>
+        )}
+
         {/* YASAL */}
-        <Section title={t('settings.sectionLegal')} index={5} c={c}>
+        <Section title={t('settings.sectionLegal')} index={6} c={c}>
           <LinkRow
             c={c}
             icon="shield-checkmark"
