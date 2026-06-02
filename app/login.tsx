@@ -39,7 +39,8 @@ import { markDeviceAsLoggedIn } from '@/src/utils/secureStore';
 // GİRİŞ EKRANI — Email · Google · Apple
 //
 // Firebase yapılandırılmamışsa ekran açılmaz (profile'dan yönlendirilmez).
-// "Şimdi değil" ile geçilebilir — login zorunlu değil.
+// Skip/"Atla" butonu YOK — misafir dersler sonrası AuthGuard login'i zorunlu
+// kılar (Apple sonsuz-döngü riski yok).
 // ════════════════════════════════════════════════════════════════
 
 const BG = '#05020e';
