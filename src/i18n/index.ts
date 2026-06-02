@@ -676,65 +676,15 @@ export const messages = {
     morning7: { tr: '🐦 Vogel uyandı|Sen de gel, beraber uçalım.', en: '🐦 Vogel is awake|Come fly with us.' },
     morning8: { tr: '🌱 Küçük adım, büyük yol|Bugün de bir adım at.', en: '🌱 Small step, long road|Take one more today.' },
 
-    // ────── AKŞAM (18:00-22:00) — Streak FOMO + son şans ──────
-    evening1: { tr: '🔥 Streak\'in tehlikede!|Beş dakikalık bir ders ile günü kurtar.', en: '🔥 Your streak is at risk!|Save the day with one quick lesson.' },
-    evening2: { tr: '🥺 Vogel seni özledi|Bir derste görüşelim mi?', en: '🥺 Vogel misses you|Meet in a lesson?' },
-    evening3: { tr: '⏰ Gece yarısı yaklaşıyor|Bugün hiç ders yapmadın. Sıkı bir ders, hızlı bir akşam.', en: '⏰ Midnight approaches|No lesson today yet. Fix it fast.' },
-    evening4: { tr: '🔥 Seriyi BIRAKMA|Bugünkü altın kalbi koru.', en: '🔥 Don\'t break the streak|Protect today\'s golden flame.' },
-    evening5: { tr: '⚡ Yarın değil, BUGÜN|Bir ders ile günü zaferle kapat.', en: '⚡ Not tomorrow — TODAY|Close the day with victory.' },
-    evening6: { tr: '🌟 Tek kelime bile yeter|Pratik atlamadan günü bitirme.', en: '🌟 Even one word counts|Don\'t end the day without practice.' },
-    evening7: { tr: '⚡ XP hedefin var mı?|Tamamla, ödüller seni bekliyor.', en: '⚡ Got an XP goal?|Finish it — rewards await.' },
-    evening8: { tr: '🌙 Yatmadan 5 dakika|Uyurken beynin tekrar eder. Bilimsel gerçek.', en: '🌙 5 minutes before bed|Your brain will rehearse it as you sleep.' },
-
-    // ────── MOTIVASYON-SPESİFİK ──────
-
-    // 🌍 Seyahat
-    travel_morning_1: { tr: '✈️ Bugün Berlin\'desin (zihnen)|Bir seyahat cümlesi öğren, valizi hazır.', en: '✈️ Berlin today (in your mind)|Learn one travel phrase, pack the bag.' },
-    travel_morning_2: { tr: '🗺️ Yolculuk Almanca konuşur|Yeni bir şehir, yeni bir cümle.', en: '🗺️ Travel speaks German|New city, new sentence.' },
-    travel_morning_3: { tr: '☕ Kahvaltı sipariş et|"Ein Kaffee, bitte." Ezberle, kullan.', en: '☕ Order breakfast|"Ein Kaffee, bitte." Learn it, use it.' },
-    travel_evening_1: { tr: '🏖️ Sonraki tatil = Almanya?|Hazırlık şimdi başlar. Beş dakika.', en: '🏖️ Next trip = Germany?|Prep starts now. 5 minutes.' },
-    travel_evening_2: { tr: '📍 "Wo ist...?" gücü|Kaybolmamak için bugün öğren.', en: '📍 The power of "Wo ist...?"|Learn it tonight — never get lost.' },
-    travel_evening_3: { tr: '💶 "Wie viel kostet das?"|Bugün öğren, alışverişte kullan.', en: '💶 "Wie viel kostet das?"|Learn tonight, use it shopping.' },
-
-    // 💼 İş
-    work_morning_1: { tr: '💼 CV\'nde "Deutsch B1"|Yolun başındasın. Bir ders.', en: '💼 "Deutsch B1" on your CV|You\'re on your way. One lesson.' },
-    work_morning_2: { tr: '⚡ İşe gitmeden 5 dk|Profesyonel beynin teşekkür edecek.', en: '⚡ 5 mins before work|Your professional brain will thank you.' },
-    work_morning_3: { tr: '👋 Guten Morgen, Kollegen!|Yarın bunu söyleyebilmek için bugün pratik.', en: '👋 Guten Morgen, Kollegen!|Practice today, use it tomorrow.' },
-    work_evening_1: { tr: '📈 Bugünü kapatırken|Bir iş kelimesi — yarın masada işine yarar.', en: '📈 As you wrap up|One word for tomorrow\'s desk.' },
-    work_evening_2: { tr: '📊 Almanca business email?|Yapı öğrenmenin tam zamanı.', en: '📊 German business email?|Perfect time to learn the structure.' },
-    work_evening_3: { tr: '💼 Kariyere 5 dakika|Bu yatırım faiz getirir. Söz.', en: '💼 5 mins for your career|This investment compounds. Promise.' },
-
-    // ❤️ Aile
-    family_morning_1: { tr: '❤️ Sevdiklerine|Bir cümle daha, bir adım daha yakın.', en: '❤️ For your loved ones|One sentence closer.' },
-    family_morning_2: { tr: '💕 "Ich liebe dich"|Bugün öğren, bu akşam söyle.', en: '💕 "Ich liebe dich"|Learn today, say tonight.' },
-    family_morning_3: { tr: '🌹 Sürpriz cümle hazırla|Onlara Almanca söyle, ışıldasınlar.', en: '🌹 Surprise phrase ready|Say it in German — watch them glow.' },
-    family_evening_1: { tr: '🍲 Aile sofrası özlemini|Bir kelime daha Almanca\'yla doldur.', en: '🍲 Missing family dinner?|Fill it with one more German word.' },
-    family_evening_2: { tr: '👪 "Familie" kelimeleri|Bugün öğren, yarın yakınla paylaş.', en: '👪 "Familie" words|Learn today, share tomorrow.' },
-    family_evening_3: { tr: '🐦 Kuşlar yuvaya döner|Sen de Vogel\'a. 5 dk yeter.', en: '🐦 Birds fly home|You fly to Vogel. 5 mins.' },
-
-    // 🎬 Film/Dizi/Müzik
-    media_morning_1: { tr: '🎵 Bir Alman şarkısı|Bugün anlam çözmenin sırası.', en: '🎵 A German song|Time to crack the meaning.' },
-    media_morning_2: { tr: '🎬 Altyazısız Netflix|Hedef o. Bir adım daha yakınsın.', en: '🎬 Netflix without subs|That\'s the goal. One step closer.' },
-    media_morning_3: { tr: '🎸 Rammstein anlamaya|Bir kelime daha. Devam et.', en: '🎸 Understanding Rammstein|One more word. Keep going.' },
-    media_evening_1: { tr: '🍿 Almanca film akşamı?|Önce hızlı bir ders, sonra koltuk.', en: '🍿 German movie night?|Quick lesson first, then the couch.' },
-    media_evening_2: { tr: '🎥 Diziyi anlama|Az önce duyduğun kelimeyi bul.', en: '🎥 Crack that show|Find that word you just heard.' },
-    media_evening_3: { tr: '🎧 Playlist\'in tatlı|Almanca\'yla daha tatlı olacak.', en: '🎧 Your playlist is sweet|German makes it sweeter.' },
-
-    // 📚 Akademik
-    academic_morning_1: { tr: '📚 Akademisyen modu|Beyin uyandı, bir ders zamanı.', en: '📚 Scholar mode on|Brain\'s awake — lesson time.' },
-    academic_morning_2: { tr: '📖 Almanca akademik metin|Bir kelime daha yakınsın.', en: '📖 German academic text|One word closer.' },
-    academic_morning_3: { tr: '🎓 Bilim Almanca konuşur|Yakında sen de.', en: '🎓 Science speaks German|Soon you will too.' },
-    academic_evening_1: { tr: '📝 Bir formal yapı|Bugün öğren, yarın yazına ekle.', en: '📝 One formal structure|Learn tonight, add to your writing.' },
-    academic_evening_2: { tr: '📈 5 dakika bugün|5 hafta sonra "vay be" diyeceksin.', en: '📈 5 minutes today|In 5 weeks you\'ll say "wow".' },
-    academic_evening_3: { tr: '📄 Almanca tezler|Artık erişilemez değil. Devam.', en: '📄 German theses|No longer out of reach.' },
-
-    // 🧠 Merak
-    curious_morning_1: { tr: '🌍 Yeni bir dünya seni bekliyor|Hadi keşfet.', en: '🌍 A new world awaits|Go explore.' },
-    curious_morning_2: { tr: '🧠 Beynine yeni yapı|Almanca = nöral spor salonu.', en: '🧠 New brain structure|German = mental gym.' },
-    curious_morning_3: { tr: '🔍 5 dakikalık keşif|Yeni kelimeler, yeni dünyalar.', en: '🔍 5-min discovery|New words, new worlds.' },
-    curious_evening_1: { tr: '✨ Bugün ne öğrendin?|Bir tane daha ekle, daha güzel uyu.', en: '✨ What did you learn?|Add one more, sleep better.' },
-    curious_evening_2: { tr: '🍬 Yeni kelime tadı|Bir öğrenme + bir tatmin.', en: '🍬 The taste of a new word|One learn, one satisfaction.' },
-    curious_evening_3: { tr: '🏘️ Beyninde yeni mahalle|Almanca buraya taşınıyor.', en: '🏘️ A new neighborhood in your brain|German moves in tonight.' },
+    // ────── AKŞAM (18:00-22:00) — Sakin, dil-öğrenme odaklı ──────
+    evening1: { tr: '🌙 Günü kelimelerle kapat|Yatmadan önce kısa bir Almanca dersi.', en: '🌙 End the day with words|A short German lesson before bed.' },
+    evening2: { tr: '📚 Bugünü pekiştir|Birkaç dakikalık tekrar, kelimeler kalıcı olsun.', en: '📚 Reinforce today|A few minutes of review makes the words stick.' },
+    evening3: { tr: '✨ Akşam pratiği|Yeni bir Almanca cümleye ne dersin?', en: '✨ Evening practice|How about a new German sentence?' },
+    evening4: { tr: '🧩 Bir kelime daha|Akşamın huzurunda kısa bir ders.', en: '🧩 One more word|A short lesson in the calm of the evening.' },
+    evening5: { tr: '💤 Uyumadan önce|Beynin uykuda tekrar eder — bir ders bırak.', en: '💤 Before you sleep|Your brain rehearses as you sleep — leave it a lesson.' },
+    evening6: { tr: '🌟 Tek kelime bile yeter|Günü bir şey öğrenerek tamamla.', en: '🌟 Even one word counts|Finish the day having learned something.' },
+    evening7: { tr: '🇩🇪 Akşam Almancası|Sakin bir tempoda yeni bir kelime.', en: '🇩🇪 Evening German|A new word at a calm pace.' },
+    evening8: { tr: '☕ Akşam molası|Bir fincan çay ve kısa bir Almanca dersi.', en: '☕ Evening break|A cup of tea and a short German lesson.' },
   },
 
   // ── Seviyeler ─────────────────────────────────────────────────

@@ -1,5 +1,4 @@
 import { getT } from '../i18n';
-import { useUserStore } from '../store/useUserStore';
 import { getPersonalizedReminderKey } from '../services/personalization';
 import {
   cancelAllSmartReminders,
@@ -8,22 +7,20 @@ import {
 } from './notifications';
 
 // ════════════════════════════════════════════════════════════════
-// SMART REMINDER ENGINE — Kişiselleştirilmiş
+// SMART REMINDER ENGINE — Sadece dil-öğrenme bildirimleri
 //
 // Strateji:
 //   - 7 gün ileri schedule yap (bugün dahil)
 //   - Her gün için 2 bildirim: sabah (9-12 random) + akşam (18-22 random)
-//   - Mesaj seçimi PERSONALIZATION SERVICE üzerinden:
-//     %50 motivasyon-spesifik + %50 genel
+//   - Mesaj seçimi: yalnızca Almanca öğrenmeyle ilgili genel havuzdan random
 //   - Saat de random → bunaltmaz, tahmin edilemez
 //
 // Her app açılışında refreshSmartReminders() çağrılır → eski schedule
 // silinir, yeni mesajlar/saatlerle 7 günlük plan kurulur.
 //
-// KİŞİSELLEŞTİRME:
-//   - Kullanıcı 'travel' seçtiyse → "Berlin'de kahvaltı sipariş et ☕" gibi
-//   - Kullanıcı 'work' seçtiyse → "İşe gitmeden önce bir ders 💼" gibi
-//   - Motivasyon yoksa → genel 16 mesajdan random
+// NOT: Motivasyon-spesifik (seyahat/iş/film…) ve suçlu hissettiren
+// streak/FOMO mesajları kaldırıldı — kullanıcılar itici buluyordu.
+// Artık yalnızca sakin, dille ilgili hatırlatmalar gönderilir.
 // ════════════════════════════════════════════════════════════════
 
 // Sabah ve akşam pencere saatleri
@@ -60,17 +57,14 @@ function buildReminderDate(
 export async function refreshSmartReminders(): Promise<number> {
   await cancelAllSmartReminders();
 
-  // Kullanıcının motivasyonlarını oku (store'dan)
-  const userMotivations = useUserStore.getState().learningMotivations ?? [];
-
   let scheduledCount = 0;
 
   for (let dayOffset = 0; dayOffset <= SCHEDULE_DAYS_AHEAD; dayOffset++) {
-    // Sabah bildirimi
+    // Sabah bildirimi — dil-öğrenme mesaj havuzundan random
     const morningDate = buildReminderDate(
       dayOffset, MORNING_HOUR_MIN, MORNING_HOUR_MAX,
     );
-    const morningKey = getPersonalizedReminderKey('morning', userMotivations);
+    const morningKey = getPersonalizedReminderKey('morning');
     const morningBody = getT(morningKey);
     const morningId = `${SMART_REMINDER_PREFIX}d${dayOffset}-am`;
 
@@ -78,11 +72,11 @@ export async function refreshSmartReminders(): Promise<number> {
       scheduledCount++;
     }
 
-    // Akşam bildirimi
+    // Akşam bildirimi — dil-öğrenme mesaj havuzundan random
     const eveningDate = buildReminderDate(
       dayOffset, EVENING_HOUR_MIN, EVENING_HOUR_MAX,
     );
-    const eveningKey = getPersonalizedReminderKey('evening', userMotivations);
+    const eveningKey = getPersonalizedReminderKey('evening');
     const eveningBody = getT(eveningKey);
     const eveningId = `${SMART_REMINDER_PREFIX}d${dayOffset}-pm`;
 

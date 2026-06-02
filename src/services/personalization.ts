@@ -86,13 +86,16 @@ export function scoreUnitForUser(
 }
 
 // ─── Akıllı bildirim mesajı seçimi ───
-// Sabah/akşam ve kullanıcı motivasyonlarına göre uygun mesaj key'i döndürür.
-// Strategy: %50 motivasyon-spesifik, %50 genel (kullanıcı motivasyon seçtiyse)
+// Sabah/akşam için DİL-ÖĞRENME odaklı genel mesaj havuzundan random seçer.
+//
+// NOT: Motivasyon-spesifik / lifestyle mesajları (seyahat, iş, film…) ve
+// suçlu hissettiren streak/FOMO mesajları KASITLI OLARAK kaldırıldı —
+// kullanıcılar itici buluyordu. Artık yalnızca Almanca öğrenmeyle ilgili
+// sakin, davetkâr mesajlar gönderilir (günde 2: sabah + akşam, random saat).
 export function getPersonalizedReminderKey(
   timeOfDay: 'morning' | 'evening',
-  userMotivations: string[],
 ): MessageKey {
-  const generalKeys: MessageKey[] = timeOfDay === 'morning'
+  const keys: MessageKey[] = timeOfDay === 'morning'
     ? [
         'smartReminder.morning1', 'smartReminder.morning2', 'smartReminder.morning3',
         'smartReminder.morning4', 'smartReminder.morning5', 'smartReminder.morning6',
@@ -103,40 +106,7 @@ export function getPersonalizedReminderKey(
         'smartReminder.evening4', 'smartReminder.evening5', 'smartReminder.evening6',
         'smartReminder.evening7', 'smartReminder.evening8',
       ];
-
-  // Kullanıcı motivasyon seçmediyse → genel havuzdan random
-  if (userMotivations.length === 0) {
-    return pickRandom(generalKeys);
-  }
-
-  // %50 olasılık: motivasyon-spesifik mesaj
-  if (Math.random() < 0.5) {
-    const pickedMotivation = pickRandom(userMotivations);
-    const personalKeys = getMotivationSpecificKeys(
-      pickedMotivation as LearningMotivation,
-      timeOfDay,
-    );
-    if (personalKeys.length > 0) {
-      return pickRandom(personalKeys);
-    }
-  }
-
-  // Diğer durumlarda genel havuzdan
-  return pickRandom(generalKeys);
-}
-
-// ─── Motivasyon-spesifik mesaj key'lerini topla ───
-function getMotivationSpecificKeys(
-  motivation: LearningMotivation,
-  timeOfDay: 'morning' | 'evening',
-): MessageKey[] {
-  // Her motivasyon için 3'er mesaj var (sabah + akşam)
-  // i18n'de şu pattern'le: smartReminder.travel_morning_1, travel_evening_1 vs.
-  const keys: MessageKey[] = [];
-  for (let i = 1; i <= 3; i++) {
-    keys.push(`smartReminder.${motivation}_${timeOfDay}_${i}` as MessageKey);
-  }
-  return keys;
+  return pickRandom(keys);
 }
 
 // ─── Kullanıcıya kişisel mesaj (özet ekranı için) ───
