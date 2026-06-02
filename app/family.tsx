@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemePalette, type ThemePalette } from '../src/theme/useThemePalette';
 import { useT } from '../src/i18n';
 import { useFamilyStore } from '../src/store/useFamilyStore';
+import { useUserStore } from '../src/store/useUserStore';
 import { useAuthStore } from '../src/store/useAuthStore';
 import { acceptInvite, ensureFamilyOwner, leaveFamily } from '../src/services/family';
 import { AddMemberCard } from '../src/components/family/AddMemberCard';
@@ -102,7 +103,8 @@ export default function FamilyScreen() {
   if (!isOwner && !isMember) {
     return (
       <SafeAreaView style={styles.container}>
-        <Stack.Screen options={{ title: t('family.title') }} />
+        <Stack.Screen options={{ title: t('family.title'), headerShown: false }} />
+        <FamilyHeader c={c} title={t('family.title')} />
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.headerCard}>
             <Ionicons name="people-outline" size={56} color={c.textMed} />
@@ -198,7 +200,8 @@ export default function FamilyScreen() {
     const owner = familyDoc.members.find((m) => m.role === 'owner');
     return (
       <SafeAreaView style={styles.container}>
-        <Stack.Screen options={{ title: t('family.title') }} />
+        <Stack.Screen options={{ title: t('family.title'), headerShown: false }} />
+        <FamilyHeader c={c} title={t('family.title')} />
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.headerCard}>
             <Ionicons name="people-circle" size={48} color={c.neon} />
@@ -241,7 +244,8 @@ export default function FamilyScreen() {
 
     return (
       <SafeAreaView style={styles.container}>
-        <Stack.Screen options={{ title: t('family.title') }} />
+        <Stack.Screen options={{ title: t('family.title'), headerShown: false }} />
+        <FamilyHeader c={c} title={t('family.title')} />
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.headerCard}>
             <Ionicons name="people-circle" size={48} color={c.neon} />
@@ -293,6 +297,28 @@ export default function FamilyScreen() {
   );
 }
 
+// Geri butonlu basit header — her aile görünümünün üstünde (native header gizli).
+function FamilyHeader({ c, title }: { c: ThemePalette; title: string }) {
+  const styles = makeStyles(c);
+  return (
+    <View style={styles.navHeader}>
+      <Pressable
+        onPress={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace('/(tabs)');
+        }}
+        hitSlop={10}
+        style={styles.navBack}
+        accessibilityRole="button"
+      >
+        <Ionicons name="chevron-back" size={24} color={c.textHigh} />
+      </Pressable>
+      <Text style={styles.navTitle} numberOfLines={1}>{title}</Text>
+      <View style={styles.navSpacer} />
+    </View>
+  );
+}
+
 function confirmLeave(t: ReturnType<typeof useT>) {
   Alert.alert(t('family.leave.cta'), t('family.leave.confirm'), [
     { text: t('common.cancel'), style: 'cancel' },
@@ -302,6 +328,12 @@ function confirmLeave(t: ReturnType<typeof useT>) {
       onPress: async () => {
         const result = await leaveFamily();
         if (result.ok) {
+          // ⚠️ ANINDA reaksiyon: Firestore listener'ını beklemeden family premium'u
+          // proaktif düşür → kilitli özellikler + Market anında premiumsuza döner.
+          // (Kendi gerçek RC aboneliği olan biri için PremiumSyncer ~anında geri yükler.)
+          useFamilyStore.getState().clearFamily();
+          useUserStore.getState().setPremium(false);
+          useUserStore.setState({ activePlanId: null });
           router.replace('/(tabs)');
         } else {
           Alert.alert('Hata', result.error);
@@ -316,6 +348,29 @@ const makeStyles = (c: ThemePalette) =>
     container: {
       flex: 1,
       backgroundColor: c.bg,
+    },
+    navHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+    },
+    navBack: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    navTitle: {
+      flex: 1,
+      color: c.textHigh,
+      fontSize: 17,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    navSpacer: {
+      width: 40,
     },
     scroll: {
       padding: 16,
