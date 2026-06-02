@@ -182,8 +182,8 @@ export default function SettingsScreen() {
           />
         </Section>
 
-        {/* AİLE PLANI — sadece premium kullanıcılarda görünür */}
-        {isPremium && (
+        {/* AİLE — giriş yapan HERKESE görünür (davet edilen kişi de kod girip katılabilsin) */}
+        {user ? (
           <Section title={t('family.title')} index={5} c={c}>
             <LinkRow
               c={c}
@@ -195,7 +195,7 @@ export default function SettingsScreen() {
               onPress={() => router.push('/family')}
             />
           </Section>
-        )}
+        ) : null}
 
         {/* YASAL */}
         <Section title={t('settings.sectionLegal')} index={6} c={c}>

@@ -1,10 +1,12 @@
-﻿import { useEffect } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
@@ -15,7 +17,7 @@ import { useT } from '../src/i18n';
 import { useUserStore } from '../src/store/useUserStore';
 import { useFamilyStore } from '../src/store/useFamilyStore';
 import { useAuthStore } from '../src/store/useAuthStore';
-import { ensureFamilyOwner, leaveFamily } from '../src/services/family';
+import { acceptInvite, ensureFamilyOwner, leaveFamily } from '../src/services/family';
 import { AddMemberCard } from '../src/components/family/AddMemberCard';
 import { MemberListItem } from '../src/components/family/MemberListItem';
 
@@ -51,6 +53,32 @@ export default function FamilyScreen() {
   const isOwner = role === 'owner';
   const isMember = role === 'member';
 
+  // ─── Davet kodu ile katılma (davet edilen kişi — premium olması gerekmez) ───
+  const [joinCode, setJoinCode] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [joinSuccess, setJoinSuccess] = useState<string | null>(null);
+
+  async function handleJoin() {
+    const code = joinCode.trim().toUpperCase();
+    if (code.length < 4 || joining) return;
+    setJoinError(null);
+    setJoinSuccess(null);
+    setJoining(true);
+    const result = await acceptInvite(code);
+    setJoining(false);
+    if (!result.ok) {
+      if (result.reason === 'expired') setJoinError(t('family.accept.errors.expired'));
+      else if (result.reason === 'full') setJoinError(t('family.accept.errors.full'));
+      else if (result.reason === 'already-in') setJoinError(t('family.accept.errors.alreadyIn'));
+      else setJoinError(result.error || t('family.accept.errors.unknown'));
+      return;
+    }
+    setJoinSuccess(t('family.accept.success'));
+    // Firestore listener'ları role'ü 'member' yapınca görünüm otomatik geçer.
+    setTimeout(() => router.replace('/family'), 1200);
+  }
+
   // Owner ise ensureFamilyOwner çağrısı (idempotent, family doc oluştur)
   useEffect(() => {
     if (isPremium && activePlanId === 'family' && user) {
@@ -58,26 +86,97 @@ export default function FamilyScreen() {
     }
   }, [isPremium, activePlanId, user]);
 
-  // ─── Hiçbir aileye dahil değil ───
+  // ─── Hiçbir aileye dahil değil → DAVET KODU GİR veya kendi planını al ───
   if (!isOwner && !isMember) {
     return (
       <SafeAreaView style={styles.container}>
         <Stack.Screen options={{ title: t('family.title') }} />
-        <View style={styles.emptyState}>
-          <Ionicons name="people-outline" size={80} color={c.textMed} />
-          <Text style={styles.emptyTitle}>{t('family.notInFamily')}</Text>
-          <Text style={styles.emptySubtitle}>
-            {t('family.notInFamilySubtitle')}
-          </Text>
-          <Pressable
-            style={[styles.button, styles.primaryButton]}
-            onPress={() => router.push('/(tabs)/shop')}
-          >
-            <Text style={styles.primaryButtonText}>
-              {t('family.needFamilyPlanCta')}
-            </Text>
-          </Pressable>
-        </View>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.headerCard}>
+            <Ionicons name="people-outline" size={56} color={c.textMed} />
+            <Text style={styles.headerTitle}>{t('family.notInFamily')}</Text>
+            <Text style={styles.headerSubtitle}>{t('family.notInFamilySubtitle')}</Text>
+          </View>
+
+          {/* DAVET KODU GİR — davet edilen kişi için (premium gerekmez) */}
+          <View style={styles.joinCard}>
+            <Text style={styles.joinTitle}>{t('family.join.title')}</Text>
+            <Text style={styles.joinSubtitle}>{t('family.join.subtitle')}</Text>
+
+            {user ? (
+              <>
+                <TextInput
+                  style={styles.codeInput}
+                  value={joinCode}
+                  onChangeText={(v) => {
+                    setJoinCode(v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8));
+                    if (joinError) setJoinError(null);
+                  }}
+                  placeholder={t('family.join.placeholder')}
+                  placeholderTextColor={c.textMed}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  maxLength={8}
+                  returnKeyType="done"
+                  onSubmitEditing={handleJoin}
+                  editable={!joinSuccess}
+                />
+
+                {joinError ? (
+                  <View style={styles.joinMsgBox}>
+                    <Ionicons name="alert-circle" size={18} color={c.red} />
+                    <Text style={[styles.joinMsgText, { color: c.red }]}>{joinError}</Text>
+                  </View>
+                ) : null}
+                {joinSuccess ? (
+                  <View style={styles.joinMsgBox}>
+                    <Ionicons name="checkmark-circle" size={18} color={c.correct} />
+                    <Text style={[styles.joinMsgText, { color: c.correct }]}>{joinSuccess}</Text>
+                  </View>
+                ) : null}
+
+                <Pressable
+                  style={[
+                    styles.button,
+                    styles.primaryButton,
+                    (joinCode.length < 4 || joining || !!joinSuccess) && styles.buttonDisabled,
+                  ]}
+                  onPress={handleJoin}
+                  disabled={joinCode.length < 4 || joining || !!joinSuccess}
+                >
+                  {joining ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.primaryButtonText}>{t('family.join.cta')}</Text>
+                  )}
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={styles.joinSubtitle}>{t('family.join.loginRequired')}</Text>
+                <Pressable
+                  style={[styles.button, styles.primaryButton]}
+                  onPress={() => router.push('/login')}
+                >
+                  <Text style={styles.primaryButtonText}>{t('family.join.loginCta')}</Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+
+          <Text style={styles.orText}>{t('family.join.or')}</Text>
+
+          {/* KENDİ AİLE PLANINI AL */}
+          <View style={styles.joinCard}>
+            <Text style={styles.joinTitle}>{t('family.buyOwnTitle')}</Text>
+            <Pressable
+              style={[styles.button, styles.secondaryButton]}
+              onPress={() => router.push('/(tabs)/shop')}
+            >
+              <Text style={styles.secondaryButtonText}>{t('family.needFamilyPlanCta')}</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -293,6 +392,67 @@ const makeStyles = (c: ThemePalette) =>
     },
     dangerButtonText: {
       color: c.red,
+      fontWeight: '700',
+      fontSize: 15,
+    },
+    // ── Davet kodu gir (not-in-family görünümü) ──
+    joinCard: {
+      backgroundColor: c.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: c.border,
+      gap: 10,
+    },
+    joinTitle: {
+      color: c.textHigh,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    joinSubtitle: {
+      color: c.textMed,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    codeInput: {
+      backgroundColor: c.bg,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: 12,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      color: c.neon,
+      fontSize: 22,
+      fontWeight: '800',
+      letterSpacing: 4,
+      textAlign: 'center',
+    },
+    joinMsgBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    joinMsgText: {
+      fontSize: 13,
+      flex: 1,
+    },
+    orText: {
+      color: c.textMed,
+      fontSize: 13,
+      textAlign: 'center',
+      marginVertical: 4,
+    },
+    buttonDisabled: {
+      opacity: 0.4,
+    },
+    secondaryButton: {
+      backgroundColor: c.bg,
+      borderWidth: 1,
+      borderColor: c.neon,
+    },
+    secondaryButtonText: {
+      color: c.neon,
       fontWeight: '700',
       fontSize: 15,
     },
