@@ -11,6 +11,7 @@ import { StreakCalendar } from '../../src/components/profile/StreakCalendar';
 import { GoalsCard } from '../../src/components/profile/GoalsCard';
 import { AchievementsSummary } from '../../src/components/achievements/AchievementsSummary';
 import { useUserStore } from '../../src/store/useUserStore';
+import { useFamilyStore } from '../../src/store/useFamilyStore';
 import { spacing, textStyles, useThemeColors, radius } from '../../src/theme';
 import { useT } from '../../src/i18n';
 import { SpinningDiamondGem } from '../../src/components/shared/SpinningDiamondGem';
@@ -18,6 +19,7 @@ import { useAuthStore } from '../../src/store/useAuthStore';
 import { signOut } from '../../src/services/auth';
 import { uploadProgress, clearLocalProgress } from '../../src/services/sync';
 import { isFirebaseConfigured } from '../../src/config/firebase';
+import { AddMemberCard } from '../../src/components/family/AddMemberCard';
 
 // ════════════════════════════════════════════════════════════════
 // PROFIL — Sadeleştirilmiş yapı
@@ -57,6 +59,12 @@ export default function ProfileScreen() {
   const streak = useUserStore((s) => s.streak);
   const completedLessons = useUserStore((s) => s.completedLessons);
   const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
+
+  // 👨‍👩‍👧 Aile Planı (premium + family aktif kullanıcılar için)
+  const familyDoc = useFamilyStore((s) => s.familyDoc);
+  const familyRole = useFamilyStore((s) => s.role);
+  const isFamilyOwner = familyRole === 'owner';
+  const isFamilyMember = familyRole === 'member';
 
   const user = useAuthStore((s) => s.user);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -193,6 +201,57 @@ export default function ProfileScreen() {
             </View>
           </Pressable>
         ) : null}
+
+        {/* 👨‍👩‍👧 AİLE PLANI — premium + family-active owner görünür */}
+        {isPremium && isFamilyOwner && familyDoc && (
+          <View style={styles.familyCard}>
+            <View style={styles.familyHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                <Ionicons name="people-circle" size={28} color={c.neon} />
+                <View>
+                  <Text style={styles.familyTitle}>Aile Planı</Text>
+                  <Text style={styles.familySubtitle}>
+                    {familyDoc.members.length}/{familyDoc.memberLimit} üye
+                  </Text>
+                </View>
+              </View>
+              <Pressable
+                onPress={() => router.push('/family')}
+                style={({ pressed }) => [styles.familyManageBtn, pressed && { opacity: 0.7 }]}
+              >
+                <Text style={styles.familyManageBtnText}>Yönet</Text>
+                <Ionicons name="chevron-forward" size={14} color={c.neon} />
+              </Pressable>
+            </View>
+            <AddMemberCard
+              currentCode={familyDoc.currentInviteCode}
+              currentCodeExpiresAt={familyDoc.currentInviteExpiresAt}
+              isFull={familyDoc.members.length >= familyDoc.memberLimit}
+            />
+          </View>
+        )}
+
+        {/* 👨‍👩‍👧 AİLE PLANI — premium + family-active MEMBER görünür */}
+        {isPremium && isFamilyMember && familyDoc && (
+          <Pressable
+            onPress={() => router.push('/family')}
+            style={({ pressed }) => [
+              styles.familyMemberCard,
+              pressed && { opacity: 0.8 },
+            ]}
+          >
+            <Ionicons name="people-circle" size={32} color={c.neon} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.familyTitle}>Aile Planı Üyesisin</Text>
+              <Text style={styles.familySubtitle}>
+                {familyDoc.members.find((m) => m.role === 'owner')?.displayName || 'Aile'}
+                {' · '}
+                {familyDoc.members.length} üye
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={c.textLow} />
+          </Pressable>
+        )}
 
         {/* 🎯 Hedeflerin — onboarding'de seçilen motivasyonlar */}
         <GoalsCard />
@@ -346,6 +405,59 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       alignItems: 'center', justifyContent: 'center',
     },
     premiumBannerPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
+    // 👨‍👩‍👧 Aile Planı Card (owner görünümü)
+    familyCard: {
+      backgroundColor: c.surface,
+      borderRadius: 16,
+      padding: spacing.base,
+      borderWidth: 1,
+      borderColor: c.glassBorderStrong,
+      gap: spacing.sm,
+    },
+    familyHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: spacing.sm,
+    },
+    familyTitle: {
+      ...textStyles.button,
+      color: c.textHigh,
+      fontSize: 16,
+      fontWeight: '700' as const,
+    },
+    familySubtitle: {
+      color: c.textMed,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    familyManageBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+      backgroundColor: c.neon + '15',
+      borderWidth: 1,
+      borderColor: c.neon + '40',
+    },
+    familyManageBtnText: {
+      color: c.neon,
+      fontSize: 13,
+      fontWeight: '700' as const,
+    },
+    // 👨‍👩‍👧 Aile Planı Card (member görünümü)
+    familyMemberCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: c.surface,
+      borderRadius: 16,
+      padding: spacing.base,
+      borderWidth: 1,
+      borderColor: c.glassBorderStrong,
+    },
     accountCard: {
       backgroundColor: c.glassBg,
       borderRadius: radius.lg,
