@@ -270,6 +270,18 @@ export default function LoginScreen() {
               </Pressable>
             </View>
 
+            {/* Şifremi unuttum — sadece login modunda (signup'ta gereksiz) */}
+            {mode === 'login' ? (
+              <Pressable
+                onPress={() => router.push('/forgot-password')}
+                hitSlop={8}
+                style={styles.forgotBtn}
+                accessibilityRole="link"
+              >
+                <Text style={styles.forgotText}>Şifremi unuttum?</Text>
+              </Pressable>
+            ) : null}
+
             {/* Ana buton */}
             <Pressable
               onPress={handleEmail}
@@ -322,8 +334,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     paddingBottom: 4,
   },
-  skipBtn:      { flexDirection: 'row', alignItems: 'center', gap: 2, padding: 8 },
-  skipText:     { color: 'rgba(255,255,255,0.38)', fontSize: 14, fontWeight: '500' },
+  forgotBtn:    { alignSelf: 'flex-end', paddingVertical: 8, paddingHorizontal: 4, marginTop: 8 },
+  forgotText:   { color: '#a78bfa', fontSize: 13, fontWeight: '600' },
   content: {
     paddingHorizontal: spacing.base,
     paddingTop: 8,

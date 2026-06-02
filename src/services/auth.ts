@@ -2,6 +2,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  sendPasswordResetEmail,
   reload,
   deleteUser,
   signOut as firebaseSignOut,
@@ -89,6 +90,31 @@ export async function reloadCurrentUser(): Promise<boolean> {
     return firebaseAuth.currentUser.emailVerified;
   } catch {
     return firebaseAuth.currentUser?.emailVerified ?? false;
+  }
+}
+
+// ─── Şifre Sıfırlama ───────────────────────────────────────────────
+
+/**
+ * Şifre sıfırlama e-postası gönderir (Firebase sendPasswordResetEmail).
+ *
+ * 🔒 ENUMERATION SAFETY: Kayıtlı olmayan e-posta (auth/user-not-found) için
+ * bile { ok: true } döner — saldırgan hangi e-postanın kayıtlı olduğunu
+ * anlayamasın. UI her durumda aynı nötr "kayıtlıysa link gönderildi" mesajını
+ * gösterir. Sadece format (invalid-email) / rate-limit gibi gerçek hatalar döner.
+ */
+export async function sendPasswordReset(
+  email: string,
+): Promise<{ ok: boolean; message?: string }> {
+  if (!isFirebaseConfigured || !firebaseAuth)
+    return { ok: false, message: 'Hesap sistemi henüz etkin değil.' };
+  try {
+    await sendPasswordResetEmail(firebaseAuth, email);
+    return { ok: true };
+  } catch (e: any) {
+    // Kayıtlı değilse bile başarı göster (enumeration safety)
+    if (e.code === 'auth/user-not-found') return { ok: true };
+    return { ok: false, message: _mapError(e.code) };
   }
 }
 
