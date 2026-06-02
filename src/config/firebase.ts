@@ -1,5 +1,9 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
-import { initializeAuth, getAuth, getReactNativePersistence, type Auth } from 'firebase/auth';
+import { initializeAuth, getAuth, type Auth } from 'firebase/auth';
+// firebase/auth v12 tip tanımları getReactNativePersistence'i export etmiyor,
+// ama runtime'da mevcut (React Native AsyncStorage persistence için zorunlu).
+// @ts-ignore — yalnızca tip boşluğu; runtime davranışı değişmez
+import { getReactNativePersistence } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -36,7 +40,7 @@ let _db: Firestore | null = null;
 if (isFirebaseConfigured) {
   try {
     _app = !getApps().length
-      ? initializeApp(firebaseConfig as Parameters<typeof initializeApp>[0])
+      ? initializeApp(firebaseConfig)
       : getApps()[0];
 
     try {

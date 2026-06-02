@@ -1087,7 +1087,7 @@ export const useUserStore = create<UserState>()(
           stateDefined: state !== undefined && state !== null,
           hasOnboardingCompletedInState: state && 'onboardingCompleted' in state,
           onboardingCompletedValue: state?.onboardingCompleted,
-          error: error?.message,
+          error: (error as Error | undefined)?.message,
           timestamp: Date.now(),
         });
         useUserStore.setState({ hasHydrated: true });
