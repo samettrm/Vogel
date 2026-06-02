@@ -248,6 +248,10 @@ export default function SettingsScreen() {
             <Text style={styles.aboutDescription}>
               {t('settings.aboutDesc')}
             </Text>
+            {/* Trademark disclaimer — Apple 4.5.2 */}
+            <Text style={styles.aboutDisclaimer}>
+              {t('settings.trademarkDisclaimer')}
+            </Text>
           </View>
         </Animated.View>
 
@@ -722,6 +726,13 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       ...textStyles.body,
       color: c.textLow,
       fontSize: 12,
+    },
+    aboutDisclaimer: {
+      ...textStyles.body,
+      color: c.textLow,
+      fontSize: 11,
+      lineHeight: 15,
+      marginTop: 6,
     },
   });
 }

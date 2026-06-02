@@ -124,6 +124,11 @@ export const messages = {
       tr: 'Türkçe konuşanlar için Almanca öğrenme. Sürüm 1.0',
       en: 'German learning for Turkish speakers. Version 1.0',
     },
+    // Trademark disclaimer — Apple 4.5.2
+    trademarkDisclaimer: {
+      tr: 'Goethe, TELC ve diğer sınav adları ilgili marka sahiplerine aittir. Vogel bu kurumlarla resmi olarak bağlı veya onlar tarafından onaylanmış değildir.',
+      en: 'Goethe, TELC and other exam names are trademarks of their respective owners. Vogel is not officially affiliated with or endorsed by these institutions.',
+    },
     // Yasal bölüm
     sectionLegal: { tr: 'Yasal', en: 'Legal' },
     privacyPolicy: { tr: 'Gizlilik Politikası', en: 'Privacy Policy' },
