@@ -90,6 +90,11 @@ export const messages = {
       confirm:              { tr: 'Aileden ayrılırsan Premium erişimin sona erer. Devam edilsin mi?', en: 'Leaving the family ends your Premium access. Continue?' },
       success:              { tr: 'Aileden ayrıldın', en: 'You left the family' },
     },
+    removeMember: {
+      title:                { tr: 'Üyeyi Çıkar', en: 'Remove Member' },
+      confirm:              { tr: '{name} aileden çıkarılsın mı? Premium erişimi sona erer ve aynı kodla geri giremez — geri almak istersen yeni bir davet kodu göndermen gerekir.', en: 'Remove {name} from the family? Their Premium access ends and they can’t rejoin with the same code — you’d need to send a new invite code.' },
+      cta:                  { tr: 'Çıkar', en: 'Remove' },
+    },
   },
 
   // Tab bar

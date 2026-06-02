@@ -17,7 +17,13 @@ import { useT } from '../src/i18n';
 import { useFamilyStore } from '../src/store/useFamilyStore';
 import { useUserStore } from '../src/store/useUserStore';
 import { useAuthStore } from '../src/store/useAuthStore';
-import { acceptInvite, ensureFamilyOwner, leaveFamily } from '../src/services/family';
+import {
+  acceptInvite,
+  ensureFamilyOwner,
+  leaveFamily,
+  removeFamilyMember,
+  type FamilyMember,
+} from '../src/services/family';
 import { AddMemberCard } from '../src/components/family/AddMemberCard';
 import { MemberListItem } from '../src/components/family/MemberListItem';
 
@@ -279,6 +285,8 @@ export default function FamilyScreen() {
               key={m.uid}
               member={m}
               isCurrentUser={m.uid === user?.uid}
+              canRemove
+              onRemove={() => confirmRemove(m, t)}
             />
           ))}
         </ScrollView>
@@ -294,6 +302,27 @@ export default function FamilyScreen() {
         <Text style={styles.emptySubtitle}>{t('family.loading')}</Text>
       </View>
     </SafeAreaView>
+  );
+}
+
+// Owner bir üyeyi aileden çıkarır → removeFamilyMember (backend removedAt set eder).
+// Çıkarılan üye AYNI kodla geri giremez (kodlar tek kullanımlık); owner yeni kod yollamalı.
+function confirmRemove(member: FamilyMember, t: ReturnType<typeof useT>) {
+  Alert.alert(
+    t('family.removeMember.title'),
+    t('family.removeMember.confirm', { name: member.displayName }),
+    [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('family.removeMember.cta'),
+        style: 'destructive',
+        onPress: async () => {
+          const result = await removeFamilyMember(member.uid);
+          if (!result.ok) Alert.alert('Hata', result.error);
+          // Başarılıysa Firestore listener owner doc'unu günceller → liste otomatik yenilenir.
+        },
+      },
+    ],
   );
 }
 

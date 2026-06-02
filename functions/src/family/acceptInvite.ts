@@ -75,6 +75,15 @@ export const acceptInvite = onCall<AcceptInviteData, Promise<AcceptInviteResult>
         throw new HttpsError('failed-precondition', 'Bu davet kodunun süresi dolmuş.');
       }
 
+      // ⭐ TEK KULLANIMLIK: kullanılmış kod reddedilir. Çıkan/atılan üye AYNI kodla
+      // geri giremez; aile sahibinin YENİ kod göndermesi gerekir.
+      if (invite.consumed === true) {
+        throw new HttpsError(
+          'failed-precondition',
+          'Bu davet kodu zaten kullanılmış. Aile sahibinden yeni bir kod iste.',
+        );
+      }
+
       const ownerUid = invite.ownerUid;
       if (ownerUid === uid) {
         throw new HttpsError(
@@ -117,12 +126,20 @@ export const acceptInvite = onCall<AcceptInviteData, Promise<AcceptInviteResult>
       // Yeni üye nesnesi oluştur
       const newMember = await buildMember(uid, 'member');
 
-      // Atomic write: family.members + family.memberUids'e ekle + user/familyRef yaz
+      // Atomic write: members + memberUids ekle, KODU TÜKET (tek kullanımlık),
+      // aktif kodu temizle (bir sonraki davet için owner yeni kod üretmeli).
+      const clearCurrentCode =
+        family.currentInviteCode === rawCode
+          ? { currentInviteCode: null, currentInviteExpiresAt: null }
+          : {};
       txn.update(familyRef, {
         members: FieldValue.arrayUnion(newMember),
         memberUids: FieldValue.arrayUnion(uid),
+        ...clearCurrentCode,
         updatedAt: now,
       });
+      // ⭐ Kodu tek kullanımlık olarak işaretle — bir daha kullanılamaz.
+      txn.update(inviteRef, { consumed: true });
 
       const userRef: UserFamilyRef = {
         ownerUid,

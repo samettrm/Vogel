@@ -54,6 +54,13 @@ export const generateInviteCode = onCall<{}, Promise<GenerateInviteCodeResult>>(
         );
       }
 
+      // ⭐ TEK AKTİF KOD: önceki currentInviteCode'u (varsa) txn içinde oku ki
+      // aşağıda consumed yapabilelim → daima YALNIZCA en son kod geçerli kalır;
+      // çıkan/atılan üye eski kodla geri giremez. (Firestore: reads writes'tan ÖNCE.)
+      const oldCode = family.currentInviteCode;
+      const oldInviteRef = oldCode ? db.doc(inviteDocPath(oldCode)) : null;
+      const oldInviteSnap = oldInviteRef ? await txn.get(oldInviteRef) : null;
+
       // Yeni kod üret — çakışma kontrolü (pratik olarak 31^6'da çok düşük olasılık)
       // Yine de 3 deneme yap
       let code = '';
@@ -81,7 +88,12 @@ export const generateInviteCode = onCall<{}, Promise<GenerateInviteCodeResult>>(
         consumed: false,
       });
 
-      // Family doc'u güncelle (eski kod authoritatively invalidate olur)
+      // Eski kodu invalidate et (tek aktif kod garantisi)
+      if (oldInviteRef && oldInviteSnap?.exists) {
+        txn.update(oldInviteRef, { consumed: true });
+      }
+
+      // Family doc'u güncelle
       txn.update(familyRef, {
         currentInviteCode: code,
         currentInviteExpiresAt: expiresAt,
@@ -93,7 +105,7 @@ export const generateInviteCode = onCall<{}, Promise<GenerateInviteCodeResult>>(
       return {
         ok: true as const,
         code,
-        link: `vogel://invite/${code}`,
+        link: `https://samettrm.github.io/Vogel/invite.html?code=${code}`,
         expiresAt: expiresAt.toMillis(),
       };
     });
