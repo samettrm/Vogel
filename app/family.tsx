@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemePalette, type ThemePalette } from '../src/theme/useThemePalette';
 import { useT } from '../src/i18n';
-import { useUserStore } from '../src/store/useUserStore';
 import { useFamilyStore } from '../src/store/useFamilyStore';
 import { useAuthStore } from '../src/store/useAuthStore';
 import { acceptInvite, ensureFamilyOwner, leaveFamily } from '../src/services/family';
@@ -44,8 +43,6 @@ export default function FamilyScreen() {
   const t = useT();
 
   const user = useAuthStore((s) => s.user);
-  const activePlanId = useUserStore((s) => s.activePlanId);
-  const isPremium = useUserStore((s) => s.isPremium);
 
   const familyDoc = useFamilyStore((s) => s.familyDoc);
   const role = useFamilyStore((s) => s.role);
@@ -79,12 +76,27 @@ export default function FamilyScreen() {
     setTimeout(() => router.replace('/family'), 1200);
   }
 
-  // Owner ise ensureFamilyOwner çağrısı (idempotent, family doc oluştur)
+  // ⚠️ EXPONENTIAL-PREMIUM FIX: family doc'u SADECE GERÇEK RC aile aboneliği
+  // sahibi oluşturabilir. Üye (family-derived premium) veya ex-member ASLA
+  // ensureFamilyOwner çağırmamalı — yoksa üye kendi ailesini açıp 5 kişi daha
+  // davet eder, 1 abonelik katlanarak çoğalır. RC'den GERÇEK plan sorgulanır
+  // (store activePlanId'ye GÜVENİLMEZ — PremiumSyncer üyeye de 'family' yazıyor).
   useEffect(() => {
-    if (isPremium && activePlanId === 'family' && user) {
-      ensureFamilyOwner().catch(() => {});
-    }
-  }, [isPremium, activePlanId, user]);
+    if (!user || isMember) return;
+    let alive = true;
+    (async () => {
+      try {
+        const { getActivePlanId } = await import('../src/services/purchases');
+        const rcPlan = await getActivePlanId(); // RC entitlement'ından gerçek plan
+        if (alive && rcPlan === 'family') {
+          await ensureFamilyOwner();
+        }
+      } catch {
+        // RC yok / ağ hatası → owner doc'u zaten satın alma anında (shop.tsx) oluşturuldu
+      }
+    })();
+    return () => { alive = false; };
+  }, [user, isMember]);
 
   // ─── Hiçbir aileye dahil değil → DAVET KODU GİR veya kendi planını al ───
   if (!isOwner && !isMember) {

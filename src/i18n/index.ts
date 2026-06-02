@@ -45,7 +45,7 @@ export const messages = {
     currentCode:            { tr: 'Aktif Davet Kodu', en: 'Active Invite Code' },
     share:                  { tr: 'Paylaş', en: 'Share' },
     regenerate:             { tr: 'Yeni Kod', en: 'New Code' },
-    shareMessage:           { tr: '🕊️ Vogel Premium aileme katıl!\n\nKatılmak için:\n1) Vogel uygulamasını aç (App Store / Google Play)\n2) Ayarlar → Aile Planı → "Aileye Katıl"\n3) Şu kodu gir: {code}\n\n(Uygulama yüklüyse linke dokunabilirsin: {link})', en: '🕊️ Join my Vogel Premium family!\n\nTo join:\n1) Open the Vogel app (App Store / Google Play)\n2) Settings → Family Plan → "Join Family"\n3) Enter this code: {code}\n\n(If the app is installed, tap: {link})' },
+    shareMessage:           { tr: '🕊️ Vogel Premium aileme katıl! Ücretsiz Premium için linke dokun:\n{link}\n\nveya uygulamada: Ayarlar → Aile Planı → "Aileye Katıl" → kod: {code}', en: '🕊️ Join my Vogel Premium family! Tap the link for free Premium:\n{link}\n\nor in the app: Settings → Family Plan → "Join Family" → code: {code}' },
     expired:                { tr: 'Kodun süresi doldu', en: 'Code expired' },
     daysLeft:               { tr: '{n} gün kaldı', en: '{n} days left' },
     hoursLeft:              { tr: '{n} saat kaldı', en: '{n} hours left' },

@@ -55,7 +55,9 @@ export function AddMemberCard({
 
   async function handleShare() {
     if (!currentCode) return;
-    const link = `vogel://invite/${currentCode}`;
+    // https landing page → WhatsApp/SMS'te TIKLANABİLİR (vogel:// custom scheme
+    // linke çevrilmiyordu). Sayfa kodu gösterir + "Vogel'i Aç" deep link + store linkleri.
+    const link = `https://samettrm.github.io/Vogel/invite.html?code=${currentCode}`;
     const msg = t('family.shareMessage', {
       code: currentCode,
       link,

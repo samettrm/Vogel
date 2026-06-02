@@ -7,7 +7,7 @@ import {
   type EnsureFamilyOwnerResult,
   type FamilyDoc,
 } from './types';
-import { buildMember, familyDocPath, requireAuth } from './helpers';
+import { buildMember, familyDocPath, requireAuth, userFamilyRefPath } from './helpers';
 
 // ════════════════════════════════════════════════════════════════
 // ensureFamilyOwner — owner ilk kez Aile ekranını açtığında çağrılır.
@@ -33,6 +33,22 @@ export const ensureFamilyOwner = onCall<{}, Promise<EnsureFamilyOwnerResult>>(
     if (snap.exists) {
       logger.info('[ensureFamilyOwner] already exists', { uid });
       return { ok: true, ownerUid: uid, alreadyExists: true };
+    }
+
+    // ⚠️ EXPONENTIAL-PREMIUM GUARD: başka bir ailenin AKTİF üyesi (familyRef.removedAt == null)
+    // kendi aile planını AÇAMAZ. Aksi halde her üye owner olup 5 kişi daha davet eder →
+    // 1 abonelik katlanarak çoğalır. Client gate'in atlandığı durumlar için sunucu kilidi.
+    const refSnap = await db.doc(userFamilyRefPath(uid)).get();
+    const refData = refSnap.exists ? refSnap.data() : null;
+    if (refData && refData.removedAt == null) {
+      logger.warn('[ensureFamilyOwner] blocked: active member of another family', {
+        uid,
+        ownerUid: refData.ownerUid,
+      });
+      throw new HttpsError(
+        'failed-precondition',
+        'Başka bir aile planının aktif üyesisin; kendi aile planını açamazsın.',
+      );
     }
 
     const ownerMember = await buildMember(uid, 'owner');

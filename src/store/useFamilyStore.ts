@@ -40,7 +40,16 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
   setFamilyDoc: (doc, currentUid) => {
     if (!doc || !currentUid) {
-      set({ familyDoc: null });
+      // Doc okunamadı/silindi/üyelikten çıkarıldı: üye kendi familyRef'i AKTİFSE
+      // (removedAt yok) premium korunur (transient erişim kaybı). Aksi halde
+      // rol + family-premium SIFIRLANIR (eskiden sadece familyDoc:null idi → stale kalıyordu).
+      const ref = get().familyRef;
+      const memberStillActive = !!ref && ref.removedAt == null;
+      set({
+        familyDoc: null,
+        role: memberStillActive ? 'member' : null,
+        isFamilyPremium: memberStillActive,
+      });
       return;
     }
     // Owner mıyım kontrol et
@@ -64,9 +73,19 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
   setFamilyRef: (ref) => {
     const doc = get().familyDoc;
+    const role = get().role;
+    // Owner premium'u kendi family doc'undan (setFamilyDoc) yönetilir; familyRef'i yok.
+    if (role === 'owner') {
+      set({ familyRef: ref });
+      return;
+    }
+    // Üye premium'u: familyRef AKTİF (removedAt == null) + aile (biliniyorsa) aktif.
+    // ⚠️ STICKY OR KALDIRILDI: üye aileden AYRILINCA (removedAt set) premium DÜŞMELİ.
+    // Eskiden `isFamilyPremium || get().isFamilyPremium` true'da kilitliyordu →
+    // ayrılan kişi premium kalıyor + ensureFamilyOwner ile owner olup davet ediyordu.
     const isFamilyPremium =
-      !!ref && ref.removedAt == null && doc?.status === 'active';
-    set({ familyRef: ref, isFamilyPremium: isFamilyPremium || get().isFamilyPremium });
+      !!ref && ref.removedAt == null && (doc == null || doc.status === 'active');
+    set({ familyRef: ref, isFamilyPremium });
   },
 
   clearFamily: () => {
