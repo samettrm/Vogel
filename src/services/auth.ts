@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
   reload,
+  deleteUser,
   signOut as firebaseSignOut,
   GoogleAuthProvider,
   OAuthProvider,
@@ -242,6 +243,48 @@ export async function signOut(): Promise<void> {
     try { await _googleSigninModule.GoogleSignin.signOut(); } catch {}
   }
   try { await firebaseSignOut(firebaseAuth); } catch {}
+}
+
+// ─── Hesap Silme (Apple 5.1.1(v)) ──────────────────────────────────
+
+/**
+ * Kullanıcının hesabını KALICI olarak siler (Apple Guideline 5.1.1(v)).
+ *
+ * - Firebase Auth deleteUser(currentUser) → hesap kaydı silinir
+ * - RevenueCat logOut → RC kullanıcısı anonim moda alınır (best-effort, lazy import)
+ * - Google session temizlenir (best-effort)
+ * - auth/requires-recent-login → net mesajla döner (Firebase güvenlik gereği
+ *   eski oturumda silmeye izin vermez; kullanıcı yeniden giriş yapmalı)
+ *
+ * ⚠️ Store aboneliği OTOMATİK iptal OLMAZ — UI bunu kullanıcıya bildirir.
+ */
+export async function deleteAccount(): Promise<AuthResult> {
+  if (!isFirebaseConfigured || !firebaseAuth) return _notConfigured();
+  const user = firebaseAuth.currentUser;
+  if (!user)
+    return { ok: false, code: 'no-user', message: 'Oturum bulunamadı. Lütfen tekrar giriş yap.' };
+  try {
+    await deleteUser(user);
+    // Silme başarılı → bağlı oturumları temizle (best-effort, hatalar yutulur)
+    try {
+      const { logOutFromRevenueCat } = await import('./purchases');
+      await logOutFromRevenueCat();
+    } catch {}
+    if (_googleConfigured && _googleSigninModule?.GoogleSignin) {
+      try { await _googleSigninModule.GoogleSignin.signOut(); } catch {}
+    }
+    return { ok: true, user };
+  } catch (e: any) {
+    if (e.code === 'auth/requires-recent-login') {
+      return {
+        ok: false,
+        code: 'requires-recent-login',
+        message:
+          'Güvenlik için hesabını silmeden önce yeniden giriş yapman gerekiyor. Lütfen çıkış yapıp tekrar giriş yap, sonra yeniden dene.',
+      };
+    }
+    return { ok: false, code: e.code ?? 'unknown', message: 'Hesap silinemedi. Lütfen tekrar dene.' };
+  }
 }
 
 // ─── Auth state listener ───────────────────────────────────────────

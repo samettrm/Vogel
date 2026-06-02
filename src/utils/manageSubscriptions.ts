@@ -1,4 +1,5 @@
-import { Linking, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import { openExternalUrl } from './openExternalUrl';
 
 // ════════════════════════════════════════════════════════════════
 // MANAGE SUBSCRIPTIONS — Platform-specific deep link
@@ -17,9 +18,6 @@ const ANDROID_URL = 'https://play.google.com/store/account/subscriptions';
 
 export async function openManageSubscriptions(): Promise<void> {
   const url = Platform.OS === 'ios' ? IOS_URL : ANDROID_URL;
-  try {
-    await Linking.openURL(url);
-  } catch (e) {
-    if (__DEV__) console.warn('[ManageSubscriptions] openURL failed:', e);
-  }
+  // Güvenli aç — başarısızsa URL Alert ile gösterilir (sessiz yutma yok).
+  await openExternalUrl(url, 'Aboneliği Yönet');
 }

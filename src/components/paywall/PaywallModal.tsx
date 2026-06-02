@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
 import {
-  Linking,
   Modal,
   Pressable,
   StyleSheet,
@@ -25,6 +24,7 @@ import { useT } from '../../i18n';
 import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 import { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '../../config/legal';
 import { openManageSubscriptions } from '../../utils/manageSubscriptions';
+import { openExternalUrl } from '../../utils/openExternalUrl';
 
 // ════════════════════════════════════════════════════════════════
 // PAYWALL MODAL — Psikolojik dönüşüm optimizasyonu
@@ -93,12 +93,12 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
   // Apple Guideline 3.1.2(c) — Privacy Policy + Terms of Use linkleri
   const handleOpenPrivacy = () => {
     Haptics.selectionAsync().catch(() => {});
-    Linking.openURL(PRIVACY_POLICY_URL).catch(() => {});
+    openExternalUrl(PRIVACY_POLICY_URL, t('paywall.privacyPolicy'));
   };
 
   const handleOpenTerms = () => {
     Haptics.selectionAsync().catch(() => {});
-    Linking.openURL(TERMS_OF_USE_URL).catch(() => {});
+    openExternalUrl(TERMS_OF_USE_URL, t('paywall.termsOfUse'));
   };
 
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -185,15 +185,15 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
             <Animated.View entering={FadeIn.delay(560).duration(300)} style={styles.legalBlock}>
               <Text style={styles.legalNotice}>{t('paywall.legalNotice')}</Text>
               <View style={styles.legalLinksRow}>
-                <Pressable onPress={handleOpenTerms} hitSlop={8} accessibilityRole="link">
+                <Pressable onPress={handleOpenTerms} hitSlop={10} accessibilityRole="link">
                   <Text style={styles.legalLink}>{t('paywall.termsOfUse')}</Text>
                 </Pressable>
                 <Text style={styles.legalDot}>·</Text>
-                <Pressable onPress={handleOpenPrivacy} hitSlop={8} accessibilityRole="link">
+                <Pressable onPress={handleOpenPrivacy} hitSlop={10} accessibilityRole="link">
                   <Text style={styles.legalLink}>{t('paywall.privacyPolicy')}</Text>
                 </Pressable>
                 <Text style={styles.legalDot}>·</Text>
-                <Pressable onPress={openManageSubscriptions} hitSlop={8} accessibilityRole="link">
+                <Pressable onPress={openManageSubscriptions} hitSlop={10} accessibilityRole="link">
                   <Text style={styles.legalLink}>{t('paywall.manageSubscription')}</Text>
                 </Pressable>
               </View>
@@ -317,9 +317,9 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     },
     legalNotice: {
       ...textStyles.body,
-      color: c.textMuted,
-      fontSize: 10,
-      lineHeight: 14,
+      color: c.textLow,
+      fontSize: 12,
+      lineHeight: 16,
       textAlign: 'center',
       paddingHorizontal: spacing.sm,
     },
@@ -327,14 +327,16 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
+      flexWrap: 'wrap',
       gap: spacing.xs,
     },
     legalLink: {
       ...textStyles.body,
-      color: c.textMed,
-      fontSize: 11,
+      color: c.textHigh,
+      fontSize: 13,
+      fontWeight: '600',
       textDecorationLine: 'underline',
     },
-    legalDot: { ...textStyles.body, color: c.textMuted, fontSize: 11 },
+    legalDot: { ...textStyles.body, color: c.textLow, fontSize: 13 },
   });
 }

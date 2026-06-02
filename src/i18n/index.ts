@@ -131,6 +131,48 @@ export const messages = {
       tr: 'Verilerinin nasıl korunduğunu öğren',
       en: 'Learn how your data is protected',
     },
+    termsOfUse: { tr: 'Kullanım Koşulları', en: 'Terms of Use' },
+    termsOfUseDesc: {
+      tr: 'Hizmet şartları ve abonelik koşulları',
+      en: 'Service terms and subscription conditions',
+    },
+    sectionAccount: { tr: 'Hesap', en: 'Account' },
+    deleteAccount: { tr: 'Hesabımı Sil', en: 'Delete Account' },
+    deleteAccountDesc: {
+      tr: 'Hesabını ve tüm verilerini kalıcı olarak sil',
+      en: 'Permanently delete your account and all data',
+    },
+  },
+
+  // Hesap silme ekranı — Apple 5.1.1(v)
+  accountDelete: {
+    title: { tr: 'Hesabı Sil', en: 'Delete Account' },
+    heading: { tr: 'Hesabını kalıcı olarak sil', en: 'Permanently delete your account' },
+    warning: {
+      tr: 'Bu işlem geri alınamaz. Hesabın ve buluttaki tüm ilerlemen (XP, seri, başarımlar) kalıcı olarak silinir.',
+      en: 'This cannot be undone. Your account and all cloud progress (XP, streak, achievements) will be permanently deleted.',
+    },
+    subWarningTitle: { tr: 'Aboneliğin otomatik iptal OLMAZ', en: 'Your subscription is NOT auto-cancelled' },
+    subWarningBody: {
+      tr: 'Aktif bir Vogel Plus aboneliğin varsa, hesabını silmek aboneliği iptal etmez. Faturalandırmanın durması için aboneliği ayrıca iptal etmelisin.',
+      en: 'If you have an active Vogel Plus subscription, deleting your account does not cancel it. Cancel the subscription separately to stop billing.',
+    },
+    manageSubLink: { tr: 'Aboneliği Yönet / İptal Et', en: 'Manage / Cancel Subscription' },
+    confirmCheckbox: {
+      tr: 'Hesabımın ve tüm verilerimin kalıcı olarak silineceğini anlıyorum.',
+      en: 'I understand my account and all my data will be permanently deleted.',
+    },
+    deleteButton: { tr: 'Hesabımı Kalıcı Olarak Sil', en: 'Permanently Delete My Account' },
+    confirmTitle: { tr: 'Emin misin?', en: 'Are you sure?' },
+    confirmBody: {
+      tr: 'Bu son adım. Hesabın ve tüm verilerin kalıcı olarak silinecek.',
+      en: 'This is the final step. Your account and all your data will be permanently deleted.',
+    },
+    confirmCancel: { tr: 'Vazgeç', en: 'Cancel' },
+    confirmDelete: { tr: 'Evet, Sil', en: 'Yes, Delete' },
+    successTitle: { tr: 'Hesap silindi', en: 'Account deleted' },
+    successBody: { tr: 'Hesabın kalıcı olarak silindi.', en: 'Your account has been permanently deleted.' },
+    reauthTitle: { tr: 'Yeniden giriş gerekli', en: 'Re-login required' },
   },
 
   // Privacy Policy ekranı

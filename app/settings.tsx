@@ -18,6 +18,9 @@ import { useT } from '../src/i18n';
 import { useUserStore } from '../src/store/useUserStore';
 import { ReminderCard } from '../src/components/settings/ReminderCard';
 import { MOTIVATIONS_META } from '../src/services/personalization';
+import { useAuthStore } from '../src/store/useAuthStore';
+import { TERMS_OF_USE_URL } from '../src/config/legal';
+import { openExternalUrl } from '../src/utils/openExternalUrl';
 
 // ════════════════════════════════════════════════════════════════
 // SETTINGS SCREEN
@@ -37,6 +40,8 @@ export default function SettingsScreen() {
 
   // Premium durumu (Aile Planı section'ı sadece premium'da görünür)
   const isPremium = useUserStore((s) => s.isPremium);
+  // Giriş durumu (Hesap/sil bölümü sadece authenticated kullanıcıda görünür)
+  const user = useAuthStore((s) => s.user);
 
   // Ses + Haptic — store'dan kalıcı
   const soundOn = useUserStore((s) => s.soundEnabled);
@@ -203,7 +208,33 @@ export default function SettingsScreen() {
             description={t('settings.privacyPolicyDesc')}
             onPress={() => router.push('/privacy-policy')}
           />
+          {/* Terms of Use (EULA) — Apple 3.1.2(c): app içinde işlevsel link zorunlu */}
+          <LinkRow
+            c={c}
+            icon="document-text"
+            tone={c.purpleLight}
+            toneBg={c.purpleBg}
+            label={t('settings.termsOfUse')}
+            description={t('settings.termsOfUseDesc')}
+            onPress={() => openExternalUrl(TERMS_OF_USE_URL, t('settings.termsOfUse'))}
+          />
         </Section>
+
+        {/* HESAP — sadece giriş yapmış kullanıcıda (Apple 5.1.1(v) account deletion) */}
+        {user ? (
+          <Section title={t('settings.sectionAccount')} index={7} c={c}>
+            <LinkRow
+              c={c}
+              icon="trash-outline"
+              tone={c.red}
+              toneBg={c.redBg}
+              label={t('settings.deleteAccount')}
+              description={t('settings.deleteAccountDesc')}
+              destructive
+              onPress={() => router.push('/account-delete')}
+            />
+          </Section>
+        ) : null}
 
         {/* HAKKINDA */}
         <Animated.View
@@ -315,10 +346,11 @@ interface LinkRowProps {
   label: string;
   description?: string;
   onPress: () => void;
+  destructive?: boolean;
 }
 
 function LinkRow({
-  c, icon, tone, toneBg, label, description, onPress,
+  c, icon, tone, toneBg, label, description, onPress, destructive,
 }: LinkRowProps) {
   const styles = useMemo(() => makeStyles(c), [c]);
   return (
@@ -331,10 +363,10 @@ function LinkRow({
         <Ionicons name={icon} size={18} color={tone} />
       </View>
       <View style={styles.rowText}>
-        <Text style={styles.rowLabel}>{label}</Text>
+        <Text style={[styles.rowLabel, destructive && { color: c.red }]}>{label}</Text>
         {description ? <Text style={styles.rowDescription}>{description}</Text> : null}
       </View>
-      <Ionicons name="chevron-forward" size={16} color={c.textLow} />
+      <Ionicons name="chevron-forward" size={16} color={destructive ? c.red : c.textLow} />
     </Pressable>
   );
 }

@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
-  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -31,6 +30,7 @@ import {
 import { ENTITLEMENT_PREMIUM } from '../../src/config/revenuecat';
 import { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '../../src/config/legal';
 import { openManageSubscriptions } from '../../src/utils/manageSubscriptions';
+import { openExternalUrl } from '../../src/utils/openExternalUrl';
 import type { PurchasesPackage } from 'react-native-purchases';
 
 // ════════════════════════════════════════════════════════════════
@@ -182,16 +182,16 @@ export default function ShopScreen() {
           </Text>
           <View style={styles.legalLinksRow}>
             <TouchableOpacity
-              onPress={() => Linking.openURL(TERMS_OF_USE_URL).catch(() => {})}
-              hitSlop={8}
+              onPress={() => openExternalUrl(TERMS_OF_USE_URL, t('shop.termsOfUse'))}
+              hitSlop={10}
               accessibilityRole="link"
             >
               <Text style={styles.legalLink}>{t('shop.termsOfUse')}</Text>
             </TouchableOpacity>
             <Text style={styles.legalDot}>·</Text>
             <TouchableOpacity
-              onPress={() => Linking.openURL(PRIVACY_POLICY_URL).catch(() => {})}
-              hitSlop={8}
+              onPress={() => openExternalUrl(PRIVACY_POLICY_URL, t('shop.privacyPolicy'))}
+              hitSlop={10}
               accessibilityRole="link"
             >
               <Text style={styles.legalLink}>{t('shop.privacyPolicy')}</Text>
@@ -200,7 +200,7 @@ export default function ShopScreen() {
             {/* Apple Guideline 3.1.2(b) — Aboneliği Yönet linki */}
             <TouchableOpacity
               onPress={openManageSubscriptions}
-              hitSlop={8}
+              hitSlop={10}
               accessibilityRole="link"
             >
               <Text style={styles.legalLink}>{t('shop.manageSubscription')}</Text>
@@ -270,9 +270,9 @@ const styles = StyleSheet.create({
   },
   // ── Yasal — Apple Guideline 3.1.2(c) ──
   legalNotice: {
-    fontSize: 10,
-    lineHeight: 14,
-    color: 'rgba(255,255,255,0.40)',
+    fontSize: 12,
+    lineHeight: 16,
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
     paddingHorizontal: 8,
     marginTop: 4,
@@ -281,16 +281,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 6,
     marginTop: 4,
   },
   legalLink: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.65)',
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.92)',
     textDecorationLine: 'underline',
   },
   legalDot: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.35)',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.5)',
   },
 });
