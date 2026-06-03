@@ -136,8 +136,8 @@ export const messages = {
     motivationsEmpty: { tr: 'Henüz hedef seçmedin', en: 'No goals selected yet' },
     aboutTitle: { tr: 'Vogel', en: 'Vogel' },
     aboutDesc: {
-      tr: 'Türkçe konuşanlar için Almanca öğrenme. Sürüm 1.0',
-      en: 'German learning for Turkish speakers. Version 1.0',
+      tr: 'Türkçe konuşanlar için {lang} öğrenme. Sürüm 1.0',
+      en: '{lang} learning for Turkish speakers. Version 1.0',
     },
     // Trademark disclaimer — Apple 4.5.2
     trademarkDisclaimer: {

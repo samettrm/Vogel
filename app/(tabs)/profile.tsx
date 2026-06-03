@@ -14,6 +14,7 @@ import { useUserStore } from '../../src/store/useUserStore';
 import { useFamilyStore } from '../../src/store/useFamilyStore';
 import { spacing, textStyles, useThemeColors, radius } from '../../src/theme';
 import { useT } from '../../src/i18n';
+import { findLanguagePair } from '../../src/config/languagePairs';
 import { SpinningDiamondGem } from '../../src/components/shared/SpinningDiamondGem';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { signOut } from '../../src/services/auth';
@@ -59,6 +60,9 @@ export default function ProfileScreen() {
   const streak = useUserStore((s) => s.streak);
   const completedLessons = useUserStore((s) => s.completedLessons);
   const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
+  // 🌍 Öğrenilen dil — activeCourse'tan reaktif (dil değişince AvatarCard güncellenir).
+  const activeCourse = useUserStore((s) => s.activeCourse);
+  const language = useUserStore((s) => s.language);
 
   // 👨‍👩‍👧 Aile Planı (premium + family aktif kullanıcılar için)
   const familyDoc = useFamilyStore((s) => s.familyDoc);
@@ -107,6 +111,12 @@ export default function ProfileScreen() {
   const level = Math.floor(xp / XP_PER_LEVEL) + 1;
   const xpInLevel = xp % XP_PER_LEVEL;
 
+  // Öğrenilen dilin adı (UI diline göre) — AvatarCard "Vogel" altında gösterir.
+  const learnPair = findLanguagePair(activeCourse.source, activeCourse.target);
+  const learningLangName = learnPair
+    ? (language === 'en' ? learnPair.targetNameEn : learnPair.targetName)
+    : activeCourse.target.toUpperCase();
+
   // ✨ Premium banner shimmer — soldan sağa süpürme
   const shimmerX = useRef(new Animated.Value(-120)).current;
   useEffect(() => {
@@ -151,6 +161,7 @@ export default function ProfileScreen() {
             her thaw/mount'ta tetikleniyordu. Şimdi anında görünür. */}
         <AvatarCard
           level={level}
+          joinedLabel={learningLangName}
           xpInLevel={xpInLevel}
           xpForNext={XP_PER_LEVEL}
         />

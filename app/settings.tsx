@@ -21,6 +21,7 @@ import { MOTIVATIONS_META } from '../src/services/personalization';
 import { useAuthStore } from '../src/store/useAuthStore';
 import { TERMS_OF_USE_URL } from '../src/config/legal';
 import { openExternalUrl } from '../src/utils/openExternalUrl';
+import { findLanguagePair } from '../src/config/languagePairs';
 
 // ════════════════════════════════════════════════════════════════
 // SETTINGS SCREEN
@@ -32,6 +33,7 @@ export default function SettingsScreen() {
   const c = useThemeColors();
   const themeMode = useUserStore((s) => s.themeMode);
   const language = useUserStore((s) => s.language);
+  const activeCourse = useUserStore((s) => s.activeCourse);
   const setThemeMode = useUserStore((s) => s.setThemeMode);
   const setLanguage = useUserStore((s) => s.setLanguage);
   // 🎯 Motivasyon (hedefler)
@@ -73,6 +75,12 @@ export default function SettingsScreen() {
     }
     setLearningMotivations(Array.from(current));
   };
+
+  // Öğrenilen dilin adı (Hakkında kartı dile göre senkron — hardcoded "Almanca" değil).
+  const learnPair = findLanguagePair(activeCourse.source, activeCourse.target);
+  const learningLangName = learnPair
+    ? (language === 'en' ? learnPair.targetNameEn : learnPair.targetName)
+    : activeCourse.target.toUpperCase();
 
   // Tema-aware styles - render ediyorum component icinde
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -246,7 +254,7 @@ export default function SettingsScreen() {
           <View style={styles.aboutText}>
             <Text style={styles.aboutTitle}>{t('settings.aboutTitle')}</Text>
             <Text style={styles.aboutDescription}>
-              {t('settings.aboutDesc')}
+              {t('settings.aboutDesc', { lang: learningLangName })}
             </Text>
             {/* Trademark disclaimer — Apple 4.5.2 */}
             <Text style={styles.aboutDisclaimer}>
