@@ -44,6 +44,8 @@
     "production": {
       "autoIncrement": true,
       "env": {
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "SENTRY_ALLOW_FAILURE": "true",
         "SENTRY_ORG": "bbb25011e61c",
         "SENTRY_PROJECT": "react-native",
         "EXPO_PUBLIC_SENTRY_DSN": "https://e6e79364db2a2ce1cf617a4874c4de87@o4511445488238592.ingest.de.sentry.io/4511445501476944",
@@ -61,7 +63,7 @@
         "resourceClass": "m-medium"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     }
   },
