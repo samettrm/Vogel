@@ -20,6 +20,7 @@ import { useUserStore, type ReviewItem } from '../../src/store/useUserStore';
 import { radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import { useT } from '../../src/i18n';
 import { playSound } from '../../src/utils/sounds';
+import { showInterstitialAd } from '../../src/services/ads';
 
 // ════════════════════════════════════════════════════════════════
 // TEKRAR MERKEZİ (Review Center)
@@ -43,6 +44,7 @@ export default function ReviewCenter() {
 
   const reviewItems = useUserStore((s) => s.reviewItems);
   const recordReviewResult = useUserStore((s) => s.recordReviewResult);
+  const isPremium = useUserStore((s) => s.isPremium);
 
   // Sayfa açılışında due items'ı al — daha sonra reviewItems değişse bile aynı queue kullanılır
   // (kullanıcı bir item'ı yanıtladığında item silinmesin / tekrar gelmesin diye)
@@ -153,6 +155,17 @@ export default function ReviewCenter() {
     router.replace('/');
   }, []);
 
+  // 📺 Review oturumu TAMAMLANDIĞINDA interstitial göster (premium hariç),
+  // sonra haritaya dön. Boş-durum veya orta-kapanış (handleClose) reklamsız kalır.
+  // showInterstitialAd kendisi probability + cooldown + premium gating yapar.
+  const handleCompleteGoHome = useCallback(async () => {
+    Haptics.selectionAsync().catch(() => {});
+    if (!isPremium) {
+      try { await showInterstitialAd(); } catch {}
+    }
+    router.replace('/');
+  }, [isPremium]);
+
   // ─── EMPTY STATE: hiç tekrar yok ───
   if (queue.length === 0) {
     return (
@@ -212,7 +225,7 @@ export default function ReviewCenter() {
 
           <Animated.View entering={FadeInDown.delay(400).duration(400)} style={{ width: '100%' }}>
             <Pressable
-              onPress={handleClose}
+              onPress={handleCompleteGoHome}
               style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}
             >
               <Text style={styles.primaryButtonText}>{t('common.goHome')}</Text>

@@ -461,6 +461,9 @@ export const messages = {
     backHome: { tr: 'Ana Ekrana Dön', en: 'Back to Home' },
     getPlus: { tr: '💎 VOGEL PLUS — Sınırsız Can', en: '💎 VOGEL PLUS — Unlimited Hearts' },
     plusBenefit: { tr: 'Sınırsız can · Reklamsız · Tüm seviyeler', en: 'Unlimited hearts · No ads · All levels' },
+    watchAd: { tr: 'Reklam İzle, 1 Can Kazan', en: 'Watch an Ad, Earn 1 Heart' },
+    watchAdSub: { tr: 'Kısa bir reklam izle, hemen devam et', en: 'Watch a short ad and keep going' },
+    watchAdLoading: { tr: 'Reklam yükleniyor…', en: 'Loading ad…' },
   },
 
   // Paywall (3. ders sonrası modal)
