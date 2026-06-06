@@ -28,6 +28,7 @@ import {
 } from '@/src/services/auth';
 import { isFirebaseConfigured } from '@/src/config/firebase';
 import { useAuthStore } from '@/src/store/useAuthStore';
+import { GoogleGLogo } from '@/src/components/shared/GoogleGLogo';
 import {
   downloadAndReplaceProgress,
   uploadProgress,
@@ -201,7 +202,7 @@ export default function LoginScreen() {
               disabled={loading}
               style={({ pressed }) => [styles.socialBtn, { opacity: pressed ? 0.75 : 1 }]}
             >
-              <Text style={styles.googleG}>G</Text>
+              <GoogleGLogo size={20} />
               <Text style={styles.socialBtnText}>Google ile devam et</Text>
             </Pressable>
           )}
@@ -342,10 +343,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg, paddingVertical: 14,
   },
   appleBtn:     { backgroundColor: '#fff' },
-  googleG: {
-    fontSize: 18, fontWeight: '900',
-    color: '#4285F4', lineHeight: 20,
-  },
   socialBtnText: { fontSize: 15, fontWeight: '700', color: '#111' },
   divider: {
     flexDirection: 'row', alignItems: 'center',

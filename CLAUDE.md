@@ -277,6 +277,11 @@ const hearts = useUserStore((s) => s.hearts);
 7. **Race condition fix (sync)** — `signOut` sırasında upload timer iptal mantığını kaldırma.
 8. **`HEART_REFILL_MINUTES`** — prod 300, test için 1'e geçirirsen commit'leme.
 9. **Sentry `enabled: !!SENTRY_DSN`** — DSN yoksa init atlanmamalı, sadece veri gönderilmemeli (App Start Span uyarısı için kritik).
+10. **🔒 Google Sign-In SHA-1 (Firebase) — ASLA BOZMA.** Google ile giriş (`DEVELOPER_ERROR Kod:10` bug'ı) **Firebase Console'da imzalama SHA-1'leri kayıtlı olduğu için** çalışıyor — düzeltme KODDA değil, sunucu config'inde. Firebase `vogel-3e071` → Android app (`com.yenipc002.Vogel`) altında bu fingerprint'ler kayıtlı kalmalı:
+    - **Play App Signing key SHA-1** = `A6:66:71:71:CF:23:26:F0:7B:8A:BF:8E:AC:D1:21:1E:68:42:09:21` (Play'in dağıttığı APK'lar Google bu key ile yeniden imzalandığı için — tüm gerçek kullanıcılar buna bakar; canlı login'i ÇÖZEN budur).
+    - **Upload key SHA-1** = `97:A0:99:...` (internal testing / local APK).
+    - Yapma: bu SHA-1'leri Firebase'den silme · `webClientId`/`EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`'yi değiştirme · keystore/imza akışını değiştirme · classic Google flow'u (`GoogleSignin.signIn()` + `getTokens()` → `signInWithCredential`) SHA-1 gerektirmeyen bir akışla değiştirme. Play App Signing key Google tarafından KALICI yönetilir → bir daha değişmez, fix kalıcıdır.
+    - Yeni bir dağıtım kanalı (farklı keystore) eklenirse o key'in SHA-1'i de Firebase'e EKLENMELİ.
 
 ## 12. Test akışı
 
