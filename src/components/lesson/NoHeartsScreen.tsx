@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -163,6 +163,13 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
       if (earned) {
         addHearts(1);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      } else {
+        // Reklam yüklenemedi (no-fill / ağ / erken kapatma). Sessiz kalma —
+        // kullanıcıya net mesaj ver (route NoHeartsScreen ile tutarlı).
+        Alert.alert(
+          'Reklam bulunamadı',
+          'Şu anda gösterilecek reklam yok. Lütfen birkaç dakika sonra tekrar dene.',
+        );
       }
     } finally {
       setIsWatchingAd(false);
