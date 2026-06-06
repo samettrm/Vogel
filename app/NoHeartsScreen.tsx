@@ -7,6 +7,8 @@ import { useUserStore } from '../src/store/useUserStore';
 import { radius, spacing, textStyles, useThemeColors } from '../src/theme';
 import { useT } from '../src/i18n';
 import { SpinningDiamondGem } from '../src/components/shared/SpinningDiamondGem';
+import { showRewardedAd } from '../src/services/ads';
+import * as Haptics from '../src/utils/haptics';
 
 export default function NoHeartsScreen() {
   const c = useThemeColors();
@@ -14,7 +16,10 @@ export default function NoHeartsScreen() {
   const nextHeartRefillAt = useUserStore((s) => s.nextHeartRefillAt);
   const refillHearts = useUserStore((s) => s.refillHearts);
   const xp = useUserStore((s) => s.xp);
+  const addHearts = useUserStore((s) => s.addHearts);
+  const isPremium = useUserStore((s) => s.isPremium);
   const [countdown, setCountdown] = useState('');
+  const [isWatchingAd, setIsWatchingAd] = useState(false);
 
   useEffect(() => {
     if (!nextHeartRefillAt) { setCountdown('00:00'); return; }
@@ -50,6 +55,25 @@ export default function NoHeartsScreen() {
     } else {
       refillHearts();
       router.replace('/(tabs)');
+    }
+  };
+
+  // 📺 Rewarded ad — kullanıcı reklam izlerse 1 can kazanır, sonra haritaya döner.
+  // showRewardedAd false dönerse (Expo Go / dolum yok / reklam kapatıldı) can verilmez,
+  // kullanıcı ekranda kalır. Premium kullanıcıda buton hiç render edilmez.
+  const handleWatchAd = async () => {
+    if (isWatchingAd) return;
+    setIsWatchingAd(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    try {
+      const earned = await showRewardedAd();
+      if (earned) {
+        addHearts(1);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        router.replace('/(tabs)');
+      }
+    } finally {
+      setIsWatchingAd(false);
     }
   };
 
@@ -95,6 +119,35 @@ export default function NoHeartsScreen() {
               <Text style={styles.premiumBenefit}>{t('noHearts.plusBenefit')}</Text>
             </Pressable>
           </View>
+
+          {/* 📺 REWARDED AD — Reklam izle, 1 can kazan. Sadece free kullanıcıda
+              görünür; premium'da hiç render edilmez (zaten sınırsız can). */}
+          {!isPremium && (
+            <Pressable
+              onPress={handleWatchAd}
+              disabled={isWatchingAd}
+              style={({ pressed }) => [
+                styles.rewardedBtn,
+                pressed && styles.pressed,
+                isWatchingAd && { opacity: 0.6 },
+              ]}
+            >
+              <View style={styles.rewardedIconBox}>
+                <Ionicons
+                  name={isWatchingAd ? 'hourglass-outline' : 'play-circle'}
+                  size={24}
+                  color={c.cyan}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rewardedTitle}>
+                  {isWatchingAd ? t('noHearts.watchAdLoading') : t('noHearts.watchAd')}
+                </Text>
+                <Text style={styles.rewardedSub}>{t('noHearts.watchAdSub')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={c.cyan} />
+            </Pressable>
+          )}
 
           <Pressable
             onPress={handleHeartRefillPress}
@@ -219,6 +272,21 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
       borderWidth: 1.5, borderColor: c.glassBorderStrong,
     },
     secondaryButtonText: { ...textStyles.button, color: c.textMed, fontSize: 14 },
+    // 📺 Rewarded ad butonu — cyan, premium ile refill arasında orta öncelik
+    rewardedBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+      backgroundColor: c.cyanBg,
+      borderWidth: 1.5, borderColor: c.cyan,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.base, paddingVertical: spacing.md,
+    },
+    rewardedIconBox: {
+      width: 40, height: 40, borderRadius: 20,
+      backgroundColor: 'rgba(0,0,0,0.25)',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    rewardedTitle: { ...textStyles.bodyBold, color: c.cyan, fontSize: 14 },
+    rewardedSub: { ...textStyles.body, color: c.textMed, fontSize: 11, marginTop: 1 },
     pressed: { opacity: 0.92, transform: [{ translateY: 1 }] },
   });
 }

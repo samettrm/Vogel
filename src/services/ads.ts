@@ -68,6 +68,10 @@ export function initMobileAds(): Promise<void> {
       await ads.default().initialize();
       _initialized = true;
       if (__DEV__) console.log('[Ads] Mobile Ads SDK initialized');
+      // İlk interstitial'ı arka planda hazırla — ders bitince anında gösterilsin
+      // (yoksa showInterstitialAd on-demand build edip 3sn'ye kadar bekler).
+      // Her gösterimden sonra ads servisi otomatik yeni instance preload eder.
+      preloadInterstitial();
     } catch (e) {
       if (__DEV__) console.warn('[Ads] init failed:', e);
     }

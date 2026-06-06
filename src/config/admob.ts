@@ -53,17 +53,21 @@ export const AD_UNIT_REWARDED     = __DEV__ ? TEST_REWARDED     : PROD_REWARDED;
 
 /**
  * Ders bittiğinde interstitial gösterme olasılığı (0..1).
- * 0.33 = her 3 dersten 1'inde interstitial gösterilir.
- * Çok agresif olursa kullanıcı uninstall eder; çok az olursa gelir düşer.
- * Duolingo benzeri model: ~1/3 oranı dengeli.
+ * 1.0 = her ders sonunda interstitial gösterilir (Duolingo modeli).
+ * Spam'i INTERSTITIAL_MIN_INTERVAL_MS cooldown'u önler: art arda çok hızlı
+ * biten derslerde (ör. tekrar oynanan tamamlanmış dersler) reklam tekrar
+ * çıkmaz. Premium kullanıcılarda showInterstitialAd zaten no-op yapar.
+ * Daha az agresif istenirse bu değer 0.5-0.7 aralığına çekilebilir.
  */
-export const INTERSTITIAL_PROBABILITY = 0.33;
+export const INTERSTITIAL_PROBABILITY = 1.0;
 
 /**
  * Aynı kullanıcıya art arda interstitial gösterimi arasında
- * minimum süre (ms). Spam'i önler.
+ * minimum süre (ms). Spam'i önler. 60sn: tipik bir ders ~1-3 dk sürdüğü
+ * için normal akışta her dersin reklamını engellemez, sadece çok hızlı
+ * art arda bitişlerde araya girer.
  */
-export const INTERSTITIAL_MIN_INTERVAL_MS = 90 * 1000; // 90 saniye
+export const INTERSTITIAL_MIN_INTERVAL_MS = 60 * 1000; // 60 saniye
 
 /**
  * Rewarded ad ödülü: kaç can verilir?

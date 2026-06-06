@@ -288,6 +288,11 @@ const hearts = useUserStore((s) => s.hearts);
     - `mapNavState.lessonReturnMode` 'exit' vs 'complete' branching ([app/lesson/[lessonId].tsx](app/lesson/[lessonId].tsx) goHome)
     - 33 iterasyon sonrası user onaylı son hal — kırılgan, dikkatli dokun
 11. **"Reklamsız" iddiaları + Privacy Policy AdMob paragrafları** — AdMob entegre (commit `c91a173`: [src/config/admob.ts](src/config/admob.ts), [src/services/ads.ts](src/services/ads.ts), [src/components/ads/AdBanner.tsx](src/components/ads/AdBanner.tsx)). "Reklamsız" pazarlama metinleri **gerçek bir premium vaadi**, yanıltıcı değil. Privacy Policy'deki "Google AdMob kullanıyoruz" paragrafı gerçeklikle uyumlu. Daha önce 2 kez yanlışlıkla kaldırıldı (`1b4e136`, `6083fd5`), 2 kez revert edildi (`fe1cbd2`, `112a800`). Apple Review 5.1.1/3.1.2 endişesi gerekçesiyle bile bu metinler dokunulmaz. Etkilenen dosyalar: `app/(tabs)/profile.tsx`, `app/privacy-policy.tsx`, `docs/STORE_LISTING.md`, `docs/privacy.html`, `src/components/lesson/NoHeartsScreen.tsx`, `src/components/paywall/PaywallModal.tsx`, `src/components/shop/PremiumCard.tsx`, `src/components/shop/PremiumPlansCard.tsx`, `src/i18n/index.ts`. **Bu dosyalardaki "reklamsız/ad-free" referansını silme!**
+12. **🔒 Google Sign-In SHA-1 (Firebase) — ASLA BOZMA.** Google ile giriş (`DEVELOPER_ERROR Kod:10` bug'ı) **Firebase Console'da imzalama SHA-1'leri kayıtlı olduğu için** çalışıyor — düzeltme KODDA değil, sunucu config'inde. Firebase `vogel-3e071` → Android app (`com.yenipc002.Vogel`) altında bu fingerprint'ler kayıtlı kalmalı:
+    - **Play App Signing key SHA-1** = `A6:66:71:71:CF:23:26:F0:7B:8A:BF:8E:AC:D1:21:1E:68:42:09:21` (Play'in dağıttığı APK'lar Google bu key ile yeniden imzalandığı için — tüm gerçek kullanıcılar buna bakar; canlı login'i ÇÖZEN budur).
+    - **Upload key SHA-1** = `97:A0:99:...` (internal testing / local APK).
+    - Yapma: bu SHA-1'leri Firebase'den silme · `webClientId`/`EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`'yi değiştirme · keystore/imza akışını değiştirme · classic Google flow'u (`GoogleSignin.signIn()` + `getTokens()` → `signInWithCredential`) SHA-1 gerektirmeyen bir akışla değiştirme. Play App Signing key Google tarafından KALICI yönetilir → bir daha değişmez, fix kalıcıdır.
+    - Yeni bir dağıtım kanalı (farklı keystore) eklenirse o key'in SHA-1'i de Firebase'e EKLENMELİ.
 
 ## 12. Test akışı
 
