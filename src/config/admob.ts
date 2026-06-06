@@ -22,6 +22,9 @@ const PROD_INTERSTITIAL = Platform.select({
   android: 'ca-app-pub-7904978237837219/7637358576',
 }) ?? '';
 
+// ⚠️ Bu birimler AdMob'da "Ödüllü geçiş reklamı" = RewardedInterstitialAd
+// formatında. Kod ads.ts'te RewardedInterstitialAd ile çağırır (RewardedAd ile
+// DEĞİL) — yoksa gerçek reklam format uyuşmazlığından no-fill verir.
 const PROD_REWARDED = Platform.select({
   ios:     'ca-app-pub-7904978237837219/6428522603',
   android: 'ca-app-pub-7904978237837219/2557937657',
@@ -39,9 +42,11 @@ const TEST_INTERSTITIAL = Platform.select({
   android: 'ca-app-pub-3940256099942544/1033173712',
 }) ?? '';
 
+// Rewarded INTERSTITIAL test ID'leri (düz rewarded değil — gerçek birimle
+// aynı format olsun ki dev'de de doğru sınıfla test edilsin).
 const TEST_REWARDED = Platform.select({
-  ios:     'ca-app-pub-3940256099942544/1712485313',
-  android: 'ca-app-pub-3940256099942544/5224354917',
+  ios:     'ca-app-pub-3940256099942544/6978759866',
+  android: 'ca-app-pub-3940256099942544/5354046379',
 }) ?? '';
 
 // ─── EXPORT — dev'de test, prod'da gerçek ID'ler ─────────────────

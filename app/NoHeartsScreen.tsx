@@ -7,7 +7,7 @@ import { useUserStore } from '../src/store/useUserStore';
 import { radius, spacing, textStyles, useThemeColors } from '../src/theme';
 import { useT } from '../src/i18n';
 import { SpinningDiamondGem } from '../src/components/shared/SpinningDiamondGem';
-import { showRewardedAd } from '../src/services/ads';
+import { showRewardedAd, preloadRewardedAd } from '../src/services/ads';
 import * as Haptics from '../src/utils/haptics';
 
 export default function NoHeartsScreen() {
@@ -20,6 +20,11 @@ export default function NoHeartsScreen() {
   const isPremium = useUserStore((s) => s.isPremium);
   const [countdown, setCountdown] = useState('');
   const [isWatchingAd, setIsWatchingAd] = useState(false);
+
+  // 📺 Ekran açılır açılmaz ödüllü reklamı arka planda hazırla → tap'te anında açılsın
+  useEffect(() => {
+    if (!isPremium) preloadRewardedAd();
+  }, [isPremium]);
 
   useEffect(() => {
     if (!nextHeartRefillAt) { setCountdown('00:00'); return; }

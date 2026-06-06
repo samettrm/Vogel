@@ -15,7 +15,7 @@ import { router } from 'expo-router';
 import * as Haptics from '../../utils/haptics';
 import { radius, shadows, spacing, textStyles, useThemeColors } from '../../theme';
 import { useUserStore } from '../../store/useUserStore';
-import { showRewardedAd } from '../../services/ads';
+import { showRewardedAd, preloadRewardedAd } from '../../services/ads';
 import { SpinningDiamondGem } from '../shared/SpinningDiamondGem';
 
 // ─── Animasyonlu altın yıldız ─────────────────────────────────────────────────
@@ -152,6 +152,11 @@ export function NoHeartsScreen({ nextHeartAt, onGoHome }: Props) {
 
   const [now, setNow] = useState(() => Date.now());
   const [isWatchingAd, setIsWatchingAd] = useState(false);
+
+  // 📺 Ekran açılır açılmaz ödüllü reklamı arka planda hazırla → tap'te anında açılsın
+  useEffect(() => {
+    if (!isPremium) preloadRewardedAd();
+  }, [isPremium]);
 
   // 📺 Rewarded ad handler — kullanıcı reklam izlerse 1 can kazanır
   const handleWatchAd = async () => {

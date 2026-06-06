@@ -190,72 +190,122 @@ export async function showInterstitialAd(force = false): Promise<void> {
   _preloadedInterstitial = buildInterstitial();
 }
 
-// ─── Rewarded ────────────────────────────────────────────────────
+// ─── Rewarded Interstitial (ödüllü reklam — preload'lu, anında gösterim) ──────
+//
+// ⚠️ ÇOK ÖNEMLİ: AdMob'daki ödüllü birimler "Ödüllü geçiş reklamı" =
+// RewardedInterstitialAd formatında. Bu yüzden RewardedAd DEĞİL,
+// RewardedInterstitialAd kullanılır. Yanlış sınıf (RewardedAd) ile çağrılırsa
+// gerçek reklamlar FORMAT UYUŞMAZLIĞINDAN no-fill verir — test reklamı düz
+// rewarded formatına uyduğu için çalışır ama gerçek reklam çalışmaz. Lexora'da
+// kanıtlı pattern (lib/ads.ts → RewardedInterstitialAd).
+//
+// GECIKME FIX'i: reklam tap anında değil, NoHeartsScreen açılınca arka planda
+// preload edilir → tap anında hazır reklam ANINDA gösterilir.
+
+let _preloadedRewarded: any = null;
+let _rewardedReady = false;
+let _rewardedLoading = false;
 
 /**
- * Rewarded ad göster.
+ * Ödüllü reklamı arka planda önceden yükle, hazır tut. Idempotent —
+ * zaten hazır/yükleniyorsa no-op. NoHeartsScreen açılınca çağrılır.
+ */
+export function preloadRewardedAd(): void {
+  const ads = getAdsModule();
+  if (!ads?.RewardedInterstitialAd?.createForAdRequest) return;
+  if (_rewardedReady || _rewardedLoading) return;
+  _rewardedLoading = true;
+  try {
+    const ad = ads.RewardedInterstitialAd.createForAdRequest(AD_UNIT_REWARDED, {
+      requestNonPersonalizedAdsOnly: false,
+    });
+    const RewardedAdEventType = ads.RewardedAdEventType ?? {};
+    const AdEventType = ads.AdEventType ?? {};
+    ad.addAdEventListener?.(RewardedAdEventType.LOADED ?? 'rewarded_loaded', () => {
+      _preloadedRewarded = ad;
+      _rewardedReady = true;
+      _rewardedLoading = false;
+    });
+    ad.addAdEventListener?.(AdEventType.ERROR ?? 'error', () => {
+      _preloadedRewarded = null;
+      _rewardedReady = false;
+      _rewardedLoading = false;
+    });
+    ad.load();
+  } catch {
+    _rewardedLoading = false;
+  }
+}
+
+/** Hazır (preload edilmiş) bir ödüllü reklam var mı? */
+export function isRewardedReady(): boolean {
+  return _rewardedReady && _preloadedRewarded != null;
+}
+
+/**
+ * Rewarded ad göster (RewardedInterstitialAd).
  *
- * @returns true → kullanıcı reklamı sonuna kadar izledi, ödül kazandı
- *          false → reklam yüklenmedi, kullanıcı atladı veya hata
+ * @returns true → kullanıcı reklamı izledi/ödül kazandı, false → reklam yok/hata
  *
- * Kullanım örneği (NoHeartsScreen):
+ * Kullanım (NoHeartsScreen):
  *   const earned = await showRewardedAd();
- *   if (earned) {
- *     useUserStore.getState().addHearts(1);
- *   }
+ *   if (earned) useUserStore.getState().addHearts(1);
  */
 export async function showRewardedAd(): Promise<boolean> {
   const ads = getAdsModule();
-  if (!ads?.RewardedAd?.createForAdRequest) return false;
+  if (!ads?.RewardedInterstitialAd?.createForAdRequest) return false;
+
+  const RewardedAdEventType = ads.RewardedAdEventType ?? {};
+  const AdEventType = ads.AdEventType ?? {};
 
   return new Promise<boolean>((resolve) => {
-    let earned = false;
-    let resolved = false;
-    const finish = (success: boolean) => {
-      if (resolved) return;
-      resolved = true;
-      resolve(success);
+    let settled = false;
+    const settle = (earned: boolean) => {
+      if (settled) return;
+      settled = true;
+      // Gösterilen instance tüketildi — temizle ve bir sonrakini preload et.
+      _preloadedRewarded = null;
+      _rewardedReady = false;
+      preloadRewardedAd();
+      resolve(earned);
     };
 
+    const wireAndShow = (ad: any) => {
+      let earned = false;
+      let opened = false;
+      ad.addAdEventListener?.(AdEventType.OPENED ?? 'opened', () => { opened = true; });
+      ad.addAdEventListener?.(RewardedAdEventType.EARNED_REWARD ?? 'rewarded_earned_reward', () => { earned = true; });
+      ad.addAdEventListener?.(AdEventType.CLOSED ?? 'closed', () => {
+        // EARNED_REWARD bazı cihazlarda/yeni birimlerde kaçabiliyor; reklam
+        // gerçekten açıldıysa (opened) ödülü yine de ver (Lexora fix). Kalp
+        // refill/limit mantığı suistimali zaten sınırlar.
+        settle(earned || opened);
+      });
+      ad.addAdEventListener?.(AdEventType.ERROR ?? 'error', () => { settle(false); });
+      try { ad.show(); } catch { settle(false); }
+    };
+
+    // Hazır preload varsa ANINDA göster
+    if (_rewardedReady && _preloadedRewarded) {
+      wireAndShow(_preloadedRewarded);
+      return;
+    }
+
+    // Soğuk yol — preload yoksa yükle sonra göster (ilk açılış)
     try {
-      const ad = ads.RewardedAd.createForAdRequest(AD_UNIT_REWARDED, {
+      const ad = ads.RewardedInterstitialAd.createForAdRequest(AD_UNIT_REWARDED, {
         requestNonPersonalizedAdsOnly: false,
       });
-
-      const RewardedAdEventType = ads.RewardedAdEventType ?? {};
-      const AdEventType = ads.AdEventType ?? {};
-
-      // Reklam yüklendiğinde göster.
-      // ⚠️ RewardedAd'in "yüklendi" event'i RewardedAdEventType.LOADED
-      // ('rewarded_loaded') — generic AdEventType.LOADED ('loaded') DEĞİL!
-      // Yanlış event dinlenirse ad yüklense bile show() hiç çağrılmaz,
-      // reklam ekranda açılmaz (sessizce 15sn timeout'a düşer).
       ad.addAdEventListener?.(RewardedAdEventType.LOADED ?? 'rewarded_loaded', () => {
-        try { ad.show(); } catch { finish(false); }
+        wireAndShow(ad);
       });
-
-      // Ödül kazanıldı
-      ad.addAdEventListener?.(RewardedAdEventType.EARNED_REWARD ?? 'rewarded_earned_reward', () => {
-        earned = true;
-      });
-
-      // Reklam kapandı — ödül durumuna göre dön
-      ad.addAdEventListener?.(AdEventType.CLOSED ?? 'closed', () => {
-        finish(earned);
-      });
-
-      // Hata durumu
-      ad.addAdEventListener?.(AdEventType.ERROR ?? 'error', () => {
-        finish(false);
-      });
-
+      ad.addAdEventListener?.(AdEventType.ERROR ?? 'error', () => { settle(false); });
       ad.load();
-
-      // Timeout — 15 saniye içinde yüklenmezse iptal et
-      setTimeout(() => finish(false), 15000);
+      // 15sn içinde yüklenmezse vazgeç
+      setTimeout(() => settle(false), 15000);
     } catch (e) {
       if (__DEV__) console.warn('[Ads] rewarded show failed:', e);
-      finish(false);
+      settle(false);
     }
   });
 }
