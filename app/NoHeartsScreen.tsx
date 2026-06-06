@@ -71,6 +71,13 @@ export default function NoHeartsScreen() {
         addHearts(1);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
         router.replace('/(tabs)');
+      } else {
+        // Reklam yüklenemedi (no-fill / ağ / kullanıcı erken kapattı).
+        // Sessiz kalma — kullanıcıya net geri bildirim ver.
+        Alert.alert(
+          'Reklam bulunamadı',
+          'Şu anda gösterilecek reklam yok. Lütfen birkaç dakika sonra tekrar dene.',
+        );
       }
     } finally {
       setIsWatchingAd(false);
