@@ -225,8 +225,12 @@ export async function showRewardedAd(): Promise<boolean> {
       const RewardedAdEventType = ads.RewardedAdEventType ?? {};
       const AdEventType = ads.AdEventType ?? {};
 
-      // Reklam yüklendiğinde göster
-      ad.addAdEventListener?.(AdEventType.LOADED ?? 'loaded', () => {
+      // Reklam yüklendiğinde göster.
+      // ⚠️ RewardedAd'in "yüklendi" event'i RewardedAdEventType.LOADED
+      // ('rewarded_loaded') — generic AdEventType.LOADED ('loaded') DEĞİL!
+      // Yanlış event dinlenirse ad yüklense bile show() hiç çağrılmaz,
+      // reklam ekranda açılmaz (sessizce 15sn timeout'a düşer).
+      ad.addAdEventListener?.(RewardedAdEventType.LOADED ?? 'rewarded_loaded', () => {
         try { ad.show(); } catch { finish(false); }
       });
 
