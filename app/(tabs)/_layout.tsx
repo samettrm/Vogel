@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { dark } from '../../src/theme';
 import { BottomNav } from '../../src/components/map/BottomNav';
+import { PinnedAdBanner } from '../../src/components/ads/PinnedAdBanner';
 
 console.warn('[FILE_LOAD] app/(tabs)/_layout.tsx loaded');
 
@@ -56,6 +57,11 @@ export default function TabsLayout() {
         <Tabs.Screen name="leaderboard" options={{ href: null }} />
         <Tabs.Screen name="store" options={{ href: null }} />
       </Tabs>
+
+      {/* 📺 Tab bar'ın üstüne sabit banner — her tab'da görünür (free user).
+          Absolute overlay: içerik/map scroll geometrisini bozmaz. Premium'da
+          AdBanner null döner → görünmez. */}
+      <PinnedAdBanner />
     </View>
   );
 }
