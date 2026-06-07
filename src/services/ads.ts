@@ -260,9 +260,12 @@ export async function showRewardedAd(): Promise<boolean> {
 
   return new Promise<boolean>((resolve) => {
     let settled = false;
+    let loadTimer: ReturnType<typeof setTimeout> | null = null;
+    const clearLoadTimer = () => { if (loadTimer) { clearTimeout(loadTimer); loadTimer = null; } };
     const settle = (earned: boolean) => {
       if (settled) return;
       settled = true;
+      clearLoadTimer();
       // Gösterilen instance tüketildi — temizle ve bir sonrakini preload et.
       _preloadedRewarded = null;
       _rewardedReady = false;
@@ -271,6 +274,10 @@ export async function showRewardedAd(): Promise<boolean> {
     };
 
     const wireAndShow = (ad: any) => {
+      // Reklam gösterilmeye başlandı → LOAD timeout'unu İPTAL et. Yoksa 15sn'den
+      // uzun reklamlarda kullanıcı izlerken settle(false) tetiklenir ve ilk
+      // reklam kalp vermez ("Reklam bulunamadı" çıkar) — o bug bundandı.
+      clearLoadTimer();
       let earned = false;
       let opened = false;
       ad.addAdEventListener?.(AdEventType.OPENED ?? 'opened', () => { opened = true; });
@@ -301,8 +308,10 @@ export async function showRewardedAd(): Promise<boolean> {
       });
       ad.addAdEventListener?.(AdEventType.ERROR ?? 'error', () => { settle(false); });
       ad.load();
-      // 15sn içinde yüklenmezse vazgeç
-      setTimeout(() => settle(false), 15000);
+      // Sadece YÜKLEME beklemesi için timeout: 15sn'de ad yüklenmezse vazgeç.
+      // Reklam gösterilmeye başlayınca wireAndShow bu timer'ı iptal eder, böylece
+      // uzun reklam izlenirken erken settle(false) OLMAZ.
+      loadTimer = setTimeout(() => settle(false), 15000);
     } catch (e) {
       if (__DEV__) console.warn('[Ads] rewarded show failed:', e);
       settle(false);
