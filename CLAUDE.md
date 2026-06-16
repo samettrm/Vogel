@@ -1,3 +1,5 @@
+> 🛠️ **Bu repoda bir bug çözerken [SORUN_COZME_SISTEMI.md](SORUN_COZME_SISTEMI.md) yöntemini uygula** — tahminle değil: işaretle → izle → kanıtla → kökten çöz → doğrula → denettir. (Samet'in kalıcı EMRİ.)
+
 # Vogel — Mimari & Geliştirme Rehberi
 
 Bu dosya, projede çalışacak her Claude oturumunun (ya da insan geliştiricinin) hızlıca konuya hakim olması için yazılmıştır. **Operasyonel pipeline detayları için [AGENTS.md](AGENTS.md)'ye bak** (Codemagic, EAS, signing, çıktı al komutları). Burası **mimari + state + konvansiyon** kaynağıdır.
