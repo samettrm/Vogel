@@ -22,6 +22,7 @@ import { useAuthStore } from '../src/store/useAuthStore';
 import { TERMS_OF_USE_URL } from '../src/config/legal';
 import { openExternalUrl } from '../src/utils/openExternalUrl';
 import { findLanguagePair } from '../src/config/languagePairs';
+import { isAdminUser } from '../src/config/admin';
 
 // ════════════════════════════════════════════════════════════════
 // SETTINGS SCREEN
@@ -240,6 +241,23 @@ export default function SettingsScreen() {
               description={t('settings.deleteAccountDesc')}
               destructive
               onPress={() => router.push('/account-delete')}
+            />
+          </Section>
+        ) : null}
+
+        {/* YÖNETİM — yalnızca allowlist'teki hesapta görünür.
+            Bu koşul GİZLEME amaçlıdır, güvenlik değil: gerçek kapı
+            getAdminStats callable'ının içindedir (bkz. src/config/admin.ts). */}
+        {isAdminUser(user) ? (
+          <Section title={t('settings.sectionAdmin')} index={8} c={c}>
+            <LinkRow
+              c={c}
+              icon="speedometer"
+              tone={c.neon}
+              toneBg={c.neonBg}
+              label={t('settings.adminPanel')}
+              description={t('settings.adminPanelDesc')}
+              onPress={() => router.push('/yonetim')}
             />
           </Section>
         ) : null}

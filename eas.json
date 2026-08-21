@@ -71,9 +71,10 @@
     "production": {
       "ios": {
         "language": "tr-TR",
-        "appleId": "sametrme@gmail.com",
+        "appleId": "termeumit@gmail.com",
         "ascAppId": "6771534635",
-        "bundleIdentifier": "com.yenipc002.Vogel"
+        "bundleIdentifier": "com.yenipc002.Vogel",
+        "appleTeamId": "NJA9MF2TQK"
       }
     }
   }

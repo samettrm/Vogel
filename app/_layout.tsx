@@ -26,6 +26,7 @@ import { preloadAllSounds } from '../src/utils/sounds';
 import { SENTRY_DSN } from '../src/config/sentry';
 import { initPurchases, logInToRevenueCat, logOutFromRevenueCat, getActivePlanId } from '../src/services/purchases';
 import { initMobileAds, requestTrackingPermission } from '../src/services/ads';
+import { recordPresence } from '../src/services/presence';
 import { subscribeToAuthState } from '../src/services/auth';
 import { downloadAndReplaceProgress, uploadProgress } from '../src/services/sync';
 import { isFirebaseConfigured } from '../src/config/firebase';
@@ -258,6 +259,8 @@ function RootLayout() {
         <SmartReminderRefresher />
         {/* 💎 Premium senkronizasyonu — RC entitlement'ı store'a yazar */}
         <PremiumSyncer />
+        {/* 🌍 Ülke/cihaz + "şu an online" kaydı — yönetim paneli beslemesi */}
+        <PresenceTracker />
         {/* 👨‍👩‍👧 Family senkronizasyonu — Firestore family doc + familyRef listener'lar */}
         <FamilySyncer />
         {/* 🔗 Deep link handler — vogel://invite/<code> yakalama */}
@@ -542,6 +545,46 @@ function VerifyEmailGuard() {
 // Bu sayede kullanıcılar telefon değişimi + ağ yokken yanlışlıkla
 // premium'dan çıkarılmaz. Kasıtlı iptal → RC kesin "false" döner → güncellenir.
 // ════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// PresenceTracker — "şu an online" + ülke/cihaz beslemesi
+//
+// Yönetim panelindeki aktiflik sayıları önceden /data/progress.updatedAt'e
+// bakıyordu; o ise yalnızca DERS BİTİNCE yazılıyor. Uygulamayı açıp ders
+// yapmayan kullanıcı hiç görünmüyordu. Bu bileşen giriş anında ve uygulama
+// her öne geldiğinde kayıt atar.
+//
+// Kısıtlama (throttle): en fazla 2 dakikada bir yazar. Kullanıcı uygulamayı
+// arka plana alıp geri açtıkça Firestore'a gereksiz yazma maliyeti çıkmasın.
+// ════════════════════════════════════════════════════════════════
+function PresenceTracker() {
+  const user = useAuthStore((s) => s.user);
+  const lastWriteRef = useRef(0);
+
+  const ping = useCallback(() => {
+    const uid = user?.uid;
+    if (!uid) return;
+    const now = Date.now();
+    if (now - lastWriteRef.current < 2 * 60 * 1000) return;
+    lastWriteRef.current = now;
+    recordPresence(uid).catch(() => {});
+  }, [user?.uid]);
+
+  // Giriş yapıldığında / uygulama açıldığında bir kez
+  useEffect(() => {
+    ping();
+  }, [ping]);
+
+  // Arka plandan öne dönünce
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') ping();
+    });
+    return () => sub.remove();
+  }, [ping]);
+
+  return null;
+}
+
 function PremiumSyncer() {
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const setPremium = useUserStore((s) => s.setPremium);

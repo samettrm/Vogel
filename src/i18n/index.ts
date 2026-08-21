@@ -162,6 +162,96 @@ export const messages = {
       tr: 'Hesabını ve tüm verilerini kalıcı olarak sil',
       en: 'Permanently delete your account and all data',
     },
+    sectionAdmin: { tr: 'Yönetim', en: 'Administration' },
+    adminPanel: { tr: 'Yönetim Paneli', en: 'Admin Panel' },
+    adminPanelDesc: {
+      tr: 'Kullanıcı, XP ve abonelik istatistikleri',
+      en: 'User, XP and subscription statistics',
+    },
+  },
+
+  // Yönetim paneli (salt okunur) — ham operasyonel veri, uygulama içi ilerleme YOK
+  admin: {
+    title: { tr: 'Yönetim', en: 'Administration' },
+    updatedAt: { tr: 'Güncellendi {time}', en: 'Updated {time}' },
+    loading: { tr: 'Veriler toplanıyor...', en: 'Collecting data...' },
+    deniedTitle: { tr: 'Yetkiniz yok', en: 'Not authorized' },
+    deniedBody: {
+      tr: 'Bu ekran yalnızca yönetici hesabına açıktır.',
+      en: 'This screen is restricted to the administrator account.',
+    },
+    errorTitle: { tr: 'Veriler alınamadı', en: 'Could not load data' },
+    retry: { tr: 'Tekrar dene', en: 'Try again' },
+    cappedWarning: {
+      tr: 'Veri tavana takıldı — sayılar gerçeğin altında olabilir.',
+      en: 'Data cap reached — figures may be lower than actual.',
+    },
+
+    secNow: { tr: 'ŞU AN', en: 'RIGHT NOW' },
+    online: { tr: 'online (5 dk)', en: 'online (5 min)' },
+    lastHour: { tr: 'son 1 saat', en: 'last hour' },
+
+    secActive: { tr: 'AKTİF KULLANAN KİŞİ', en: 'ACTIVE PEOPLE' },
+    d1: { tr: '24 saat', en: '24 hours' },
+    d7: { tr: '7 gün', en: '7 days' },
+    d30: { tr: '30 gün', en: '30 days' },
+
+    secReach: { tr: 'KİŞİ VE CİHAZ', en: 'PEOPLE AND DEVICES' },
+    people: { tr: 'uygulamayı açan kişi', en: 'people who opened the app' },
+    installs: { tr: 'cihaz kurulumu', en: 'device installs' },
+    accounts: { tr: 'kayıtlı hesap', en: 'registered accounts' },
+    newAccounts7d: { tr: 'yeni hesap (7 gün)', en: 'new accounts (7d)' },
+    newAccounts30d: { tr: 'yeni hesap (30 gün)', en: 'new accounts (30d)' },
+    reachNote: {
+      tr: 'Uygulamayı tekrar tekrar açmak bu sayıları ARTIRMAZ — her kurulum için tek satır tutulur, yeniden açmak yalnızca son görülme zamanını tazeler. Ama her YENİ KURULUM yeni bir cihaz sayılır; bu yüzden cihaz sayısı kişi sayısından büyük olabilir (test kurulumları da buna dahildir).',
+      en: 'Reopening the app does NOT increase these numbers — one row per install, reopening only refreshes last-seen. But every NEW INSTALL counts as a new device, so device count can exceed people count (test installs included).',
+    },
+
+    secPremium: { tr: 'PREMIUM', en: 'PREMIUM' },
+    premiumPeople: { tr: 'premium hesap', en: 'premium accounts' },
+    familyMembers: { tr: 'aile üyesi', en: 'family members' },
+    lifetime: { tr: 'ömür boyu', en: 'lifetime' },
+    premiumNote: {
+      tr: 'Bunlar uygulamanın gördüğü premium durumudur. Satın alma adedi, gelir ve iade rakamları için RevenueCat ve App Store Connect esastır.',
+      en: 'This is premium status as the app sees it. RevenueCat and App Store Connect are authoritative for purchase counts, revenue and refunds.',
+    },
+
+    secPurchases: { tr: 'SATIN ALMALAR', en: 'PURCHASES' },
+    buyers: { tr: 'satın alan kişi', en: 'paying customers' },
+    firstPurchases: { tr: 'ilk satın alma', en: 'first purchases' },
+    renewals: { tr: 'yenileme', en: 'renewals' },
+    churn: { tr: 'iptal / süre dolumu', en: 'cancelled / expired' },
+    purchasesLast30d: { tr: 'son 30 gün', en: 'last 30 days' },
+    sandbox: { tr: 'test (sandbox)', en: 'sandbox' },
+    purchasesEmpty: {
+      tr: 'Satın alma kaydı henüz başlamadı. Buradaki sayılar yalnızca güncellenmiş webhook canlıya alındıktan SONRAKİ satın almaları kapsar; geçmiş satışlar için RevenueCat ve App Store Connect esastır.',
+      en: 'Purchase tracking has not started yet. These figures cover only purchases made AFTER the updated webhook went live; use RevenueCat and App Store Connect for past sales.',
+    },
+
+    secDeviceType: { tr: 'CİHAZ TÜRÜ', en: 'DEVICE TYPE' },
+    secCountries: { tr: 'ÜLKELER', en: 'COUNTRIES' },
+    secModels: { tr: 'MODELLER', en: 'MODELS' },
+    secProviders: { tr: 'GİRİŞ YÖNTEMİ', en: 'SIGN-IN METHOD' },
+    countryLine: {
+      tr: '{online} online · {today} bugün · {devices} cihaz',
+      en: '{online} online · {today} today · {devices} devices',
+    },
+    noData: {
+      tr: 'Henüz veri yok. Kullanıcılar bu sürümü açtıkça dolmaya başlar.',
+      en: 'No data yet. It fills in as users open this version.',
+    },
+
+    secDownloads: { tr: 'İNDİRMELER', en: 'DOWNLOADS' },
+    downloadsPending: {
+      tr: 'İndirme sayısı yalnızca App Store ve Google Play sunucularında bulunur; uygulamanın veritabanında yoktur. Mağaza rapor bağlantısı kurulunca burada görünecek.',
+      en: 'Download counts live only on App Store and Google Play servers, not in the app database. They will appear once store reporting is connected.',
+    },
+
+    secSession: { tr: 'OTURUM', en: 'SESSION' },
+    readOnlyNote: {
+      tr: 'Bu panel salt okunurdur; hiçbir veriyi değiştirmez.',
+      en: 'This panel is read-only; it never modifies data.',
+    },
   },
 
   // Hesap silme ekranı — Apple 5.1.1(v)
