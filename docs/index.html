@@ -1,9 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Vogel</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vogel — German Learning App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0F172A;
+      color: #E2E8F0;
+      line-height: 1.7;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 680px; margin: 0 auto; }
+    .logo { font-size: 2rem; font-weight: 800; color: #A78BFA; margin-bottom: 0.25rem; }
+    .subtitle { color: #94A3B8; font-size: 0.95rem; margin-bottom: 2.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 700; color: #F1F5F9; margin-bottom: 0.5rem; }
+    .updated { font-size: 0.85rem; color: #64748B; margin-bottom: 2rem; }
+    .section {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .section h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #C4B5FD;
+      margin-bottom: 0.6rem;
+    }
+    .section p {
+      font-size: 0.93rem;
+      color: #CBD5E1;
+    }
+    .section ul { padding-left: 1.2rem; margin-top: 0.4rem; }
+    .section li { font-size: 0.93rem; color: #CBD5E1; margin-bottom: 0.2rem; }
+    .contact a { color: #A78BFA; text-decoration: none; }
+    footer { margin-top: 3rem; text-align: center; font-size: 0.8rem; color: #475569; }
+
+    @media (prefers-color-scheme: light) {
+      body { background: #F8FAFC; color: #1E293B; }
+      .logo { color: #7C3AED; }
+      h1 { color: #0F172A; }
+      .section { background: #FFFFFF; border-color: #E2E8F0; }
+      .section h2 { color: #6D28D9; }
+      .section p, .section li { color: #334155; }
+      .contact a { color: #7C3AED; }
+      .updated, footer { color: #94A3B8; }
+    }
+  </style>
 </head>
 <body>
-    Vogel Language Lessons
+  <div class="container">
+    <div class="logo">🐦 Vogel</div>
+    <div class="subtitle">Almanca öğrenme uygulaması · German learning app</div>
+
+    <h1>Vogel: Language Lessons</h1>
+    <p class="updated">Türkçe konuşanlar için A1–C1 Almanca · A1–C1 German for Turkish speakers</p>
+
+    <div class="section">
+      <h2>Uygulama hakkında</h2>
+      <p>Vogel, Almancayı adım adım öğreten oyunlaştırılmış bir dil uygulamasıdır. Kısa dersler, günlük seriler, tekrar merkezi ve Goethe · TELC sınav hazırlığı içerir.</p>
+      <p style="margin-top:.6rem">Vogel is a gamified app that teaches German step by step: short lessons, daily streaks, a spaced-repetition review centre and Goethe · TELC exam practice.</p>
+    </div>
+
+    <div class="section">
+      <h2>Destek · Support</h2>
+      <p>Sorularınız ve teknik destek için: <a href="support.html">Destek sayfası</a> · <a href="mailto:bsdigitalapp@gmail.com">bsdigitalapp@gmail.com</a></p>
+    </div>
+
+    <div class="section contact">
+      <h2>Yasal · Legal</h2>
+      <p>
+        <a href="privacy.html">Gizlilik Politikası / Privacy Policy</a><br>
+        <a href="terms.html">Kullanım Koşulları / Terms of Use</a><br>
+        <a href="account-deletion.html">Hesap Silme / Delete Account</a>
+      </p>
+    </div>
+
+    <footer>© 2026 Vogel · BUSATER YAZILIM ANONİM ŞİRKETİ</footer>
+  </div>
 </body>
 </html>
