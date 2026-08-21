@@ -35,6 +35,14 @@ interface RCEvent {
   type?: string;
   expiration_at_ms?: number | null;
   environment?: 'PRODUCTION' | 'SANDBOX';
+  // ─── Satın alma kaydı için (yönetim paneli) ───
+  id?: string;
+  event_timestamp_ms?: number;
+  store?: string;              // APP_STORE | PLAY_STORE | ...
+  country_code?: string;       // mağazanın bildirdiği ülke
+  price_in_purchased_currency?: number;
+  currency?: string;
+  period_type?: string;        // NORMAL | TRIAL | INTRO
   // Diğer field'lar göz ardı edilir
 }
 
@@ -75,6 +83,14 @@ export const rcWebhook = onRequest(
       res.status(400).send('Bad Request');
       return;
     }
+
+    // ─── Satın alma kaydı (TÜM ürünler) ────────────────────────────
+    // Yönetim paneli "kaç kişi satın almış" sayısını buradan okur.
+    // Family kısayolundan ÖNCE çalışır, yoksa aylık/yıllık satın almalar
+    // hiç kaydedilmezdi (eski davranış buydu).
+    // Idempotent: RC event id'si doküman kimliği olarak kullanılır, aynı
+    // webhook iki kez gelirse tek kayıt kalır.
+    await recordPurchaseEvent(event);
 
     // Sadece family product'ı işle
     if (event.product_id !== FAMILY_PRODUCT_ID) {
@@ -174,3 +190,64 @@ export const rcWebhook = onRequest(
 // 6 saatte bir tarar, entitlementExpiresAt + GRACE_PERIOD_DAYS geçmiş
 // olan family'leri full delete + member purge.
 export { GRACE_PERIOD_DAYS };
+
+// ════════════════════════════════════════════════════════════════
+// recordPurchaseEvent — /purchases/{eventId}
+//
+// Panelin satın alma sayıları ve ülke kırılımı için. Yalnızca gelir
+// doğuran event tipleri kaydedilir; iptal/yenileme-hatası gibi durumlar
+// ayrı tip olarak yazılır ki "aktif abone" ile "toplam satın alma"
+// birbirine karışmasın.
+//
+// SANDBOX event'leri işaretlenir ama silinmez — test satın almaları
+// gerçek rakamları şişirmesin diye panel bunları ayıklar.
+//
+// Hata durumunda webhook'u DÜŞÜRMEZ: aile planı senkronu bu kayıttan
+// daha kritik, onu bloke etmemeli.
+// ════════════════════════════════════════════════════════════════
+async function recordPurchaseEvent(event: RCEvent): Promise<void> {
+  const REVENUE_TYPES = new Set([
+    'INITIAL_PURCHASE',
+    'RENEWAL',
+    'NON_RENEWING_PURCHASE',
+    'UNCANCELLATION',
+    'PRODUCT_CHANGE',
+  ]);
+  const CHURN_TYPES = new Set(['CANCELLATION', 'EXPIRATION', 'BILLING_ISSUE']);
+
+  const type = event.type ?? 'UNKNOWN';
+  if (!REVENUE_TYPES.has(type) && !CHURN_TYPES.has(type)) return;
+
+  try {
+    const db = getFirestore();
+    // RC event id yoksa deterministik bir anahtar üret (idempotency korunur)
+    const id =
+      event.id ??
+      `${event.app_user_id ?? 'anon'}_${type}_${event.event_timestamp_ms ?? Date.now()}`;
+
+    await db
+      .collection('purchases')
+      .doc(id)
+      .set(
+        {
+          uid: event.app_user_id ?? null,
+          productId: event.product_id ?? null,
+          type,
+          kind: REVENUE_TYPES.has(type) ? 'revenue' : 'churn',
+          store: event.store ?? null,
+          country: event.country_code ? String(event.country_code).toUpperCase() : null,
+          price: typeof event.price_in_purchased_currency === 'number'
+            ? event.price_in_purchased_currency
+            : null,
+          currency: event.currency ?? null,
+          periodType: event.period_type ?? null,
+          isSandbox: event.environment === 'SANDBOX',
+          at: event.event_timestamp_ms ?? Date.now(),
+        },
+        { merge: true },
+      );
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    logger.error('[rcWebhook] satın alma kaydedilemedi', { err: e.message });
+  }
+}

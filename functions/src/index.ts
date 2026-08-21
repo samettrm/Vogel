@@ -30,3 +30,8 @@ export { removeFamilyMember } from './family/removeFamilyMember';
 // RevenueCat webhook (HTTPS)
 // ─────────────────────────────────────────────────────────────
 export { rcWebhook } from './webhooks/rcWebhook';
+
+// ─────────────────────────────────────────────────────────────
+// Yönetim paneli (salt okunur) — allowlist: admin/config.ts
+// ─────────────────────────────────────────────────────────────
+export { getAdminStats } from './admin/getAdminStats';

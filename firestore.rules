@@ -35,6 +35,17 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // Cihaz / presence meta — yönetim paneli beslemesi
+    //
+    // Kullanıcı YALNIZCA kendi dokümanını yazar. Panel bu veriyi
+    // istemciden değil, getAdminStats callable'ı üzerinden (admin SDK)
+    // okur; bu yüzden burada okuma yetkisi genişletilmiyor.
+    // ─────────────────────────────────────────────────────────────
+    match /users/{uid}/devices/{installId} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
     // Kullanıcının kendi familyRef'i: sadece kendisi okuyabilir
     // (PremiumSyncer + FamilySyncer client-side listener)
     match /users/{uid}/familyRef/{docId} {
