@@ -16,6 +16,7 @@ import { ReviewBanner } from '../../src/components/review/ReviewBanner';
 import { ConfirmDialog } from '../../src/components/ui/ConfirmDialog';
 import { ALL_COURSES, AVAILABLE_LEVELS, getCourseByLevel, getCourseByPairAndLevel } from '../../src/data/courses';
 import { useT } from '../../src/i18n';
+import { useAdLayoutStore } from '../../src/store/useAdLayoutStore';
 import { useUserStore } from '../../src/store/useUserStore';
 import { mapNavState } from '../../src/utils/navState';
 import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
@@ -970,6 +971,9 @@ function MapScreenContent() {
     [nextLevel, c],
   );
 
+  // 📺 Sabit reklam banner'ının ölçülen yüksekliği — floating butonu yukarı iter
+  const pinnedAdHeight = useAdLayoutStore((s) => s.pinnedAdHeight);
+
   // 🚀 PERF: useMemo — makeStyles/StyleSheet.create sadece tema değiştiğinde yeniden çalışır
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -1228,6 +1232,10 @@ function MapScreenContent() {
           style={[
             styles.scrollToCurrentButton,
             {
+              // Sabit reklam banner'ı bu butonun üstüne binen bir overlay.
+              // Ölçülen yüksekliği kadar yukarı it, yoksa alt kısmı kapanıyor.
+              // Reklam yoksa (premium) değer 0 → buton eski yerinde kalır.
+              bottom: spacing.lg + pinnedAdHeight,
               opacity: buttonOpacity,
               transform: [
                 {

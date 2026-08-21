@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ALL_COURSES, AVAILABLE_LEVELS } from '../../src/data/courses';
+import { useAdLayoutStore } from '../../src/store/useAdLayoutStore';
 import { useUserStore } from '../../src/store/useUserStore';
 import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import { useT } from '../../src/i18n';
@@ -271,6 +272,9 @@ export default function LessonsScreen() {
   }, []);
 
   const hasFilters = search.length > 0 || levelFilter !== 'all' || statusFilter !== 'all';
+  // 📺 Sabit reklam banner'ının ölçülen yüksekliği — floating butonu yukarı iter
+  const pinnedAdHeight = useAdLayoutStore((s) => s.pinnedAdHeight);
+
   const styles = useMemo(() => makeStyles(c), [c]);
 
   // 🚀 PERF: renderItem'i useCallback ile stabilize et
@@ -497,6 +501,9 @@ export default function LessonsScreen() {
         style={[
           styles.scrollTopButton,
           {
+            // Sabit reklam banner'ı bu butonun üstüne binen bir overlay.
+            // Ölçülen yüksekliği kadar yukarı it, yoksa alt kısmı kapanıyor.
+            bottom: spacing.lg + pinnedAdHeight,
             opacity: scrollTopOpacity,
             transform: [
               {

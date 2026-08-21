@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useThemeColors } from '../../theme';
+import { useAdLayoutStore } from '../../store/useAdLayoutStore';
 import { AdBanner } from './AdBanner';
 
 // ════════════════════════════════════════════════════════════════
@@ -26,6 +27,7 @@ const BOTTOM_NAV_CONTENT_HEIGHT = 60;
 export function PinnedAdBanner() {
   const insets = useSafeAreaInsets();
   const c = useThemeColors();
+  const setPinnedAdHeight = useAdLayoutStore((s) => s.setPinnedAdHeight);
   const safeBottom = Math.max(insets.bottom, 6);
 
   return (
@@ -38,8 +40,14 @@ export function PinnedAdBanner() {
         bottom: safeBottom + BOTTOM_NAV_CONTENT_HEIGHT,
       }}
     >
-      {/* Opak arka plan: arkadan kayan içerik banner'ın altında temiz okunsun */}
-      <View style={{ backgroundColor: c.bg, alignItems: 'center' }}>
+      {/* Opak arka plan: arkadan kayan içerik banner'ın altında temiz okunsun.
+          onLayout → ölçülen yükseklik store'a yazılır; sağ alttaki floating
+          butonlar bu kadar yukarı kayar, yoksa banner onları örtüyordu.
+          Premium'da AdBanner null → yükseklik 0 ölçülür → buton eski yerinde. */}
+      <View
+        style={{ backgroundColor: c.bg, alignItems: 'center' }}
+        onLayout={(e) => setPinnedAdHeight(e.nativeEvent.layout.height)}
+      >
         <AdBanner />
       </View>
     </View>
