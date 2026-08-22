@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yenipc002.Vogel",
-      "buildNumber": "1",
+      "buildNumber": "53",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Konuşma alıştırmasında mikrofonla cevap verebilmek için",
         "NSSpeechRecognitionUsageDescription": "Konuşma alıştırmasında verdiğin cevabı yazıya dökmek için",

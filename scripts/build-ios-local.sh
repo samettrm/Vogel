@@ -27,7 +27,7 @@ SCHEME="VogelLanguageLessons"
 WORKSPACE="ios/VogelLanguageLessons.xcworkspace"
 BUNDLE_ID="com.yenipc002.Vogel"
 TEAM_ID="NJA9MF2TQK"                     # BUSATER YAZILIM A.S.
-ASC_APP_ID="6771534635"                  # Vogel: Language Lessons
+VOGEL_ASC_APP_ID="6771534635"            # Vogel: Language Lessons
 
 # ASC API anahtari Lexora ile ORTAK (ayni Apple takimi, ayni dagitim sertifikasi
 # — bkz. CLAUDE.md "Lexora ile ortak distribution cert"). Anahtar hesap
@@ -66,6 +66,11 @@ fi
 # ---- App Store Connect kimligi ----
 [ -f "$ASC_ENV_FILE" ] || { echo "FATAL: ASC env yok: $ASC_ENV_FILE" >&2; exit 1; }
 set -a; source "$ASC_ENV_FILE"; set +a
+# 🔴 source, dosyadaki ASC_APP_ID ile yukarida verdigimizi EZIYOR — o dosya
+# Lexora'nin. Vogel'inkini geri koyuyoruz, yoksa build numarasi YANLIS
+# uygulamadan okunur. (23 Agu 2026'da yasandi: Vogel'e Lexora'nin sirasindan
+# b53 verildi. Apple kabul etti cunku 53 > 47, ama gerekce yanlisti.)
+ASC_APP_ID="$VOGEL_ASC_APP_ID"
 [ -f "$ASC_PRIVATE_KEY_PATH" ] || { echo "FATAL: ASC .p8 yok: $ASC_PRIVATE_KEY_PATH" >&2; exit 1; }
 echo "✓ env + ASC kimligi hazir (takim: $TEAM_ID, proje: $EXPO_PUBLIC_FIREBASE_PROJECT_ID)"
 
@@ -147,10 +152,10 @@ BUNDLE_ENTRY=$(unzip -Z1 "$IPA" | grep -m1 'main.jsbundle' || true)
 set -o pipefail
 if [ -n "$BUNDLE_ENTRY" ]; then
   unzip -p "$IPA" "$BUNDLE_ENTRY" > /tmp/vogel-ios-verify.bundle 2>/dev/null || true
-  PID_HITS=$(grep -ao "$EXPO_PUBLIC_FIREBASE_PROJECT_ID" /tmp/vogel-ios-verify.bundle 2>/dev/null | wc -l | tr -d ' ')
-  RC_HITS=$(grep -aoE "appl_[A-Za-z0-9]+" /tmp/vogel-ios-verify.bundle 2>/dev/null | wc -l | tr -d ' ')
-  YENI=$(grep -aoE "ca-app-pub-2275998066828824[~/][0-9]+" /tmp/vogel-ios-verify.bundle 2>/dev/null | sort -u | wc -l | tr -d ' ')
-  ESKI=$(grep -aoE "ca-app-pub-7904978237837219[~/][0-9]+" /tmp/vogel-ios-verify.bundle 2>/dev/null | sort -u | wc -l | tr -d ' ')
+  PID_HITS=$( { grep -ao "$EXPO_PUBLIC_FIREBASE_PROJECT_ID" /tmp/vogel-ios-verify.bundle 2>/dev/null || true; } | wc -l | tr -d ' ')
+  RC_HITS=$( { grep -aoE "appl_[A-Za-z0-9]+" /tmp/vogel-ios-verify.bundle 2>/dev/null || true; } | wc -l | tr -d ' ')
+  YENI=$( { grep -aoE "ca-app-pub-2275998066828824[~/][0-9]+" /tmp/vogel-ios-verify.bundle 2>/dev/null || true; } | sort -u | wc -l | tr -d ' ')
+  ESKI=$( { grep -aoE "ca-app-pub-7904978237837219[~/][0-9]+" /tmp/vogel-ios-verify.bundle 2>/dev/null || true; } | sort -u | wc -l | tr -d ' ')
   rm -f /tmp/vogel-ios-verify.bundle
   echo "   Firebase proje kimligi : $PID_HITS"
   echo "   RevenueCat (appl_) key : $RC_HITS"
