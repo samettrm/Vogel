@@ -32,12 +32,19 @@ workflows:
       xcode: latest
       cocoapods: default
 
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
-          include: true
+    # ═══ OTOMATIK TETIK KAPATILDI — 23 Agu 2026 ═══
+    # Samet'in talimati: "localden bu macbooktan alacaksin buildleri".
+    # Bu blok acikken main'e her push CI'de ikinci bir build baslatiyordu;
+    # yerel build + upload yapilirken push edilince AYNI surum icin iki
+    # farkli build numarasi uretiliyor ve hangisinin yuklendigi karisiyor.
+    # Yerel yol: scripts/build-ios-local.sh --upload
+    # Geri acmak icin asagidaki satirlarin yorumunu kaldirmak yeterli.
+    # triggering:
+    # events:
+    # - push
+    # branch_patterns:
+    # - pattern: main
+    # include: true
 
     scripts:
       - name: Install dependencies
