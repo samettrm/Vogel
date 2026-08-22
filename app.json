@@ -95,8 +95,8 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-7904978237837219~4005235328",
-          "iosAppId": "ca-app-pub-7904978237837219~9019404228",
+          "androidAppId": "ca-app-pub-2275998066828824~8630693235",
+          "iosAppId": "ca-app-pub-2275998066828824~8095506611",
           "userTrackingUsageDescription": "Reklamların daha alakalı olması için izin verirsen, seçtiğin ilgilere göre reklam göstermemize yardımcı olur. İzin vermesen de uygulama tamamen normal çalışır."
         }
       ],

@@ -146,7 +146,7 @@ Tüm submit öncesi maddeler tamamlandı. Şu an Apple inceleme bekleniyor (24-4
 - ✅ **AuthGuard yorumlarında "3 ders" → "2 ders" tutarlılığı** (commit 7ed7de9, 2026-05-26)
 - ✅ **AdMob entegrasyonu** (Banner + Interstitial + Rewarded + ATT prompt) — commits c91a173 + cb589b8 + 6773def (2026-05-26)
   - bsdigitalapp@gmail.com hesabıyla AdMob hesabı
-  - Publisher: pub-7904978237837219
+  - Publisher: pub-2275998066828824 (BUSATER YAZILIM A.S., 22 Agu 2026)
   - Banner → lesson screen alt (free user)
   - Interstitial → ders bitince ~%33 (free user, 90sn min interval)
   - Rewarded → NoHeartsScreen "Reklam İzle, 1 Can Kazan" (free user)

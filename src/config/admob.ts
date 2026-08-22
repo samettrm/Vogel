@@ -4,7 +4,8 @@ import { Platform } from 'react-native';
 // ADMOB YAPILANDIRMASI
 //
 // Production Ad Unit ID'leri (bsdigitalapp@gmail.com AdMob hesabından).
-// Publisher ID: pub-7904978237837219
+// Publisher ID: pub-2275998066828824 — BUSATER YAZILIM A.S. kurumsal AdMob.
+// 22 Agu 2026: kisisel hesaptan (pub-7904978237837219) tasindi.
 //
 // DEV modunda (__DEV__ true) Google'ın resmi test ad unit ID'leri
 // kullanılır → gerçek impressions'a etki etmez, AdMob hesabı askıya
@@ -13,21 +14,21 @@ import { Platform } from 'react-native';
 
 // ─── PRODUCTION — gerçek gelir veren ID'ler ──────────────────────
 const PROD_BANNER = Platform.select({
-  ios:     'ca-app-pub-7904978237837219/8931774315',
-  android: 'ca-app-pub-7904978237837219/3858199581',
+  ios:     'ca-app-pub-2275998066828824/8091742384',
+  android: 'ca-app-pub-2275998066828824/7481263096',
 }) ?? '';
 
 const PROD_INTERSTITIAL = Platform.select({
-  ios:     'ca-app-pub-7904978237837219/1607818064',
-  android: 'ca-app-pub-7904978237837219/7637358576',
+  ios:     'ca-app-pub-2275998066828824/4719473586',
+  android: 'ca-app-pub-2275998066828824/1602250459',
 }) ?? '';
 
 // ⚠️ Bu birimler AdMob'da "Ödüllü geçiş reklamı" = RewardedInterstitialAd
 // formatında. Kod ads.ts'te RewardedInterstitialAd ile çağırır (RewardedAd ile
 // DEĞİL) — yoksa gerçek reklam format uyuşmazlığından no-fill verir.
 const PROD_REWARDED = Platform.select({
-  ios:     'ca-app-pub-7904978237837219/6428522603',
-  android: 'ca-app-pub-7904978237837219/2557937657',
+  ios:     'ca-app-pub-2275998066828824/9516504690',
+  android: 'ca-app-pub-2275998066828824/9404824056',
 }) ?? '';
 
 // ─── TEST — Google'ın resmi test ID'leri (her zaman fill verir) ──
