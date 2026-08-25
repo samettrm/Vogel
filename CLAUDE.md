@@ -14,7 +14,8 @@ Bu dosya, projede çalışacak her Claude oturumunun (ya da insan geliştiricini
 
 Vogel — Türkçe → Almanca yönünde Duolingo benzeri dil öğrenme uygulaması. iOS + Android hedefli, App Store/TestFlight'a yayında. Lesson map, XP/can/streak sistemi, başarımlar, günlük görevler, spaced repetition tekrar merkezi, premium abonelik (RC), Goethe/TELC sınav ekranı, **AdMob banner reklamları (premium kullanıcıda otomatik kapalı)**.
 
-- **Bundle ID:** `com.yenipc002.Vogel`
+- **Bundle ID (iOS):** `com.yenipc002.Vogel`
+- **Package (Android):** `com.busater.vogel` — 25 Ağu 2026'da `com.yenipc002.Vogel`'den taşındı (kişisel hesabın kapalı-test geçmişinden kurtulmak için Play'de sıfırdan kayıt)
 - **App version:** 1.0.2 (`app.json`)
 - **App Store Connect ID:** 6771534635
 - **Apple Team ID:** 7Q6ZYGVH67
