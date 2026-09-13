@@ -91,6 +91,8 @@ export default function ShopScreen() {
     const result = await purchasePlan(rcPackage);
     if (result.ok) {
       if (typeof makePremium === 'function') makePremium(planId);
+      const { trackFunnel } = await import('../../src/services/funnel');
+      trackFunnel('purchase.completed', { plan: planId, source: 'shop' });
       // Family planı satın alındıysa Firestore'da family doc oluştur
       if (planId === 'family') {
         const { ensureFamilyOwner } = await import('../../src/services/family');

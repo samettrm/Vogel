@@ -90,13 +90,16 @@ Premium üyelik otomatik yenilenen aboneliktir. Apple ID hesabından istediğin 
 Gizlilik Politikası: https://samettrm.github.io/Vogel/privacy.html
 Destek: https://samettrm.github.io/Vogel/support.html
 
+Vogel bağımsız bir çalışma uygulamasıdır; Goethe-Institut e.V. veya telc gGmbH ile bağlantılı, onlar tarafından desteklenen ya da onaylanan bir uygulama değildir. Goethe-Institut ve telc, ilgili sahiplerinin tescilli markalarıdır ve yalnızca hazırlanılan sınavları belirtmek için kullanılır.
+
 Viel Erfolg!
 ```
 
 **Keywords** (100 char max, virgüllerle ayrı — boşluk kullanma)
 ```
-almanca,deutsch,goethe,telc,sınav,kelime,gramer,a1,a2,b1,b2,c1,dil,öğren,sprechen
+deutsch,sınav,kelime,gramer,a1,a2,b1,b2,c1,artikel,fiil,konuşma,sprechen,telaffuz,flashcard,pratik
 ```
+> Not: `almanca`, `goethe`, `telc` başlık/alt başlıkta zaten geçtiği için Apple bunları otomatik indeksler — keyword alanında tekrarlamak yer israfıdır; boşalan yer değerli kelimelerle dolduruldu (artikel, fiil, telaffuz, flashcard).
 
 **What's New in This Version** (1.0.2)
 ```
@@ -176,13 +179,16 @@ Premium is an auto-renewable subscription. Cancel anytime in your Apple ID setti
 Privacy Policy: https://samettrm.github.io/Vogel/privacy.html
 Support: https://samettrm.github.io/Vogel/support.html
 
+Vogel is an independent study app. It is not affiliated with, endorsed by, or certified by Goethe-Institut e.V. or telc gGmbH. Goethe-Institut and telc are trademarks of their respective owners, used only to indicate the exams you can prepare for.
+
 Viel Erfolg!
 ```
 
 **Keywords** (100 char max)
 ```
-german,deutsch,goethe,telc,exam,vocabulary,grammar,a1,a2,b1,b2,c1,language,learn,speaking
+deutsch,vocabulary,grammar,a1,a2,b1,b2,c1,article,verb,speaking,sprechen,flashcards,pronunciation
 ```
+> Note: `german`, `goethe`, `telc`, `exam` already appear in the title/subtitle (auto-indexed by Apple), so they're dropped from the keyword field and the space reused for higher-value terms (article, verb, pronunciation, flashcards, cefr).
 
 **What's New in This Version** (1.0.2)
 ```

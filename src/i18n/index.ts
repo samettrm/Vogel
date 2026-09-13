@@ -868,6 +868,12 @@ export const messages = {
 
   // ── Deneme Sınavı ─────────────────────────────────────────────
   exam: {
+    // App Store 4.5.2 + marka: bağımsızlık feragati. Goethe-Institut / telc
+    // tescilli markalardır; Vogel bu kurumlarla bağlantılı/onaylı değildir.
+    independenceDisclaimer: {
+      tr: 'Vogel bağımsız bir çalışma uygulamasıdır; Goethe-Institut e.V. veya telc gGmbH ile bağlantılı, onlar tarafından desteklenen ya da onaylanan bir uygulama değildir. Goethe-Institut ve telc adları yalnızca hazırlanılan sınavları belirtmek için kullanılır ve ilgili sahiplerinin tescilli markalarıdır.',
+      en: 'Vogel is an independent study app. It is not affiliated with, endorsed by, or certified by Goethe-Institut e.V. or telc gGmbH. The names Goethe-Institut and telc are used only to indicate the exams you can prepare for and are trademarks of their respective owners.',
+    },
     title: { tr: '{level} Deneme', en: '{level} Test' },
     question: { tr: 'Soru {current} / {total}', en: 'Question {current} / {total}' },
     vocabPrompt: { tr: 'Bu kelimenin Türkçe karşılığı?', en: 'What is the Turkish meaning?' },
