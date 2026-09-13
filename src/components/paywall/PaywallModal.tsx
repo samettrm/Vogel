@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -31,23 +32,24 @@ import {
   fetchPremiumPackages,
   purchasePlan,
   isPurchasesConfigured,
+  restorePurchases,
   type PremiumPackage,
 } from '../../services/purchases';
+import { ENTITLEMENT_PREMIUM } from '../../config/revenuecat';
 import { useUserStore } from '../../store/useUserStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { trackFunnel } from '../../services/funnel';
 
 // ════════════════════════════════════════════════════════════════
-// PAYWALL MODAL — Psikolojik dönüşüm optimizasyonu
+// PAYWALL MODAL — BUSATER paywall standardı (değer anı teklifi)
 //
-// Tetikleyiciler:
-//   1. Sosyal kanıt     → "10.000+ öğrenci kullanıyor"
-//   2. Momentum rozeti  → "3. dersinizi bitirdiniz 🎉"
-//   3. Kayıp dili       → "Durmak zorunda değilsin"
-//   4. Fiyat framing    → "Günde yalnızca ₺3.3"
-//   5. Güven sinyalleri → "İptal her zaman · Güvenli ödeme"
-//   6. Buton hiyerarşi  → CTA büyük/mor/nabızsayor, dismiss küçük/soluk
+// Dürüst ama satan: görünür 44pt kapat, faturalanan tutar birincil,
+// fiyat mağazadan, Geri Yükle + EULA + Gizlilik ölçülü görünür.
+// Uydurma sosyal kanıt / sahte indirim / gömülü fiyat YOK.
 // ════════════════════════════════════════════════════════════════
+
+// Titreşim hatası kullanıcıyı etkilemez; yine de sessiz yutulmaz.
+const onHapticError = (e: unknown) => { if (__DEV__) console.warn('[paywall] haptics', e); };
 
 interface PaywallModalProps {
   visible: boolean;
@@ -72,6 +74,9 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
 
   const [packages, setPackages] = useState<PremiumPackage[] | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [priceError, setPriceError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Yıllık plan RC paketi + canlı fiyat (hardcoded fiyat YOK — App Store 3.1.2).
   const yearly = useMemo(
@@ -102,14 +107,16 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
   // Paywall görünür olunca paketleri çek + funnel event.
   useEffect(() => {
     if (!visible) return;
-    trackFunnel('paywall.viewed');
+    if (reloadKey === 0) trackFunnel('paywall.viewed');
     if (!isPurchasesConfigured()) return;
     let alive = true;
-    fetchPremiumPackages()
-      .then((pkgs) => { if (alive) setPackages(pkgs); })
-      .catch(() => {});
+    setPriceError(false);
+    fetchPremiumPackages().then(
+      (pkgs) => { if (alive) { setPackages(pkgs); setPriceError(!pkgs); } },
+      () => { if (alive) setPriceError(true); },
+    );
     return () => { alive = false; };
-  }, [visible]);
+  }, [visible, reloadKey]);
 
   // Nabız animasyonu — CTA butonu dikkat çekiyor
   const glow = useSharedValue(0.5);
@@ -137,7 +144,7 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
   // PRIMARY CTA — tek dokunuşta yıllık aboneliği başlat (en az sürtünme).
   // RC yapılandırılmamışsa / paket yoksa Shop'a düş (mağaza akışı orada).
   const handleCta = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(onHapticError);
     trackFunnel('paywall.plan_selected', { plan: 'yearly' });
 
     // Login zorunlu — premium HER ZAMAN hesaba bağlı olmalı (cihaz değişimi/restore).
@@ -161,7 +168,7 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
       if (result.ok) {
         makePremium('yearly');
         trackFunnel('purchase.completed', { plan: 'yearly', source: 'paywall' });
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(onHapticError);
         onDismiss();
       } else if (!result.cancelled && result.message) {
         Alert.alert(t('shop.purchaseFailed'), result.message);
@@ -173,24 +180,50 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
 
   // SECONDARY — tüm planları (aylık / aile) gör.
   const handleSeeAllPlans = () => {
-    Haptics.selectionAsync().catch(() => {});
+    Haptics.selectionAsync().catch(onHapticError);
     onDismiss();
     router.push('/(tabs)/shop');
   };
 
   const handleDismiss = () => {
-    Haptics.selectionAsync().catch(() => {});
+    Haptics.selectionAsync().catch(onHapticError);
     onDismiss();
+  };
+
+  // Geri Yükle — Apple 3.1.1: paywall'da gerçekten çalışan restore.
+  const handleRestore = async () => {
+    if (restoring) return;
+    if (!isPurchasesConfigured()) {
+      Alert.alert(t('shop.restoreNone'));
+      return;
+    }
+    setRestoring(true);
+    try {
+      const result = await restorePurchases();
+      if (result.ok) {
+        if (result.customerInfo.entitlements.active[ENTITLEMENT_PREMIUM] !== undefined) {
+          makePremium();
+          Alert.alert(t('shop.restoreSuccess'));
+          onDismiss();
+        } else {
+          Alert.alert(t('shop.restoreNone'));
+        }
+      } else if (!result.cancelled) {
+        Alert.alert(t('shop.restoreFailed'));
+      }
+    } finally {
+      setRestoring(false);
+    }
   };
 
   // Apple Guideline 3.1.2(c) — Privacy Policy + Terms of Use linkleri
   const handleOpenPrivacy = () => {
-    Haptics.selectionAsync().catch(() => {});
+    Haptics.selectionAsync().catch(onHapticError);
     openExternalUrl(PRIVACY_POLICY_URL, t('paywall.privacyPolicy'));
   };
 
   const handleOpenTerms = () => {
-    Haptics.selectionAsync().catch(() => {});
+    Haptics.selectionAsync().catch(onHapticError);
     openExternalUrl(TERMS_OF_USE_URL, t('paywall.termsOfUse'));
   };
 
@@ -207,6 +240,17 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
       <Pressable style={styles.backdrop} onPress={handleDismiss}>
         <Pressable style={styles.sheetWrapper} onPress={(e) => e.stopPropagation()}>
           <Animated.View entering={FadeInDown.springify().damping(18).stiffness(160)} style={styles.sheet}>
+
+            {/* KAPAT — ilk kareden görünür, 44pt dokunma alanı */}
+            <Pressable
+              onPress={handleDismiss}
+              style={styles.closeBtn}
+              accessibilityRole="button"
+              accessibilityLabel={t('paywall.close')}
+              hitSlop={8}
+            >
+              <Ionicons name="close" size={24} color={c.textMed} />
+            </Pressable>
 
             {/* ① DEĞER İMZASI — kanıtlanamayan sayı/rating YOK (ANTI-SİSTEM).
                 Gerçek ürün vaadine bağlı dürüst tek satır. */}
@@ -225,8 +269,16 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
             </Animated.Text>
             <Animated.View entering={FadeIn.delay(240).duration(300)} style={styles.subtitleRow}>
               <Text style={styles.subtitle}>Sınırsız can, tüm dersler ve sınav hazırlığı. </Text>
-              {priceText?.perMonth ? (
-                <Text style={styles.subtitleAccent}>Ayda yalnızca {priceText.perMonth}.</Text>
+              {priceText ? (
+                <Text style={styles.subtitleAccent}>
+                  {priceText.total} / yıl{priceText.perMonth ? ` (ayda ~${priceText.perMonth})` : ''}
+                </Text>
+              ) : priceError ? (
+                <Pressable onPress={() => setReloadKey((k) => k + 1)} hitSlop={12} accessibilityRole="button">
+                  <Text style={styles.subtitleAccent}>
+                    {t('paywall.priceUnavailable')} · {t('paywall.retry')}
+                  </Text>
+                </Pressable>
               ) : null}
             </Animated.View>
 
@@ -279,7 +331,7 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
               </Pressable>
             </Animated.View>
 
-            {/* ⑦ SECONDARY — tüm planlar + kapat (kasıtlı küçük ve soluk) */}
+            {/* ⑦ SECONDARY — tüm planlar + kapat (okunur, 44pt) */}
             <Animated.View entering={FadeIn.delay(500).duration(300)}>
               <Pressable onPress={handleSeeAllPlans} style={styles.dismissBtn}>
                 <Text style={styles.seeAllText}>Aylık ve aile planlarını gör</Text>
@@ -292,18 +344,24 @@ export function PaywallModal({ visible, onDismiss }: PaywallModalProps) {
             {/* ⑧ LEGAL — Apple Guideline 3.1.2(c) gereği abonelik akışında zorunlu.
                 Otomatik yenileme açıklaması + Privacy/EULA linkleri. */}
             <Animated.View entering={FadeIn.delay(560).duration(300)} style={styles.legalBlock}>
-              <Text style={styles.legalNotice}>{t('paywall.legalNotice')}</Text>
+              <Text style={styles.legalNotice}>
+                {Platform.OS === 'android' ? t('paywall.legalNoticeAndroid') : t('paywall.legalNotice')}
+              </Text>
               <View style={styles.legalLinksRow}>
-                <Pressable onPress={handleOpenTerms} hitSlop={10} accessibilityRole="link">
+                <Pressable onPress={handleOpenTerms} hitSlop={12} accessibilityRole="link">
                   <Text style={styles.legalLink}>{t('paywall.termsOfUse')}</Text>
                 </Pressable>
                 <Text style={styles.legalDot}>·</Text>
-                <Pressable onPress={handleOpenPrivacy} hitSlop={10} accessibilityRole="link">
+                <Pressable onPress={handleOpenPrivacy} hitSlop={12} accessibilityRole="link">
                   <Text style={styles.legalLink}>{t('paywall.privacyPolicy')}</Text>
                 </Pressable>
                 <Text style={styles.legalDot}>·</Text>
-                <Pressable onPress={openManageSubscriptions} hitSlop={10} accessibilityRole="link">
+                <Pressable onPress={openManageSubscriptions} hitSlop={12} accessibilityRole="link">
                   <Text style={styles.legalLink}>{t('paywall.manageSubscription')}</Text>
+                </Pressable>
+                <Text style={styles.legalDot}>·</Text>
+                <Pressable onPress={handleRestore} disabled={restoring} hitSlop={12} accessibilityRole="button">
+                  <Text style={styles.legalLink}>{restoring ? '…' : t('paywall.restore')}</Text>
                 </Pressable>
               </View>
             </Animated.View>
@@ -412,9 +470,13 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     ctaTitle: { ...textStyles.button, color: c.white, fontSize: 16 },
     ctaSub: { ...textStyles.body, color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 1 },
 
-    // ⑦ Dismiss — kasıtlı küçük
-    dismissBtn: { alignItems: 'center', paddingVertical: spacing.sm },
-    dismissText: { ...textStyles.body, color: c.textLow, fontSize: 12 },
+    // ⑦ Dismiss — okunur kontrast, 44pt dokunma alanı
+    dismissBtn: { alignItems: 'center', justifyContent: 'center', minHeight: 44 },
+    dismissText: { ...textStyles.body, color: c.textMed, fontSize: 14 },
+    closeBtn: {
+      position: 'absolute', top: spacing.sm, right: spacing.sm, zIndex: 2,
+      width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
+    },
     seeAllText: { ...textStyles.bodyBold, color: c.purpleLight, fontSize: 13 },
 
     // ⑧ Legal — Apple 3.1.2(c) zorunlu blok
@@ -443,7 +505,7 @@ function makeStyles(c: ReturnType<typeof useThemeColors>) {
     legalLink: {
       ...textStyles.body,
       color: c.textHigh,
-      fontSize: 13,
+      fontSize: 14,
       fontWeight: '600',
       textDecorationLine: 'underline',
     },

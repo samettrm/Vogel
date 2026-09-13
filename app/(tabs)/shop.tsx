@@ -60,7 +60,7 @@ export default function ShopScreen() {
 
   useEffect(() => {
     if (!isPurchasesConfigured()) return;
-    fetchPremiumPackages().then(setPremiumPackages).catch(() => {});
+    fetchPremiumPackages().then(setPremiumPackages, () => setPremiumPackages(null));
   }, []);
 
   // ─── Premium plan satın alma ─────────────────────────────────────
@@ -84,8 +84,14 @@ export default function ShopScreen() {
       return;
     }
 
+    // 🔒 ALTIN KURAL: premium YALNIZ doğrulanmış mağaza işlemiyle verilir.
+    // Eskiden paketler yüklenemezse (ör. ağ hatası) premium ÜCRETSİZ veriliyordu.
     if (!isPurchasesConfigured() || !rcPackage) {
-      if (typeof makePremium === 'function') makePremium(planId);
+      if (__DEV__ && !isPurchasesConfigured() && typeof makePremium === 'function') {
+        makePremium(planId); // yalnız geliştirici mock modu
+        return;
+      }
+      Alert.alert(t('shop.priceUnavailable'));
       return;
     }
     const result = await purchasePlan(rcPackage);
@@ -96,7 +102,7 @@ export default function ShopScreen() {
       // Family planı satın alındıysa Firestore'da family doc oluştur
       if (planId === 'family') {
         const { ensureFamilyOwner } = await import('../../src/services/family');
-        ensureFamilyOwner().catch(() => {});
+        ensureFamilyOwner().catch((e) => { if (__DEV__) console.warn('[shop] ensureFamilyOwner', e); });
       }
     } else if (!result.cancelled && result.message) {
       Alert.alert(t('shop.purchaseFailed'), result.message);
@@ -180,12 +186,12 @@ export default function ShopScreen() {
 
           {/* ── YASAL — Apple Guideline 3.1.2(c) gereği abonelik akışında zorunlu ── */}
           <Text style={styles.legalNotice}>
-            {t('shop.legalNotice')}
+            {Platform.OS === 'android' ? t('shop.legalNoticeAndroid') : t('shop.legalNotice')}
           </Text>
           <View style={styles.legalLinksRow}>
             <TouchableOpacity
               onPress={() => openExternalUrl(TERMS_OF_USE_URL, t('shop.termsOfUse'))}
-              hitSlop={10}
+              hitSlop={12}
               accessibilityRole="link"
             >
               <Text style={styles.legalLink}>{t('shop.termsOfUse')}</Text>
@@ -193,7 +199,7 @@ export default function ShopScreen() {
             <Text style={styles.legalDot}>·</Text>
             <TouchableOpacity
               onPress={() => openExternalUrl(PRIVACY_POLICY_URL, t('shop.privacyPolicy'))}
-              hitSlop={10}
+              hitSlop={12}
               accessibilityRole="link"
             >
               <Text style={styles.legalLink}>{t('shop.privacyPolicy')}</Text>
@@ -202,7 +208,7 @@ export default function ShopScreen() {
             {/* Apple Guideline 3.1.2(b) — Aboneliği Yönet linki */}
             <TouchableOpacity
               onPress={openManageSubscriptions}
-              hitSlop={10}
+              hitSlop={12}
               accessibilityRole="link"
             >
               <Text style={styles.legalLink}>{t('shop.manageSubscription')}</Text>
@@ -210,7 +216,7 @@ export default function ShopScreen() {
           </View>
 
           {/* Yalnızca mock modda göster */}
-          {!isPurchasesConfigured() ? (
+          {__DEV__ && !isPurchasesConfigured() ? (
             <View style={styles.mockNote}>
               <Ionicons name="flask-outline" size={12} color="rgba(168,85,247,0.5)" />
               <Text style={styles.mockText}>Geliştirici modu — gerçek ödeme yok</Text>
@@ -247,12 +253,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingVertical: 6,
+    minHeight: 44,
     paddingHorizontal: 12,
   },
   restoreText: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.28)',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
     fontWeight: '500',
   },
   cancelText: {
@@ -288,7 +294,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   legalLink: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: 'rgba(255,255,255,0.92)',
     textDecorationLine: 'underline',
