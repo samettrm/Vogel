@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 //
 // Production Ad Unit ID'leri (bsdigitalapp@gmail.com AdMob hesabından).
 // Publisher ID: pub-2275998066828824 — BUSATER YAZILIM A.S. kurumsal AdMob.
-// 22 Agu 2026: kisisel hesaptan (pub-7904978237837219) tasindi.
+// 22 Agu 2026: eski kisisel hesaptan tasindi.
 //
 // DEV modunda (__DEV__ true) Google'ın resmi test ad unit ID'leri
 // kullanılır → gerçek impressions'a etki etmez, AdMob hesabı askıya
