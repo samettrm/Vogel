@@ -82,7 +82,7 @@ LATEST=$("$ASC_CLI" get-latest-build-number "$ASC_APP_ID" \
   --issuer-id "$ASC_ISSUER_ID" --key-id "$ASC_KEY_ID" \
   --private-key "@file:$ASC_PRIVATE_KEY_PATH" 2>/dev/null | tail -1 | tr -dc '0-9')
 [ -n "$LATEST" ] || { echo "FATAL: ASC'den build numarasi okunamadi." >&2; exit 1; }
-NEXT=$((LATEST + 1))
+NEXT=${VOGEL_BUILD_NUMBER:-$((LATEST + 1))}
 node - "$NEXT" <<'NODE'
 const fs = require("fs");
 const next = process.argv[2];
