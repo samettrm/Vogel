@@ -67,8 +67,9 @@ Start your German journey today — Viel Erfolg! 🐦
 
 ### Keywords (100 chars, comma-separated — spaces after commas count!)
 ```
-german,learn,deutsch,language,lessons,vocabulary,grammar,pronunciation,A1,A2,B1,B2,C1
+deutsch,vocabulary,grammar,a1,a2,b1,b2,c1,article,verb,speaking,sprechen,flashcards,pronunciation
 ```
+> `german`, `goethe`, `telc`, `exam` başlık/alt başlıkta geçtiği için keyword'den çıkarıldı (Apple otomatik indeksler). Bağımsızlık feragati (App Store 4.5.2) uygulama içi Sınav ekranında + [STORE_LISTING.md](STORE_LISTING.md) açıklamasında bulunur.
 
 ### Support URL
 ```
@@ -142,7 +143,7 @@ Almanca yolculuğuna başla — Viel Erfolg! 🐦
 
 ### Keywords (TR)
 ```
-almanca,öğren,dil,dersler,kelime,gramer,telaffuz,A1,A2,B1,B2,C1,goethe,telc
+deutsch,sınav,kelime,gramer,a1,a2,b1,b2,c1,artikel,fiil,konuşma,sprechen,telaffuz,flashcard,pratik
 ```
 
 ---

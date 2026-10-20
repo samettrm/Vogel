@@ -14,6 +14,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AdBanner } from '../../src/components/ads/AdBanner';
 import { showInterstitialAd } from '../../src/services/ads';
+import { trackFunnel } from '../../src/services/funnel';
 import { FillBlankExercise } from '../../src/components/exercises/FillBlankExercise';
 import { ListenExercise } from '../../src/components/exercises/ListenExercise';
 import { MatchPairsExercise } from '../../src/components/exercises/MatchPairsExercise';
@@ -435,6 +436,8 @@ export default function LessonScreen() {
   const completedLessons = useUserStore((s) => s.completedLessons);
   const completedLessonsSize = useUserStore((s) => s.completedLessons.size);
   const isPremium = useUserStore((s) => (s as { isPremium?: boolean }).isPremium ?? false);
+  const paywallSeen = useUserStore((s) => (s as { paywallSeen?: boolean }).paywallSeen ?? false);
+  const markPaywallSeen = useUserStore((s) => s.markPaywallSeen);
   const lessonExerciseProgress = useUserStore((s) => s.lessonExerciseProgress);
   const checkAndUnlockAchievements = useUserStore((s) => s.checkAndUnlockAchievements);
   // (Level-up sistemi kaldırıldı — amaca yönelik sadeleştirme)
@@ -630,14 +633,25 @@ export default function LessonScreen() {
     dispatch({ type: 'FINISH_LESSON', isUnitComplete: unitJustCompleted });
     actionLockRef.current = false;
 
-    // 💎 Paywall: 3. ders tamamlandığında free kullanıcıya bir kez göster
-    if (!isPremium && allCorrect) {
-      const newSize = completedLessonsSize + 1;
-      if (newSize === 3) {
+    // 💎 DEĞER-ÖNCE YUMUŞAK PAYWALL:
+    // Kullanıcı ilk "öğreniyorum" hazzını yaşadıktan SONRA (≥2 ders bitince),
+    // dersi kusursuz bitirsin ya da bitirmesin, bir kez gösterilir.
+    // `paywallSeen` persist edildiği için otomatik olarak tekrar açılmaz —
+    // eski `allCorrect` şartı huniden düşen kullanıcıların paywall'ı hiç
+    // görmemesine yol açıyordu (dönüşüm sızıntısı).
+    const newSize = completedLessonsSize + 1;
+
+    // 📊 Funnel: her ders bitişi + ilk aktivasyon anı (value.activated).
+    trackFunnel('lesson.completed');
+    if (newSize >= 2) trackFunnel('value.activated');
+
+    if (!isPremium && !paywallSeen) {
+      if (newSize >= 2) {
+        markPaywallSeen();
         setTimeout(() => setShowPaywall(true), 1200);
       }
     }
-  }, [lesson, lessonCourseId, completeLesson, incrementQuestProgress, registerStudySession, checkAndUnlockAchievements, state.wrongCount, isPremium, completedLessonsSize]);
+  }, [lesson, lessonCourseId, completeLesson, incrementQuestProgress, registerStudySession, checkAndUnlockAchievements, state.wrongCount, isPremium, paywallSeen, markPaywallSeen, completedLessonsSize]);
 
   const checkAnswer = useCallback(() => {
     if (!lesson || !currentExercise || !canCheck || isAnswered || actionLockRef.current) return;

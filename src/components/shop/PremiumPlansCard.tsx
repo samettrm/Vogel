@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Alert,
   Dimensions,
@@ -40,9 +40,6 @@ interface PlanDef {
   id: PlanId;
   label: string;
   sublabel?: string;
-  price: string;
-  perMonth: string;
-  savings?: string;
   badgeText: string;
   badgeColor: string;
 }
@@ -51,9 +48,6 @@ const PLANS: PlanDef[] = [
   {
     id: 'yearly',
     label: '12 Aylık',
-    price: '₺999,99',
-    perMonth: '₺83,33 / ay',
-    savings: '%58',
     badgeText: '⭐ En Popüler',
     badgeColor: '#a855f7',
   },
@@ -61,16 +55,12 @@ const PLANS: PlanDef[] = [
     id: 'family',
     label: 'Aile Planı',
     sublabel: '2–6 üye',
-    price: '₺1.499,99',
-    perMonth: '₺124,99 / ay',
     badgeText: '👨‍👩‍👧 Aile',
     badgeColor: '#3b82f6',
   },
   {
     id: 'monthly',
     label: 'Aylık',
-    price: '₺199',
-    perMonth: '/ ay',
     badgeText: 'Aylık',
     badgeColor: '#64748b',
   },
@@ -156,6 +146,33 @@ export function PremiumPlansCard({
   const [showFamilyGuide, setShowFamilyGuide] = useState(false);
   const activePlanId = useUserStore((s) => s.activePlanId);
 
+  // Canlı mağaza fiyatları — gömülü fiyat YOK (App Store 3.1.2, BUSATER paywall standardı).
+  // Tasarruf yüzdesi yalnız iki fiyat da mağazadan gelir ve para birimi aynıysa gösterilir.
+  const live = useMemo(() => {
+    const byId = (id: PlanId) => packages?.find((p) => p.id === id)?.rcPackage?.product ?? null;
+    const perMonthOf = (price: number, priceString: string) => {
+      const symbol = priceString.match(/^[^\d.,\s]+/)?.[0] ?? '';
+      return `${symbol}${(price / 12).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} / ay`;
+    };
+    const monthly = byId('monthly');
+    const out = {} as Record<PlanId, { total: string; perMonth: string; savings: string | null } | null>;
+    (['yearly', 'family', 'monthly'] as PlanId[]).forEach((id) => {
+      const prod = byId(id);
+      if (!prod) { out[id] = null; return; }
+      let savings: string | null = null;
+      if (id === 'yearly' && monthly && monthly.currencyCode === prod.currencyCode && monthly.price > 0) {
+        const pct = Math.round((1 - prod.price / (monthly.price * 12)) * 100);
+        if (pct > 0) savings = `%${pct}`;
+      }
+      out[id] = {
+        total: prod.priceString,
+        perMonth: id === 'monthly' ? '/ ay' : perMonthOf(prod.price, prod.priceString),
+        savings,
+      };
+    });
+    return out;
+  }, [packages]);
+
   // ─── İşleyiciler ────────────────────────────────────────────────
   const handleCardPress = (plan: PlanDef) => {
     Haptics.selectionAsync().catch(() => {});
@@ -169,11 +186,16 @@ export function PremiumPlansCard({
     }
     const plan = PLANS.find((p) => p.id === selectedId)!;
     const rcPkg = packages?.find((p) => p.id === selectedId);
+    const price = live[plan.id];
+    if (!rcPkg || !price) {
+      Alert.alert(t('shop.priceUnavailable'));
+      return;
+    }
 
     Haptics.selectionAsync().catch(() => {});
     Alert.alert(
       `Vogel Plus — ${plan.label}`,
-      `${plan.price}\nOtomatik yenilenir, istediğin zaman iptal edebilirsin.`,
+      `${price.total}\nOtomatik yenilenir, istediğin zaman iptal edebilirsin.`,
       [
         { text: 'Vazgeç', style: 'cancel' },
         {
@@ -369,11 +391,11 @@ export function PremiumPlansCard({
                   styles.heroPillPrice,
                   selectedId === plan.id && styles.heroPillPriceSelected,
                 ]}>
-                  {plan.price}
+                  {live[plan.id]?.total ?? '—'}
                 </Text>
                 <Text style={styles.heroPillLabel}>{plan.label}</Text>
-                {plan.savings ? (
-                  <Text style={styles.heroPillSavings}>{plan.savings}</Text>
+                {live[plan.id]?.savings ? (
+                  <Text style={styles.heroPillSavings}>{live[plan.id]?.savings}</Text>
                 ) : null}
               </Pressable>
             ))}
@@ -440,24 +462,19 @@ export function PremiumPlansCard({
                 {plan.sublabel ? (
                   <Text style={styles.planSublabel}>  {plan.sublabel}</Text>
                 ) : null}
-                {plan.savings ? (
-                  <Text style={styles.planSavingInline}>  {plan.savings} indirim</Text>
+                {live[plan.id]?.savings ? (
+                  <Text style={styles.planSavingInline}>  {live[plan.id]?.savings} tasarruf</Text>
                 ) : null}
               </Text>
 
               {/* Toplam fiyat + üstü çizili  */}
               <Text style={[styles.planTotal, { color: isSelected ? 'rgba(255,255,255,0.45)' : 'rgba(148,163,184,0.6)' }]}>
-                {plan.id === 'yearly' ? (
-                  <Text>
-                    <Text style={styles.planStrike}>₺3.359 </Text>
-                    {plan.price}
-                  </Text>
-                ) : plan.price}
+                {live[plan.id]?.total ?? t('shop.priceUnavailable')}
               </Text>
 
               {/* Aylık fiyat */}
               <Text style={[styles.planPerMonth, { color: isSelected ? 'rgba(255,255,255,0.55)' : 'rgba(148,163,184,0.5)' }]}>
-                {plan.perMonth}
+                {live[plan.id]?.perMonth ?? ''}
               </Text>
             </Pressable>
           );

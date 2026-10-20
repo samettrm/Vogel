@@ -567,6 +567,10 @@ function PresenceTracker() {
     if (now - lastWriteRef.current < 2 * 60 * 1000) return;
     lastWriteRef.current = now;
     recordPresence(uid).catch(() => {});
+    // 📊 Funnel: hesap bağlı ilk açılış (idempotent — funnel.ts oturum guard'lı).
+    import('../src/services/funnel')
+      .then((m) => m.trackFunnel('app.first_open'))
+      .catch(() => {});
   }, [user?.uid]);
 
   // Giriş yapıldığında / uygulama açıldığında bir kez

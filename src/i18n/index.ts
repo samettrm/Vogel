@@ -412,6 +412,11 @@ export const messages = {
       tr: 'Otomatik yenilenen abonelik. Mevcut dönem bitmeden en az 24 saat önce iptal etmezsen aynı fiyattan yenilenir. Aboneliğini Ayarlar > Apple ID > Abonelikler bölümünden istediğin zaman yönetebilirsin.',
       en: 'Auto-renewing subscription. Renews at the same price unless cancelled at least 24 hours before the end of the current period. Manage your subscription anytime in Settings > Apple ID > Subscriptions.',
     },
+    legalNoticeAndroid: {
+      tr: 'Otomatik yenilenen abonelik. İptal etmediğin sürece aynı fiyattan yenilenir. Aboneliğini Google Play > Ödemeler ve abonelikler bölümünden istediğin zaman yönetebilir veya iptal edebilirsin.',
+      en: 'Auto-renewing subscription. Renews at the same price unless cancelled. Manage or cancel anytime in Google Play > Payments & subscriptions.',
+    },
+    priceUnavailable: { tr: 'Fiyat şu an alınamadı', en: 'Price unavailable right now' },
     select: { tr: 'SEÇ', en: 'SELECT' },
     perMonth: { tr: '/ay', en: '/mo' },
     perYear: { tr: '/yıl', en: '/yr' },
@@ -676,7 +681,7 @@ export const messages = {
 
   // Paywall (3. ders sonrası modal)
   paywall: {
-    badge: { tr: '🎉 3. dersinizi bitirdiniz!', en: '🎉 You finished your 3rd lesson!' },
+    badge: { tr: 'Derslerine güzel başladın', en: 'Great start on your lessons' },
     title: { tr: 'Gerçek öğrenme başlıyor', en: 'Real learning starts here' },
     subtitle: {
       tr: 'Sınırsız can, reklamsız öğrenme. Durmak yok.',
@@ -687,7 +692,10 @@ export const messages = {
     feature3: { tr: '📚  Tüm seviyelere erişim', en: '📚  Access to all levels' },
     feature4: { tr: '⚡  Öncelikli destek', en: '⚡  Priority support' },
     cta: { tr: 'VOGEL PLUS\'I GÖR', en: 'SEE VOGEL PLUS' },
-    dismiss: { tr: 'Hayır, teşekkürler', en: 'No thanks' },
+    dismiss: { tr: 'Şimdilik değil', en: 'Not now' },
+    close: { tr: 'Kapat', en: 'Close' },
+    restore: { tr: 'Geri Yükle', en: 'Restore' },
+    retry: { tr: 'Tekrar dene', en: 'Try again' },
     // Apple Guideline 3.1.2(b) — abonelik akışında zorunlu yasal linkler + manage
     termsOfUse: { tr: 'Kullanım Koşulları', en: 'Terms of Use' },
     privacyPolicy: { tr: 'Gizlilik Politikası', en: 'Privacy Policy' },
@@ -696,6 +704,11 @@ export const messages = {
       tr: 'Otomatik yenilenen abonelik. Mevcut dönem bitmeden en az 24 saat önce iptal etmezsen aynı fiyattan yenilenir. Aboneliğini Ayarlar > Apple ID > Abonelikler bölümünden istediğin zaman yönetebilirsin.',
       en: 'Auto-renewing subscription. Renews at the same price unless cancelled at least 24 hours before the end of the current period. Manage your subscription anytime in Settings > Apple ID > Subscriptions.',
     },
+    legalNoticeAndroid: {
+      tr: 'Otomatik yenilenen abonelik. İptal etmediğin sürece aynı fiyattan yenilenir. Aboneliğini Google Play > Ödemeler ve abonelikler bölümünden istediğin zaman yönetebilir veya iptal edebilirsin.',
+      en: 'Auto-renewing subscription. Renews at the same price unless cancelled. Manage or cancel anytime in Google Play > Payments & subscriptions.',
+    },
+    priceUnavailable: { tr: 'Fiyat şu an alınamadı', en: 'Price unavailable right now' },
   },
 
   // Streak Calendar
@@ -873,6 +886,12 @@ export const messages = {
 
   // ── Deneme Sınavı ─────────────────────────────────────────────
   exam: {
+    // App Store 4.5.2 + marka: bağımsızlık feragati. Goethe-Institut / telc
+    // tescilli markalardır; Vogel bu kurumlarla bağlantılı/onaylı değildir.
+    independenceDisclaimer: {
+      tr: 'Vogel bağımsız bir çalışma uygulamasıdır; Goethe-Institut e.V. veya telc gGmbH ile bağlantılı, onlar tarafından desteklenen ya da onaylanan bir uygulama değildir. Goethe-Institut ve telc adları yalnızca hazırlanılan sınavları belirtmek için kullanılır ve ilgili sahiplerinin tescilli markalarıdır.',
+      en: 'Vogel is an independent study app. It is not affiliated with, endorsed by, or certified by Goethe-Institut e.V. or telc gGmbH. The names Goethe-Institut and telc are used only to indicate the exams you can prepare for and are trademarks of their respective owners.',
+    },
     title: { tr: '{level} Deneme', en: '{level} Test' },
     question: { tr: 'Soru {current} / {total}', en: 'Question {current} / {total}' },
     vocabPrompt: { tr: 'Bu kelimenin Türkçe karşılığı?', en: 'What is the Turkish meaning?' },

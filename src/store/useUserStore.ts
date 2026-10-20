@@ -100,6 +100,10 @@ interface UserState {
   leagueEndDate: number;
   isPremium: boolean;
   activePlanId: PlanId | null;
+  // Yumuşak paywall bir kez gösterildi mi? (aha anından sonra, ders sonu).
+  // true olduktan sonra ders-sonu paywall'ı bir daha otomatik açılmaz —
+  // kullanıcı Shop'a istediği zaman kendi girebilir.
+  paywallSeen: boolean;
 
   // ONBOARDING
   // 🚨 İKİ FLAG MİMARİSİ (2026-05-30 — AI consensus):
@@ -184,6 +188,8 @@ interface UserState {
   resetReviewItems: () => void;
   checkLeagueStatus: () => void;
   makePremium: (planId?: PlanId) => void;
+  // Yumuşak paywall gösterildi olarak işaretle (bir kez otomatik açılır).
+  markPaywallSeen: () => void;
   // IAP: n adet can ekle (max'ta kesilebilir)
   addHearts: (n: number) => void;
   // IAP: RC'den gelen premium durumunu store'a yaz (app açılışı senkronizasyonu)
@@ -389,6 +395,7 @@ export const useUserStore = create<UserState>()(
       leagueEndDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
       isPremium: false,
       activePlanId: null,
+      paywallSeen: false,
       // Fresh install'da HER İKİSİ DE false → Map entry guard /onboarding'e
       // yönlendirir. completeOnboarding() çağrılınca ikisi de true yapılır
       // ve map render olur. Sonraki açılışlarda persist'ten true gelir.
@@ -661,6 +668,8 @@ export const useUserStore = create<UserState>()(
           nextHeartRefillAt: null,
         })),
 
+      markPaywallSeen: () => set({ paywallSeen: true }),
+
       addHearts: (n) =>
         set((state) => {
           const next = Math.min(state.maxHearts, state.hearts + n);
@@ -882,7 +891,7 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'vogel-user-storage',
-      version: 13,
+      version: 14,
       storage: createJSONStorage(() => AsyncStorage, {
         replacer: (_key, value) => {
           if (value instanceof Set) {
@@ -981,6 +990,7 @@ export const useUserStore = create<UserState>()(
         leagueCompetitors: state.leagueCompetitors,
         leagueEndDate: state.leagueEndDate,
         isPremium: state.isPremium,
+        paywallSeen: state.paywallSeen,
         onboardingCompleted: state.onboardingCompleted,
         hasCompletedPlacement: state.hasCompletedPlacement,
         hasEverSignedIn: state.hasEverSignedIn,

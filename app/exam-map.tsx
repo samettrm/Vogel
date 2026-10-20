@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getLevelColor, radius, shadows, spacing, textStyles, useThemeColors } from '../src/theme';
 import { ALL_COURSES } from '../src/data/courses';
 import { useUserStore } from '../src/store/useUserStore';
+import { useT } from '../src/i18n';
 import type { CEFRLevel, Lesson } from '../src/types';
 
 // ════════════════════════════════════════════════════════════════
@@ -26,6 +27,7 @@ type ExamLevel = {
 
 export default function ExamMapScreen() {
   const c = useThemeColors();
+  const t = useT();
   const completedLessons = useUserStore((s) => s.completedLessons);
   const isPremium = useUserStore((s) => s.isPremium);
   // 🎯 Aktif dil çifti — kullanıcının seçtiği dile göre sınav unit'i filtrelenir
@@ -135,6 +137,9 @@ export default function ExamMapScreen() {
             completedLessons={completedLessons}
           />
         ))}
+
+        {/* Bağımsızlık feragati — App Store 4.5.2 + marka (Goethe/telc) */}
+        <Text style={styles.disclaimer}>{t('exam.independenceDisclaimer')}</Text>
 
         <View style={{ height: spacing.xxl }} />
       </ScrollView>
@@ -264,6 +269,15 @@ function LevelCard({
 function makeStyles(c: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.bg },
+    disclaimer: {
+      ...textStyles.caption,
+      color: c.textMuted,
+      fontSize: 11,
+      lineHeight: 15,
+      textAlign: 'center',
+      paddingHorizontal: spacing.base,
+      marginTop: spacing.lg,
+    },
 
     // ── Premium gate overlay ──────────────────────────────────────
     premiumGate: {

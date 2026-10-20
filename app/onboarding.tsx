@@ -26,6 +26,23 @@ import {
   type MotivationMeta,
 } from '../src/services/personalization';
 import type { CEFRLevel, LearningMotivation } from '../src/types';
+import { getCourseById } from '../src/data/courses';
+
+// DEĞER-ÖNCE (İlke 1): onboarding biter bitmez kullanıcıyı ilk derse düşür ki
+// "öğreniyorum" hazzını (aha anı) HEMEN yaşasın — haritada kendi başına derse
+// tıklamasını beklemeyiz. Çözülemezse haritaya (/) düş.
+function firstLessonRoute(level: CEFRLevel): string {
+  try {
+    const course = getCourseById(`tr-de-${level.toLowerCase()}`);
+    if (!course) return '/';
+    const unit =
+      course.units.find((u) => !(u.tags?.includes('exam') ?? false)) ?? course.units[0];
+    const lessonId = unit?.lessons?.[0]?.id;
+    return lessonId ? `/lesson/${lessonId}` : '/';
+  } catch {
+    return '/';
+  }
+}
 
 // ════════════════════════════════════════════════════════════════
 // ONBOARDING — 6 ADIMLI KİŞİSELLEŞTİRİLMİŞ AKIŞ
@@ -153,7 +170,8 @@ export default function OnboardingScreen() {
     setSelectedLevel(startingLevel);
     // 🔐 Keychain marker — iCloud restore senaryosunda onboarding "gerçek" yapıldığının kanıtı
     markOnboardingComplete().catch(() => {});
-    router.replace('/');
+    // 🎯 Aha anı: doğrudan ilk derse gir (map yerine).
+    router.replace(firstLessonRoute(startingLevel) as never);
   };
 
   // Atla — herhangi bir adımdan
