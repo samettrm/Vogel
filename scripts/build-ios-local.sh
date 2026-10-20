@@ -97,6 +97,16 @@ echo "   surum: $VER ($NEXT)   [ASC son: $LATEST]"
 echo "▶ [2/6] prebuild (ios, clean)…"
 npx expo prebuild --platform ios --clean --no-install
 
+# Xcode 16+ (bu makinede 27) 15.0 alti pod hedeflerini HATA sayiyor; tum pod
+# target'lari 15.1'e cekilir (Lexora patch-ios-podfile.mjs ile ayni duzeltme, 20-10-2026).
+node -e '
+const fs=require("fs");const f="ios/Podfile";let s=fs.readFileSync(f,"utf8");
+const a="  post_install do |installer|";
+if(!s.includes("IPHONEOS_DEPLOYMENT_TARGET")){
+s=s.replace(a,a+"\n    installer.pods_project.targets.each do |t|\n      t.build_configurations.each do |config|\n        config.build_settings[\"IPHONEOS_DEPLOYMENT_TARGET\"] = \"15.1\"\n      end\n    end");
+fs.writeFileSync(f,s);}'
+grep -q IPHONEOS_DEPLOYMENT_TARGET ios/Podfile || { echo "FATAL: Podfile yamasi uygulanamadi" >&2; exit 1; }
+
 echo "▶ [3/6] pod install…"
 ( cd ios && pod install )
 
