@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vogel: Language Lessons",
     "slug": "Vogel",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "vogel",
@@ -15,8 +15,6 @@
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Konuşma alıştırmasında mikrofonla cevap verebilmek için",
         "NSSpeechRecognitionUsageDescription": "Konuşma alıştırmasında verdiğin cevabı yazıya dökmek için",
-        "NSPhotoLibraryUsageDescription": "Profil resmini ya da alıştırma notlarına eklemek istediğin görseli seçebilmen için galeriye erişim isteyebilir.",
-        "NSPhotoLibraryAddUsageDescription": "Alıştırma sonuçlarını veya başarı rozetlerini telefonuna kaydedebilmen için galeriye yazma izni isteyebilir.",
         "NSUserTrackingUsageDescription": "Reklamların daha alakalı olması için izin verirsen, seçtiğin ilgilere göre reklam göstermemize yardımcı olur. İzin vermesen de uygulama tamamen normal çalışır.",
         "ITSAppUsesNonExemptEncryption": false
       }
