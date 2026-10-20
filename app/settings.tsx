@@ -15,6 +15,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { radius, spacing, textStyles, useThemeColors } from '../src/theme';
 import { useT } from '../src/i18n';
+import { openSupportMail } from '../src/config/support';
 import { useUserStore } from '../src/store/useUserStore';
 import { ReminderCard } from '../src/components/settings/ReminderCard';
 import { MOTIVATIONS_META } from '../src/services/personalization';
@@ -226,6 +227,15 @@ export default function SettingsScreen() {
             label={t('settings.termsOfUse')}
             description={t('settings.termsOfUseDesc')}
             onPress={() => openExternalUrl(TERMS_OF_USE_URL, t('settings.termsOfUse'))}
+          />
+          <LinkRow
+            c={c}
+            icon="mail"
+            tone={c.cyan}
+            toneBg={c.cyanBg}
+            label={t('settings.contactSupport')}
+            description={t('settings.contactSupportDesc')}
+            onPress={() => openSupportMail()}
           />
         </Section>
 

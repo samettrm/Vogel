@@ -156,6 +156,11 @@ export const messages = {
       tr: 'Hizmet şartları ve abonelik koşulları',
       en: 'Service terms and subscription conditions',
     },
+    contactSupport: { tr: 'Bize Ulaşın', en: 'Contact Support' },
+    contactSupportDesc: {
+      tr: 'Destek ekibine e-posta gönderin',
+      en: 'Send an email to our support team',
+    },
     sectionAccount: { tr: 'Hesap', en: 'Account' },
     deleteAccount: { tr: 'Hesabımı Sil', en: 'Delete Account' },
     deleteAccountDesc: {
