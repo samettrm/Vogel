@@ -60,3 +60,7 @@ GoogleService-Info.plist
 scripts/validator-report.txt
 
 .keystore-credentials.txt
+
+# Yerel derleme ciktilari (21-10-2026: 127 MB arsiv GitHub push'unu kirdi)
+/build/
+/build-output/
