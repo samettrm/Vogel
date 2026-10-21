@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yenipc002.Vogel",
-      "buildNumber": "55",
+      "buildNumber": "56",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Profil resmini ya da alıştırma notlarına eklemek istediğin görseli seçebilmen için galeriye erişim isteyebilir.",
         "NSPhotoLibraryAddUsageDescription": "Alıştırma sonuçlarını veya başarı rozetlerini telefonuna kaydedebilmen için galeriye yazma izni isteyebilir.",

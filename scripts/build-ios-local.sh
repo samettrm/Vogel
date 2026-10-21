@@ -37,6 +37,13 @@ ASC_CLI="$HOME/.lexora-ios-venv/bin/app-store-connect"
 
 # CocoaPods UTF-8 locale ister; LANG tanimsizsa ASCII-8BIT'e duser ve
 # "Unicode Normalization not appropriate for ASCII-8BIT" ile patlar.
+# 🔴 Xcode 27 (iOS 27 SDK) ile derlenen paket, UIScene yasam dongusu olmadigi icin
+# iOS 27'de ACILISTA COKUYOR (_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption).
+# 21-10-2026: build 55 bu yuzden 2.1(a) reddi aldi. Scene'e gecilene kadar Xcode 26.6.
+if [ -z "${DEVELOPER_DIR:-}" ] && [ -d /Applications/Xcode-26.6.app ]; then
+  export DEVELOPER_DIR=/Applications/Xcode-26.6.app/Contents/Developer
+fi
+echo "   Xcode: $(xcodebuild -version | head -1)"
 export LANG="${LANG:-en_US.UTF-8}"
 export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
@@ -182,6 +189,16 @@ if [ -n "$BUNDLE_ENTRY" ]; then
   fi
 else
   echo "UYARI: main.jsbundle bulunamadi, dogrulama atlandi." >&2
+fi
+
+# ---- KAPI 3: iOS 27 SDK + scene yok = acilista cokme (2.1(a), 21-10-2026) ----
+unzip -p "$IPA" 'Payload/*.app/Info.plist' > /tmp/vogel-ios-info.plist
+SDKV=$(plutil -extract DTPlatformVersion raw /tmp/vogel-ios-info.plist 2>/dev/null || echo "?")
+HASSCENE=$(plutil -extract UIApplicationSceneManifest raw /tmp/vogel-ios-info.plist >/dev/null 2>&1 && echo 1 || echo 0)
+rm -f /tmp/vogel-ios-info.plist
+echo "   SDK: $SDKV  scene manifest: $HASSCENE"
+if [ "${SDKV%%.*}" -ge 27 ] 2>/dev/null && [ "$HASSCENE" = "0" ]; then
+  echo "FATAL: iOS $SDKV SDK ile derlendi ama UIScene yok — iOS 27'de acilista coker. YUKLEME YAPILMAZ." >&2; exit 1
 fi
 
 mkdir -p build-output
