@@ -206,7 +206,8 @@
         }
       ],
       "expo-localization",
-      "./plugins/sahne-yasam-dongusu.js"
+      "./plugins/sahne-yasam-dongusu.js",
+      "./plugins/ios-dagitim-hedefi.js"
     ],
     "experiments": {
       "typedRoutes": false,
