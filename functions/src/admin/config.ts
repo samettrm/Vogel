@@ -31,4 +31,5 @@ export const ADMIN_UIDS: readonly string[] = ['CJOX6o9I1LhV65A8mP86WtmWyuO2'];
  * Boş bırakmak bilinçli: tek kapı = tek risk yüzeyi. UID değişmez,
  * e-posta değişebilir. Buraya adres eklemek kapıyı zayıflatır.
  */
-export const ADMIN_EMAILS: readonly string[] = [];
+// Emir Defteri A4 (Samet 08-11-2026): owner = sağlayıcının doğruladığı sametterme0@gmail.com; Apple sub/relay owner değildir.
+export const ADMIN_EMAILS: readonly string[] = ['sametterme0@gmail.com'];

@@ -1,44 +1,33 @@
 // ════════════════════════════════════════════════════════════════
-// Ülke kodu → Türkçe ad + bayrak
+// Ülke kodu → bayrak + tam ad (owner paneli standardı §9 · Samet 04-11-2026)
 //
-// Neden elle liste: Intl.DisplayNames Hermes'te güvenilir değil (bazı
-// sürümlerde hiç yok), o yüzden gösterim koda düşerdi. Liste, Vogel'in
-// gerçek kullanıcı dağılımını kapsayacak şekilde tutuldu; eksik kod
-// gelirse kodun kendisi gösterilir, çökmez.
+// Panelde ülke her yerde "🇹🇷 Türkiye" biçiminde görünür; çıplak "TR" kodu gösterilmez.
+// Hermes'te Intl.DisplayNames olmadığı için ad gömülü CLDR tablosundan gelir (src/data/ulke-adlari.ts,
+// 279 bölge kodu). Bayrak koddan deterministik üretilir; tabloda OLMAYAN kodda bayrak UYDURULMAZ.
 // ════════════════════════════════════════════════════════════════
+import { ULKE_ADLARI } from '../data/ulke-adlari';
 
-const NAMES: Record<string, string> = {
-  TR: 'Türkiye', DE: 'Almanya', AT: 'Avusturya', CH: 'İsviçre', NL: 'Hollanda',
-  BE: 'Belçika', FR: 'Fransa', GB: 'Birleşik Krallık', IE: 'İrlanda', US: 'Amerika Birleşik Devletleri',
-  CA: 'Kanada', AZ: 'Azerbaycan', RU: 'Rusya', UA: 'Ukrayna', DZ: 'Cezayir',
-  MA: 'Fas', TN: 'Tunus', EG: 'Mısır', SA: 'Suudi Arabistan', AE: 'Birleşik Arap Emirlikleri',
-  QA: 'Katar', KW: 'Kuveyt', IQ: 'Irak', IR: 'İran', JO: 'Ürdün',
-  SY: 'Suriye', LB: 'Lübnan', IL: 'İsrail', PK: 'Pakistan', IN: 'Hindistan',
-  BD: 'Bangladeş', ID: 'Endonezya', MY: 'Malezya', PH: 'Filipinler', TH: 'Tayland',
-  VN: 'Vietnam', CN: 'Çin', JP: 'Japonya', KR: 'Güney Kore', AU: 'Avustralya',
-  NZ: 'Yeni Zelanda', IT: 'İtalya', ES: 'İspanya', PT: 'Portekiz', GR: 'Yunanistan',
-  BG: 'Bulgaristan', RO: 'Romanya', RS: 'Sırbistan', HR: 'Hırvatistan', BA: 'Bosna-Hersek',
-  MK: 'Kuzey Makedonya', AL: 'Arnavutluk', XK: 'Kosova', ME: 'Karadağ', SI: 'Slovenya',
-  HU: 'Macaristan', CZ: 'Çekya', SK: 'Slovakya', PL: 'Polonya', SE: 'İsveç',
-  NO: 'Norveç', DK: 'Danimarka', FI: 'Finlandiya', EE: 'Estonya', LV: 'Letonya',
-  LT: 'Litvanya', BY: 'Belarus', GE: 'Gürcistan', AM: 'Ermenistan', KZ: 'Kazakistan',
-  UZ: 'Özbekistan', KG: 'Kırgızistan', TM: 'Türkmenistan', TJ: 'Tacikistan', MD: 'Moldova',
-  CY: 'Kıbrıs', MT: 'Malta', LU: 'Lüksemburg', IS: 'İzlanda', BR: 'Brezilya',
-  AR: 'Arjantin', MX: 'Meksika', CL: 'Şili', CO: 'Kolombiya', PE: 'Peru',
-  ZA: 'Güney Afrika', NG: 'Nijerya', KE: 'Kenya', ET: 'Etiyopya', GH: 'Gana',
-  LY: 'Libya', SD: 'Sudan', SO: 'Somali', AF: 'Afganistan', NP: 'Nepal',
-  LK: 'Sri Lanka', MM: 'Myanmar', SG: 'Singapur', HK: 'Hong Kong', TW: 'Tayvan',
-};
-
-/** "TR" → "Türkiye". Bilinmeyen kodda kodun kendisi döner. */
-export function countryName(code: string): string {
-  if (!code || code === '??') return 'Bilinmiyor';
-  return NAMES[code.toUpperCase()] ?? code.toUpperCase();
+function normalize(code: string | null | undefined): string | null {
+  const c = (code ?? '').trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(c) ? c : null;
 }
 
-/** "TR" → "🇹🇷". Geçersiz kodda boş string. */
+/** "TR" → "Türkiye". Geçersiz/boş kodda "Bilinmiyor"; tabloda olmayan geçerli kodda kodun kendisi. */
+export function countryName(code: string): string {
+  const c = normalize(code);
+  if (!c || c === 'ZZ') return 'Bilinmiyor';
+  return ULKE_ADLARI.tr[c] ?? ULKE_ADLARI.en[c] ?? c;
+}
+
+/** "TR" → 🇹🇷. Tabloda olmayan ya da geçersiz kodda boş döner (bayrak uydurulmaz). */
 export function countryFlag(code: string): string {
-  const c = (code ?? '').toUpperCase();
-  if (!/^[A-Z]{2}$/.test(c)) return '🏳️';
+  const c = normalize(code);
+  if (!c || c === 'ZZ' || !(ULKE_ADLARI.en[c] || ULKE_ADLARI.tr[c])) return '';
   return String.fromCodePoint(...c.split('').map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
+}
+
+/** Tek satır gösterim: "🇹🇷 Türkiye" (bilinmeyen kodda yalnız ad). */
+export function countryLabel(code: string): string {
+  const b = countryFlag(code);
+  return b ? `${b} ${countryName(code)}` : countryName(code);
 }

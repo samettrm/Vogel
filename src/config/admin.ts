@@ -22,7 +22,8 @@
 export const ADMIN_UIDS: readonly string[] = ['CJOX6o9I1LhV65A8mP86WtmWyuO2'];
 
 /** E-posta allowlist — UID kapısı kurulduğu için BOŞ. */
-export const ADMIN_EMAILS: readonly string[] = [];
+// Emir Defteri A4 (Samet 08-11-2026): owner = sağlayıcının doğruladığı sametterme0@gmail.com (Apple ile girişte de).
+export const ADMIN_EMAILS: readonly string[] = ['sametterme0@gmail.com'];
 
 /**
  * Kullanıcı yönetici mi? Sunucudaki kuralın aynısı: UID varsa o,

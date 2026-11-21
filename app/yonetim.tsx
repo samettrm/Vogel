@@ -17,7 +17,7 @@ import { radius, spacing, textStyles, useThemeColors } from '../src/theme';
 import { useT } from '../src/i18n';
 import { useAuthStore } from '../src/store/useAuthStore';
 import { isAdminUser } from '../src/config/admin';
-import { countryFlag, countryName } from '../src/utils/countryNames';
+import { countryLabel } from '../src/utils/countryNames';
 import {
   fetchAdminStats,
   type AdminCountEntry,
@@ -119,6 +119,20 @@ export default function YonetimScreen() {
           ) : undefined
         }
       >
+        {allowed ? (
+          <Pressable
+            onPress={() => router.push('/owner-panel')}
+            style={[styles.errorCard, { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 }]}
+            accessibilityRole="button"
+          >
+            <Ionicons name="analytics" size={22} color={c.neon} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.errorTitle}>Owner Control Center</Text>
+              <Text style={styles.muted}>Huni, tutundurma, doğrulanmış gelir, ülkeler, sürümler, sağlık ve filtreler</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={c.textLow} />
+          </Pressable>
+        ) : null}
         {loading ? (
           <View style={styles.centerBox}>
             <ActivityIndicator color={c.neon} />
@@ -224,7 +238,7 @@ export default function YonetimScreen() {
                       c={c}
                       rows={stats.purchases.byCountry.map((e) => ({
                         key: e.key,
-                        left: `${countryFlag(e.key)}  ${countryName(e.key)}`,
+                        left: countryLabel(e.key),
                         right: fmt(e.count),
                       }))}
                     />
@@ -258,7 +272,7 @@ export default function YonetimScreen() {
                   c={c}
                   rows={stats.countries.map((e) => ({
                     key: e.code,
-                    left: `${countryFlag(e.code)}  ${countryName(e.code)}`,
+                    left: countryLabel(e.code),
                     sub: t('admin.countryLine', {
                       online: e.onlineNow,
                       today: e.today,
