@@ -53,6 +53,7 @@ import {
   type SprechenA2Teil3Scenario,
   type SprechenA2Teil3Turn,
 } from '@/lib/sprechen-a2';
+import { useOzellikOlayi } from '../src/services/olay';
 
 // Flat step list — every user-facing screen in the simulator is one entry.
 type Step =
@@ -107,6 +108,7 @@ function buildDeck(): Step[] {
 const SPRECHEN_RATE = 1.0;
 
 export default function SprechenA2Screen() {
+  useOzellikOlayi('feature.speaking.used', { seviye: 'A2' });
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
   const t = useT();

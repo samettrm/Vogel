@@ -11,10 +11,19 @@ import {
   signInWithCredential,
   onAuthStateChanged,
   updateProfile,
+  getAdditionalUserInfo,
   type User,
+  type UserCredential,
 } from 'firebase/auth';
 import { Platform } from 'react-native';
 import { firebaseAuth, isFirebaseConfigured } from '../config/firebase';
+import { olay } from './olay';
+
+/** Owner paneli: yeni hesap mı, giriş mi (yalnız yöntem gönderilir; e-posta ve ad gönderilmez). */
+function girisOlayi(cred: UserCredential, yontem: 'email' | 'google' | 'apple'): void {
+  const yeni = getAdditionalUserInfo(cred)?.isNewUser === true;
+  olay(yeni ? 'auth.signup_completed' : 'auth.login_completed', { yontem });
+}
 
 // ════════════════════════════════════════════════════════════════
 // AUTH SERVİSİ — Email · Google · Apple
@@ -38,6 +47,7 @@ export async function signInWithEmail(
     return _notConfigured();
   try {
     const cred = await signInWithEmailAndPassword(firebaseAuth, email, password);
+    girisOlayi(cred, 'email');
     return { ok: true, user: cred.user };
   } catch (e: any) {
     return { ok: false, code: e.code ?? 'unknown', message: _mapError(e.code) };
@@ -55,6 +65,7 @@ export async function signUpWithEmail(
     // Doğrulama e-postasını hemen gönder — best-effort, başarısız olursa
     // kullanıcı verify ekranındaki "Yeniden gönder" butonunu kullanabilir.
     try { await sendEmailVerification(cred.user); } catch {}
+    girisOlayi(cred, 'email');
     return { ok: true, user: cred.user };
   } catch (e: any) {
     return { ok: false, code: e.code ?? 'unknown', message: _mapError(e.code) };
@@ -173,6 +184,7 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     const { idToken } = await GoogleSignin.getTokens();
     const credential = GoogleAuthProvider.credential(idToken);
     const cred = await signInWithCredential(firebaseAuth, credential);
+    girisOlayi(cred, 'google');
     return { ok: true, user: cred.user };
   } catch (e: any) {
     const cancelled =
@@ -251,6 +263,7 @@ export async function signInWithApple(): Promise<AuthResult> {
       }
     }
 
+    girisOlayi(cred, 'apple');
     return { ok: true, user: cred.user };
   } catch (e: any) {
     if (e.code === 'ERR_REQUEST_CANCELED')

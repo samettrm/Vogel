@@ -26,6 +26,7 @@ import {
 } from '../src/services/family';
 import { AddMemberCard } from '../src/components/family/AddMemberCard';
 import { MemberListItem } from '../src/components/family/MemberListItem';
+import { useOzellikOlayi } from '../src/services/olay';
 
 // ════════════════════════════════════════════════════════════════
 // Aile Planı ekranı — 3 görünüm:
@@ -45,6 +46,7 @@ import { MemberListItem } from '../src/components/family/MemberListItem';
 // ════════════════════════════════════════════════════════════════
 
 export default function FamilyScreen() {
+  useOzellikOlayi('feature.family.opened');
   const c = useThemePalette();
   const styles = makeStyles(c);
   const t = useT();

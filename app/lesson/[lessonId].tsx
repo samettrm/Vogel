@@ -15,6 +15,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AdBanner } from '../../src/components/ads/AdBanner';
 import { showInterstitialAd } from '../../src/services/ads';
 import { trackFunnel } from '../../src/services/funnel';
+import { olay } from '../../src/services/olay';
 import { FillBlankExercise } from '../../src/components/exercises/FillBlankExercise';
 import { ListenExercise } from '../../src/components/exercises/ListenExercise';
 import { MatchPairsExercise } from '../../src/components/exercises/MatchPairsExercise';
@@ -367,6 +368,11 @@ export default function LessonScreen() {
   const { lessonId, returnTo } = useLocalSearchParams<{ lessonId: string; returnTo?: string }>();
   const safeInsets = useSafeAreaInsets();
   const bottomPad = Math.max(safeInsets.bottom, 12) + 20;
+
+  // Owner paneli: ders başlangıcı (yalnız ders kimliği; cevaplar gönderilmez).
+  useEffect(() => {
+    if (lessonId) olay('lesson.started', { ders: String(lessonId).slice(0, 40) });
+  }, [lessonId]);
 
   // Tek reducer ile state
   const [state, dispatch] = useReducer(lessonReducer, INITIAL_STATE);

@@ -31,6 +31,8 @@ import { subscribeToAuthState } from '../src/services/auth';
 import { downloadAndReplaceProgress, uploadProgress } from '../src/services/sync';
 import { isFirebaseConfigured } from '../src/config/firebase';
 import { useAuthStore } from '../src/store/useAuthStore';
+import { acilisOlaylari, analitikBosalt } from '../src/services/olay';
+import { cokmeOlcumunuBaslat } from '../src/services/cokme-olcumu';
 
 // ════════════════════════════════════════════════════════════════
 // SENTRY — hata izleme
@@ -127,6 +129,17 @@ function RootLayout() {
   const hasHydrated = useUserStore((state) => state.hasHydrated);
   const applyHeartRefills = useUserStore((state) => state.applyHeartRefills);
   const themeMode = useUserStore((state) => state.themeMode);
+
+  // Owner paneli analitiği (server/analitik): ilk açılış + oturum, arka plana geçişte kuyruğu boşalt,
+  // ölümcül JS hatasının türü bir sonraki açılışta gönderilir (Sentry'ye ek olarak).
+  useEffect(() => {
+    void acilisOlaylari();
+    cokmeOlcumunuBaslat();
+    const abonelik = AppState.addEventListener('change', (durum: AppStateStatus) => {
+      if (durum === 'background') analitikBosalt();
+    });
+    return () => abonelik.remove();
+  }, []);
 
   // 🎬 SPLASH SCREEN — fontsLoaded + hasHydrated olunca splash'i kaldır.
   // OnboardingGuard hidrasyon sonrası HEMEN (useEffect içinde) router.replace

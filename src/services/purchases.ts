@@ -4,6 +4,7 @@ import Purchases, {
   type CustomerInfo,
   type PurchasesPackage,
 } from 'react-native-purchases';
+import { olay } from './olay';
 
 import {
   RC_API_KEY,
@@ -282,7 +283,7 @@ export type PremiumPackage = {
 
 export type PurchaseResult =
   | { ok: true; customerInfo: CustomerInfo }
-  | { ok: false; cancelled: boolean; message?: string };
+  | { ok: false; cancelled: boolean; message?: string; code?: string };
 
 /**
  * `urun:temelPlan` → `urun` (Android RevenueCat abonelik kimliği). iOS kimliği
@@ -332,11 +333,13 @@ export async function fetchPremiumPackages(): Promise<PremiumPackage[] | null> {
 // ─────────────────────────────────────────────────────────────────
 
 export async function purchasePlan(pkg: PurchasesPackage): Promise<PurchaseResult> {
+  const ek = { urun: tabanUrunKimligi(pkg.product.identifier), tur: 'abonelik' };
+  olay('purchase.started', ek);
   try {
     const { customerInfo } = await Purchases.purchasePackage(pkg);
-    return { ok: true, customerInfo };
+    return sonucOlayi({ ok: true, customerInfo }, ek);
   } catch (e: unknown) {
-    return handlePurchaseError(e);
+    return sonucOlayi(handlePurchaseError(e), ek);
   }
 }
 
@@ -350,10 +353,11 @@ export async function purchaseProduct(productId: string): Promise<PurchaseResult
     if (!products.length) {
       return { ok: false, cancelled: false, message: 'Ürün bulunamadı.' };
     }
+    olay('purchase.started', { urun: productId, tur: 'tek_seferlik' });
     const { customerInfo } = await Purchases.purchaseStoreProduct(products[0]);
-    return { ok: true, customerInfo };
+    return sonucOlayi({ ok: true, customerInfo }, { urun: productId, tur: 'tek_seferlik' });
   } catch (e: unknown) {
-    return handlePurchaseError(e);
+    return sonucOlayi(handlePurchaseError(e), { urun: productId, tur: 'tek_seferlik' });
   }
 }
 
@@ -367,6 +371,7 @@ export async function restorePurchases(): Promise<PurchaseResult> {
   }
   try {
     const customerInfo = await Purchases.restorePurchases();
+    olay('purchase.restored');
     return { ok: true, customerInfo };
   } catch (e: unknown) {
     return handlePurchaseError(e);
@@ -429,5 +434,14 @@ function handlePurchaseError(e: unknown): PurchaseResult {
     ok: false,
     cancelled,
     message: cancelled ? undefined : (err.underlyingErrorMessage ?? err.message),
+    code: typeof err.code === 'string' ? err.code.slice(0, 40) : 'bilinmiyor',
   };
+}
+
+/** Satın alma sonucunu analitiğe yazar (owner paneli: deneme · iptal · hata kodu · tamamlandı). */
+function sonucOlayi(r: PurchaseResult, ek: Record<string, string>): PurchaseResult {
+  if (r.ok) olay('purchase.completed', ek);
+  else if (r.cancelled) olay('purchase.cancelled', ek);
+  else olay('purchase.failed', { ...ek, kod: r.code ?? 'bilinmiyor' });
+  return r;
 }

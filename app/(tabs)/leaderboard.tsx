@@ -4,10 +4,12 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/useUserStore';
 import { colors, spacing, textStyles } from '../../src/theme';
+import { useOzellikOlayi } from '../../src/services/olay';
 
 type LeagueTab = 'daily' | 'weekly';
 
 export default function LeaderboardScreen() {
+  useOzellikOlayi('feature.leaderboard.viewed');
   const currentLeague = useUserStore((s) => (s as any).currentLeague) || 'Bronz Lig';
   const competitors = useUserStore((s) => (s as any).leagueCompetitors) || [];
   const leagueEndDate = useUserStore((s) => (s as any).leagueEndDate) || 0;

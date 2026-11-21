@@ -14,6 +14,7 @@ import { READING_PASSAGES } from '@/lib/german-reading';
 import type { WordSummary } from '@/services/api/types';
 import { logActivity, touchStreak, recordExamScore } from '@/lib/storage';
 import { speakGerman } from '@/lib/german-tts';
+import { useOzellikOlayi } from '../src/services/olay';
 
 const VOCAB_COUNT = 8;
 const LISTENING_COUNT = 6;
@@ -129,6 +130,7 @@ function buildExam(words: WordSummary[], level: CefrLevel): Question[] {
 }
 
 export default function ExamScreen() {
+  useOzellikOlayi('feature.exam.started');
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
   const t = useT();

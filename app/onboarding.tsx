@@ -27,6 +27,7 @@ import {
 } from '../src/services/personalization';
 import type { CEFRLevel, LearningMotivation } from '../src/types';
 import { getCourseById } from '../src/data/courses';
+import { olay } from '../src/services/olay';
 
 // DEĞER-ÖNCE (İlke 1): onboarding biter bitmez kullanıcıyı ilk derse düşür ki
 // "öğreniyorum" hazzını (aha anı) HEMEN yaşasın — haritada kendi başına derse
@@ -164,6 +165,7 @@ export default function OnboardingScreen() {
   const finishOnboarding = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     completeOnboarding(goalXp);
+    olay('onboarding.completed');
     setLearningMotivations(motivations); // emin olmak için tekrar
     // 🎯 Placement sonucunu uygula: active course + selected level
     setActiveCourse('tr', 'de', startingLevel);
@@ -180,6 +182,7 @@ export default function OnboardingScreen() {
     // Eğer motivasyon hiç seçilmediyse boş bırak, default goal ile bitir
     if (motivations.length > 0) setLearningMotivations(motivations);
     completeOnboarding(goalXp);
+    olay('onboarding.completed');
     setActiveCourse('tr', 'de', startingLevel);
     setSelectedLevel(startingLevel);
     // 🔐 Keychain marker — iCloud restore senaryosunda onboarding "gerçek" yapıldığının kanıtı

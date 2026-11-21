@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { olay, type Olay } from './olay';
 import { doc, setDoc } from 'firebase/firestore';
 import { firebaseDb, isFirebaseConfigured } from '../config/firebase';
 import { useAuthStore } from '../store/useAuthStore';
@@ -36,6 +37,7 @@ export type FunnelEvent =
   | 'purchase.completed';
 
 const INSTALL_ID_KEY = 'vogel.installationId'; // presence.ts ile AYNI anahtar
+const KOPRU = new Set<string>(['lesson.completed', 'value.activated', 'paywall.viewed', 'paywall.plan_selected']);
 
 // Oturum başına idempotency — aynı olayı bir kez yaz.
 const _sentThisSession = new Set<string>();
@@ -68,6 +70,9 @@ export async function trackFunnel(
   event: FunnelEvent | string,
   extra?: Record<string, string | number | boolean>,
 ): Promise<void> {
+  // Owner Control Center analitiği (server/analitik): girişsiz kullanıcı da sayılır. Satın alma
+  // olayları purchases.ts'ten gider; burada tekrar gönderilmez.
+  if (KOPRU.has(event)) olay(event as Olay, extra ?? undefined);
   try {
     if (!isFirebaseConfigured || !firebaseDb) return;
 

@@ -19,12 +19,14 @@ import {
   getFlashSessionsToday,
 } from '@/lib/storage';
 import { speakGerman } from '@/lib/german-tts';
+import { useOzellikOlayi } from '../src/services/olay';
 
 const FREE_FLASHCARD_DAILY_LIMIT = 5;
 type Result = 'know' | 'hard' | 'again';
 type Phase = 'checking' | 'ok' | 'blocked' | 'done';
 
 export default function FlashcardsScreen() {
+  useOzellikOlayi('feature.flashcards.used');
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
   const t = useT();

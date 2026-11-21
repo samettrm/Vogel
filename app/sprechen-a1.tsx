@@ -46,6 +46,7 @@ import {
   type SprechenTeil2Theme,
   type SprechenTeil3Card,
 } from '@/lib/sprechen-a1';
+import { useOzellikOlayi } from '../src/services/olay';
 
 type Step =
   | { kind: 'teil1'; prompt: SprechenTeil1Prompt }
@@ -81,6 +82,7 @@ function buildDeck(): Step[] {
 const SPRECHEN_RATE = 1.0;
 
 export default function SprechenA1Screen() {
+  useOzellikOlayi('feature.speaking.used', { seviye: 'A1' });
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
   const t = useT();

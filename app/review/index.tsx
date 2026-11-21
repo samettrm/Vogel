@@ -21,6 +21,7 @@ import { radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import { useT } from '../../src/i18n';
 import { playSound } from '../../src/utils/sounds';
 import { showInterstitialAd } from '../../src/services/ads';
+import { useOzellikOlayi } from '../../src/services/olay';
 
 // ════════════════════════════════════════════════════════════════
 // TEKRAR MERKEZİ (Review Center)
@@ -39,6 +40,7 @@ import { showInterstitialAd } from '../../src/services/ads';
 // ════════════════════════════════════════════════════════════════
 
 export default function ReviewCenter() {
+  useOzellikOlayi('feature.review.used');
   const c = useThemeColors();
   const t = useT();
 
