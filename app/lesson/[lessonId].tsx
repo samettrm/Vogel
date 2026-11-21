@@ -16,6 +16,7 @@ import { AdBanner } from '../../src/components/ads/AdBanner';
 import { showInterstitialAd } from '../../src/services/ads';
 import { trackFunnel } from '../../src/services/funnel';
 import { olay } from '../../src/services/olay';
+import { olumluAn } from '../../src/services/degerlendirme/magazaPuani';
 import { FillBlankExercise } from '../../src/components/exercises/FillBlankExercise';
 import { ListenExercise } from '../../src/components/exercises/ListenExercise';
 import { MatchPairsExercise } from '../../src/components/exercises/MatchPairsExercise';
@@ -650,6 +651,8 @@ export default function LessonScreen() {
     // 📊 Funnel: her ders bitişi + ilk aktivasyon anı (value.activated).
     trackFunnel('lesson.completed');
     if (newSize >= 2) trackFunnel('value.activated');
+    // A5 olumlu an: istek hemen yapılmaz; ana sekmeye dönünce (sakin an) değerlendirilir.
+    olumluAn(unitJustCompleted ? 'unite_bitti' : 'ders_bitti', lesson.id);
 
     if (!isPremium && !paywallSeen) {
       if (newSize >= 2) {

@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { dark } from '../../src/theme';
 import { BottomNav } from '../../src/components/map/BottomNav';
 import { PinnedAdBanner } from '../../src/components/ads/PinnedAdBanner';
+import { gezinmeAni } from '../../src/services/degerlendirme/magazaPuani';
 
 console.warn('[FILE_LOAD] app/(tabs)/_layout.tsx loaded');
 
@@ -47,6 +48,12 @@ export default function TabsLayout() {
         }}
         // Tüm tab bar'ı kendi BottomNav'imize devret
         tabBar={(props) => <BottomNav {...props} />}
+        // A5: her 4. sekme değişiminde mağazanın yıldız penceresi beklemeye alınır (BottomNav tabPress yayar).
+        screenListeners={({ navigation }) => ({
+          tabPress: (event) => {
+            if (!navigation.isFocused() && !event.defaultPrevented) gezinmeAni();
+          },
+        })}
       >
         <Tabs.Screen name="index" options={{ title: 'Harita' }} />
         <Tabs.Screen name="lessons" options={{ title: 'Dersler' }} />

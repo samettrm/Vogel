@@ -21,6 +21,7 @@ import { useUserStore } from '../../src/store/useUserStore';
 import { mapNavState } from '../../src/utils/navState';
 import { getLevelColor, radius, spacing, textStyles, useThemeColors } from '../../src/theme';
 import type { CEFRLevel, Lesson, Unit } from '../../src/types';
+import { usePuanSakinAn } from '../../src/services/degerlendirme/usePuanSakinAn';
 
 // ════════════════════════════════════════════════════════════════
 // HARITA — Ders haritası ekranı
@@ -57,6 +58,8 @@ let moduleSavedScrollY = 0;
 // sırasıyla render olur (sadece guard geçerse).
 // ════════════════════════════════════════════════════════════════
 export default function HomeScreen() {
+  // A5: bekleyen yıldız isteği ana sekmeye dönüşten 1,5 sn sonra (harita kaydırma mekaniğine dokunmaz).
+  usePuanSakinAn();
   const hasHydrated = useUserStore((s) => s.hasHydrated);
   const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
   const hasCompletedPlacement = useUserStore((s) => s.hasCompletedPlacement);

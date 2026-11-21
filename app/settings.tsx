@@ -24,6 +24,7 @@ import { TERMS_OF_USE_URL } from '../src/config/legal';
 import { openExternalUrl } from '../src/utils/openExternalUrl';
 import { findLanguagePair } from '../src/config/languagePairs';
 import { isAdminUser } from '../src/config/admin';
+import { magazaSayfasiniAc } from '../src/services/degerlendirme/magazaPuani';
 
 // ════════════════════════════════════════════════════════════════
 // SETTINGS SCREEN
@@ -236,6 +237,16 @@ export default function SettingsScreen() {
             label={t('settings.contactSupport')}
             description={t('settings.contactSupportDesc')}
             onPress={() => openSupportMail()}
+          />
+          {/* A5: mağazanın yorum sayfası. Sistemin yıldız penceresi bir düğmeye bağlanmaz. */}
+          <LinkRow
+            c={c}
+            icon="star"
+            tone={c.gold}
+            toneBg={c.goldBg}
+            label={t('settings.rateApp')}
+            description={t('settings.rateAppDesc')}
+            onPress={magazaSayfasiniAc}
           />
         </Section>
 

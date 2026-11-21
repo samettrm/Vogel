@@ -5,6 +5,7 @@ import Purchases, {
   type PurchasesPackage,
 } from 'react-native-purchases';
 import { olay } from './olay';
+import { olumluAn } from './degerlendirme/magazaPuani';
 
 import {
   RC_API_KEY,
@@ -440,7 +441,10 @@ function handlePurchaseError(e: unknown): PurchaseResult {
 
 /** Satın alma sonucunu analitiğe yazar (owner paneli: deneme · iptal · hata kodu · tamamlandı). */
 function sonucOlayi(r: PurchaseResult, ek: Record<string, string>): PurchaseResult {
-  if (r.ok) olay('purchase.completed', ek);
+  if (r.ok) {
+    olay('purchase.completed', ek);
+    if (ek.tur === 'abonelik') olumluAn('pro_basladi', ek.urun ?? 'pro');
+  }
   else if (r.cancelled) olay('purchase.cancelled', ek);
   else olay('purchase.failed', { ...ek, kod: r.code ?? 'bilinmiyor' });
   return r;

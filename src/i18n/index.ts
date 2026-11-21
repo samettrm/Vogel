@@ -161,6 +161,11 @@ export const messages = {
       tr: 'Destek ekibine e-posta gönderin',
       en: 'Send an email to our support team',
     },
+    rateApp: { tr: 'Uygulamayı Değerlendir', en: 'Rate the App' },
+    rateAppDesc: {
+      tr: 'Mağazada yorum yazın',
+      en: 'Write a review in the store',
+    },
     sectionAccount: { tr: 'Hesap', en: 'Account' },
     deleteAccount: { tr: 'Hesabımı Sil', en: 'Delete Account' },
     deleteAccountDesc: {
