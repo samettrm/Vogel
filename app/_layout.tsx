@@ -420,9 +420,9 @@ function AuthSyncer() {
       // Premium grant + restore + entitlement tracking için kritik.
       // Anonymous user → RC Dashboard'da bulunamaz; uid + email ile kayıtlı → email ile aranabilir.
       if (user) {
-        logInToRevenueCat(user.uid, user.email, user.displayName).catch(() => {});
+        logInToRevenueCat(user.uid, user.email, user.displayName).catch((e) => { if (__DEV__) console.warn('[RC] logIn', e); });
       } else if (prevUser) {
-        logOutFromRevenueCat().catch(() => {});
+        logOutFromRevenueCat().catch((e) => { if (__DEV__) console.warn('[RC] çıkış', e); });
         // 🔑 Local premium cache hemen temizle — RC sync gecikmesinde UI yanlis
         // gostermesin (eski user'in premium'unu bir an gosterip sonra silmek
         // ucl mesaj akisini bozar).

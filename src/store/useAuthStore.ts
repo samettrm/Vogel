@@ -6,8 +6,12 @@ import type { User } from 'firebase/auth';
 // Persist edilmez — her açılışta onAuthStateChanged'dan dolar.
 // ════════════════════════════════════════════════════════════════
 
+/** Üç durumlu oturum: diskten geri yükleme bitmeden `user === null` "çıkış yapmış" DEMEK DEĞİLDİR. */
+export type AuthDurumu = 'loading' | 'signedOut' | 'signedIn';
+
 interface AuthState {
   user: User | null;
+  authState: AuthDurumu;
   /** İlk kontrol bitmeden true — spinner göstermek için */
   isAuthLoading: boolean;
   setUser: (user: User | null) => void;
@@ -16,7 +20,9 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  authState: 'loading',
   isAuthLoading: true,
-  setUser: (user) => set({ user, isAuthLoading: false }),
-  setAuthLoading: (isAuthLoading) => set({ isAuthLoading }),
+  setUser: (user) => set({ user, isAuthLoading: false, authState: user ? 'signedIn' : 'signedOut' }),
+  setAuthLoading: (isAuthLoading) =>
+    set((s) => ({ isAuthLoading, authState: isAuthLoading ? 'loading' : s.user ? 'signedIn' : 'signedOut' })),
 }));

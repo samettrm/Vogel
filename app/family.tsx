@@ -95,9 +95,9 @@ export default function FamilyScreen() {
     let alive = true;
     (async () => {
       try {
-        const { getActivePlanId } = await import('../src/services/purchases');
-        const rcPlan = await getActivePlanId(); // RC entitlement'ından gerçek plan
-        if (alive && rcPlan === 'family') {
+        const { isFamilyOwnerEligible } = await import('../src/services/purchases');
+        // Kendi satın aldığı aile planı (FAMILY_SHARED değil) → sahip olabilir
+        if (alive && (await isFamilyOwnerEligible())) {
           await ensureFamilyOwner();
         }
       } catch {

@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yenipc002.Vogel",
+      "appleTeamId": "NJA9MF2TQK",
       "buildNumber": "57",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Profil resminizi ya da alıştırma notlarınıza eklemek istediğiniz görseli seçebilmeniz için galeriye erişim izni istenir.",
@@ -214,6 +215,8 @@
       "reactCompiler": false
     },
     "extra": {
+      "termsUrl": "https://samettrm.github.io/Vogel/terms.html",
+      "privacyUrl": "https://samettrm.github.io/Vogel/privacy.html",
       "router": {},
       "eas": {
         "projectId": "21745df7-9f0a-4996-9b3f-fb5d891276a1"

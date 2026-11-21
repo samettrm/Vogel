@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { useUserStore } from '../../store/useUserStore';
 import { AD_UNIT_BANNER } from '../../config/admob';
 
@@ -31,8 +32,11 @@ function getAdsModule(): any | null {
 
 export function AdBanner() {
   const isPremium = useUserStore((s) => s.isPremium);
+  // Odak kapısı: sekme düzenindeki sabit banner ile ders ekranının banner'ı yığında
+  // birlikte mount'lu kalır. Yalnız odaktaki ekranın banner'ı istek atar (KAPI 79).
+  const isFocused = useIsFocused();
   // Premium kullanıcıda reklam yok
-  if (isPremium) return null;
+  if (isPremium || !isFocused) return null;
 
   const mod = getAdsModule();
   if (!mod?.BannerAd || !mod?.BannerAdSize) return null;

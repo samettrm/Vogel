@@ -4,6 +4,7 @@ import Purchases, {
   type CustomerInfo,
   type PurchasesPackage,
 } from 'react-native-purchases';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { olay } from './olay';
 import { olumluAn } from './degerlendirme/magazaPuani';
 
@@ -128,12 +129,22 @@ async function _performLogin(
   }
 }
 
+// Çıkışta RevenueCat'in logOut'u ÇAĞRILMAZ: yeni rastgele anonim kimlik üretir ve
+// bu cihazdaki App Store/Play aboneliğini kopartır (ANTI-SİSTEM KAPI 66). Onun yerine
+// cihaza sabit kurulum kimliğine geçilir — abonelik cihazda kalır, hesaplar karışmaz.
+const INSTALL_ID_KEY = 'vogel.installationId'; // presence.ts ile AYNI anahtar
+
 async function _performLogout(): Promise<void> {
   try {
-    await Purchases.logOut();
-    if (__DEV__) console.log('[RC] logOut');
-  } catch {
-    // Zaten anonymous → logOut hata verir, normal
+    const kurulum = await AsyncStorage.getItem(INSTALL_ID_KEY);
+    if (!kurulum) {
+      if (__DEV__) console.warn('[RC] kurulum kimliği yok — kimlik değiştirilmedi');
+      return;
+    }
+    await Purchases.logIn(`anon:${kurulum}`);
+    if (__DEV__) console.log('[RC] çıkış → kurulum kimliği');
+  } catch (e) {
+    if (__DEV__) console.warn('[RC] çıkış kimliği değiştirilemedi', e);
   }
 }
 
@@ -382,6 +393,26 @@ export async function restorePurchases(): Promise<PurchaseResult> {
 // ─────────────────────────────────────────────────────────────────
 // PREMİUM DURUMU KONTROL ET (app açılışında senkronize etmek için)
 // ─────────────────────────────────────────────────────────────────
+
+/**
+ * Aile sahibi olabilir mi? — yalnız aile planını KENDİSİ satın alan kişi.
+ * Apple Family Sharing ile gelen hak `ownershipType === 'FAMILY_SHARED'` olur;
+ * o kişi aile kurup başkalarını davet ederse tek abonelik katlanarak çoğalır
+ * (Lexora'daki "1 abonelik → sonsuz premium" sızıntısı, ANTI-SİSTEM KAPI 15).
+ */
+export async function isFamilyOwnerEligible(): Promise<boolean> {
+  if (!isPurchasesConfigured()) return false;
+  try {
+    const info = await Purchases.getCustomerInfo();
+    const active = info.entitlements.active[ENTITLEMENT_PREMIUM];
+    if (!active) return false;
+    if (active.ownershipType === 'FAMILY_SHARED') return false;
+    return tabanUrunKimligi(active.productIdentifier) === PRODUCT_IDS.premiumFamily;
+  } catch (e) {
+    if (__DEV__) console.warn('[RC] isFamilyOwnerEligible', e);
+    return false;
+  }
+}
 
 export async function checkIsPremium(): Promise<boolean> {
   if (!isPurchasesConfigured()) return false;
