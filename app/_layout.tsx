@@ -33,6 +33,7 @@ import { isFirebaseConfigured } from '../src/config/firebase';
 import { useAuthStore } from '../src/store/useAuthStore';
 import { acilisOlaylari, analitikBosalt } from '../src/services/olay';
 import { cokmeOlcumunuBaslat } from '../src/services/cokme-olcumu';
+import { guncellemeBildirimiBaslat } from '../src/services/guncellemeBildirimi';
 
 // ════════════════════════════════════════════════════════════════
 // SENTRY — hata izleme
@@ -140,6 +141,9 @@ function RootLayout() {
     });
     return () => abonelik.remove();
   }, []);
+
+  // A2: mağaza kurulumunda güncelleme bildirimi jetonu + dokununca mağaza (src/services/guncellemeBildirimi.ts).
+  useEffect(() => guncellemeBildirimiBaslat(), []);
 
   // 🎬 SPLASH SCREEN — fontsLoaded + hasHydrated olunca splash'i kaldır.
   // OnboardingGuard hidrasyon sonrası HEMEN (useEffect içinde) router.replace

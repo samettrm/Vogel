@@ -1,0 +1,167 @@
+{
+  "project_info": {
+    "project_number": "701611291838",
+    "project_id": "vogel-3e071",
+    "storage_bucket": "vogel-3e071.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:701611291838:android:53f520905a878af4b45aef",
+        "android_client_info": {
+          "package_name": "com.busater.vogel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "701611291838-7fulnqm1c5s1lldoa0h7ti2aculv614c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.busater.vogel",
+            "certificate_hash": "b78235e63945fd844261be413e14d79b94a9c9c8"
+          }
+        },
+        {
+          "client_id": "701611291838-q9fran4emqk0n7i2bv0cdes4tch90upl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.busater.vogel",
+            "certificate_hash": "c27b04638a8863408b9a35941a4d85fa82d2ec4e"
+          }
+        },
+        {
+          "client_id": "701611291838-i5pmtubpad6p68cnidq7jqvkr4s6u5jn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLD_T4L4kX2a9DDgHIMzoPQN5ZJYqsYn4"
+        },
+        {
+          "current_key": "AIzaSyAK7Tb-G5yiQKQ3hZvx3jpTvm0wqOtip3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "701611291838-i5pmtubpad6p68cnidq7jqvkr4s6u5jn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "701611291838-pk4iag10ibodcosrk0in98mainvpulta.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.yenipc002.Vogel"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:701611291838:android:38a836a75ac78df7b45aef",
+        "android_client_info": {
+          "package_name": "com.yenipc002.Vogel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "701611291838-e0tgbbs8ail1mpfdmo05k1rboen5d3po.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yenipc002.Vogel",
+            "certificate_hash": "97a099c7c512ce2cc088a4774c5c4f041dbaf750"
+          }
+        },
+        {
+          "client_id": "701611291838-jma3vpln0vkg069hsl6jr663cvn0a02r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yenipc002.Vogel",
+            "certificate_hash": "a6667171cf2326f07b8abf8eacd1211e68420921"
+          }
+        },
+        {
+          "client_id": "701611291838-uf0a1m1tcahkpumfaq3j3ctetrn3e6d6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yenipc002.Vogel",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "701611291838-i5pmtubpad6p68cnidq7jqvkr4s6u5jn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLD_T4L4kX2a9DDgHIMzoPQN5ZJYqsYn4"
+        },
+        {
+          "current_key": "AIzaSyAK7Tb-G5yiQKQ3hZvx3jpTvm0wqOtip3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "701611291838-i5pmtubpad6p68cnidq7jqvkr4s6u5jn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "701611291838-pk4iag10ibodcosrk0in98mainvpulta.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.yenipc002.Vogel"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:701611291838:android:2f5b53d7acd06c0eb45aef",
+        "android_client_info": {
+          "package_name": "com.yenipc002.tevkil"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "701611291838-i5pmtubpad6p68cnidq7jqvkr4s6u5jn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLD_T4L4kX2a9DDgHIMzoPQN5ZJYqsYn4"
+        },
+        {
+          "current_key": "AIzaSyAK7Tb-G5yiQKQ3hZvx3jpTvm0wqOtip3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "701611291838-i5pmtubpad6p68cnidq7jqvkr4s6u5jn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "701611291838-pk4iag10ibodcosrk0in98mainvpulta.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.yenipc002.Vogel"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
