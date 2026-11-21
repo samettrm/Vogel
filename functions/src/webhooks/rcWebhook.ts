@@ -5,6 +5,8 @@ import { logger } from 'firebase-functions/v2';
 import type { FamilyDoc } from '../family/types';
 import { FAMILY_PRODUCT_ID, GRACE_PERIOD_DAYS } from '../family/types';
 import { familyDocPath } from '../family/helpers';
+// Doğrulanmış olay analitik sunucusuna da iletilir (owner paneli geliri).
+import { analitigeIlet, VOGEL_ANALITIK_SECRET } from './analitigeIlet';
 
 // ════════════════════════════════════════════════════════════════
 // rcWebhook — RevenueCat → Firestore family status senkronu
@@ -54,7 +56,7 @@ interface RCWebhookPayload {
 export const rcWebhook = onRequest(
   {
     region: 'europe-west3',
-    secrets: [RC_WEBHOOK_SECRET],
+    secrets: [RC_WEBHOOK_SECRET, VOGEL_ANALITIK_SECRET],
     cors: false,
     invoker: 'public',
   },
@@ -91,6 +93,7 @@ export const rcWebhook = onRequest(
     // Idempotent: RC event id'si doküman kimliği olarak kullanılır, aynı
     // webhook iki kez gelirse tek kayıt kalır.
     await recordPurchaseEvent(event);
+    await analitigeIlet(body);
 
     // Sadece family product'ı işle
     if (event.product_id !== FAMILY_PRODUCT_ID) {
