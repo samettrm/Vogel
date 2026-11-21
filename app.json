@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vogel: Language Lessons",
     "slug": "Vogel",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "vogel",
@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yenipc002.Vogel",
-      "buildNumber": "56",
+      "buildNumber": "57",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Profil resmini ya da alıştırma notlarına eklemek istediğin görseli seçebilmen için galeriye erişim isteyebilir.",
         "NSPhotoLibraryAddUsageDescription": "Alıştırma sonuçlarını veya başarı rozetlerini telefonuna kaydedebilmen için galeriye yazma izni isteyebilir.",
@@ -94,7 +94,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.busater.vogel",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.VIBRATE"
