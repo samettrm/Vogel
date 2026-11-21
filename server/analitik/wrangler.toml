@@ -1,0 +1,18 @@
+# Vogel analitik sunucusu — Owner Control Center + ürün analitiği + güncelleme bildirimi (BUILD AL 21-11-2026).
+# Gizliler (repoda DEĞİL, `wrangler secret put` ile):
+#   REVENUECAT_WEBHOOK_SECRET — Firebase rcWebhook'unun olayı iletirken gönderdiği paylaşılan anahtar
+#   PLAY_HIZMET_HESABI        — Play üretim kanalını okumak için hizmet hesabı JSON'u (A2 Android tetiği)
+name = "vogel-analitik"
+main = "src/worker.js"
+compatibility_date = "2026-06-01"
+# BUSATER hesabı (bsdigitalapp hesabı ücretsiz plandaki 10 D1 sınırına dolu, 21-11-2026).
+account_id = "36e37807c7176b61605912a6a862bb52"
+
+[vars]
+FIREBASE_PROJECT_ID = "vogel-3e071"
+
+[[d1_databases]]
+binding = "DEVICE_DB"
+database_name = "vogel-analitik"
+database_id = "e12f9373-b01f-4932-8cab-8f934bb92c6f"
+migrations_dir = "migrations"
