@@ -1,0 +1,4 @@
+# Gradle derleme çıktısı — depoya girmez (23-10-2026: ilk işlemede yanlışlıkla girdi, ba31ac8a)
+android/build/
+android/.cxx/
+android/.gradle/

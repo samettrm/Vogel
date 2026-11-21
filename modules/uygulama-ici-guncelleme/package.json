@@ -1,0 +1,6 @@
+{
+  "name": "uygulama-ici-guncelleme",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Google Play uygulama içi güncelleme (Play Core app-update) — yalnız Android, Tevkil Merkezi yerel Expo modülü"
+}

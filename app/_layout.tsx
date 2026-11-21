@@ -12,7 +12,7 @@ import * as Speech from 'expo-speech';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef } from 'react';
-import { AppState, LogBox, type AppStateStatus } from 'react-native';
+import { AppState, LogBox, View, type AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Sentry from '@sentry/react-native';
@@ -34,6 +34,7 @@ import { useAuthStore } from '../src/store/useAuthStore';
 import { acilisOlaylari, analitikBosalt } from '../src/services/olay';
 import { cokmeOlcumunuBaslat } from '../src/services/cokme-olcumu';
 import { guncellemeBildirimiBaslat } from '../src/services/guncellemeBildirimi';
+import { GuncellemeSeridi } from '../src/components/GuncellemeSeridi';
 
 // ════════════════════════════════════════════════════════════════
 // SENTRY — hata izleme
@@ -292,6 +293,10 @@ function RootLayout() {
         <VerifyEmailGuard />
         {/* 🏆 Global achievement toast — her ekranın üstünde görünür */}
         <AchievementToast />
+        {/* A20: eski sürümdekilere 'Yeni sürüm hazır · Güncelle' şeridi (üst katman, içeriği itmez) */}
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0 }} pointerEvents="box-none">
+          <GuncellemeSeridi />
+        </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

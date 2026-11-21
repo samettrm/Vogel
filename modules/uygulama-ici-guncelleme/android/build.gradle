@@ -1,0 +1,21 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'com.busater'
+version = '1.0.0'
+
+android {
+  namespace "com.busater.uygulamaiciguncelleme"
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+  }
+}
+
+dependencies {
+  // Google Play uygulama içi güncelleme. Sürüm 2.1.0 = en güncel (23-10-2026, Google Maven); expo-store-review'un
+  // kullandığı com.google.android.play:review ile aynı core-common ailesi.
+  implementation "com.google.android.play:app-update:2.1.0"
+}

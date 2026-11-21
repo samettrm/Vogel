@@ -106,6 +106,12 @@ export const messages = {
   },
 
   // Settings
+  guncelleme: {
+    yeniSurumHazir: { tr: 'Yeni sürüm hazır', en: 'New version available' },
+    guncelle: { tr: 'Güncelle', en: 'Update' },
+    dahaSonra: { tr: 'Daha sonra', en: 'Later' },
+    magazadaHazir: { tr: 'Yeni sürüm mağazada hazır.', en: 'The new version is ready in the store.' },
+  },
   settings: {
     title: { tr: 'Ayarlar', en: 'Settings' },
     sectionSound: { tr: 'Ses & Titreşim', en: 'Sound & Vibration' },
