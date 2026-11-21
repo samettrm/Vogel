@@ -1,0 +1,7 @@
+{
+  "NSPhotoLibraryUsageDescription": "Profil resminizi ya da alıştırma notlarınıza eklemek istediğiniz görseli seçebilmeniz için galeriye erişim izni istenir.",
+  "NSPhotoLibraryAddUsageDescription": "Alıştırma sonuçlarınızı ve başarı rozetlerinizi telefonunuza kaydedebilmeniz için galeriye yazma izni istenir.",
+  "NSMicrophoneUsageDescription": "Konuşma alıştırmalarında mikrofonla cevap verebilmeniz için gerekir.",
+  "NSSpeechRecognitionUsageDescription": "Konuşma alıştırmasında verdiğiniz cevabı yazıya dökmek için kullanılır.",
+  "NSUserTrackingUsageDescription": "İzin verirseniz reklamlar ilgi alanlarınıza göre seçilir. İzin vermezseniz uygulama aynı şekilde çalışır."
+}

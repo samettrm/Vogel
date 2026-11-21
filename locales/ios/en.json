@@ -1,0 +1,7 @@
+{
+  "NSPhotoLibraryUsageDescription": "Lets you choose a profile picture or an image to attach to your practice notes.",
+  "NSPhotoLibraryAddUsageDescription": "Lets you save your practice results and achievement badges to your photo library.",
+  "NSMicrophoneUsageDescription": "Used so you can answer speaking exercises with your voice.",
+  "NSSpeechRecognitionUsageDescription": "Used to turn your spoken answer into text in speaking exercises.",
+  "NSUserTrackingUsageDescription": "If you allow it, ads are chosen based on your interests. If you don't, the app works the same."
+}

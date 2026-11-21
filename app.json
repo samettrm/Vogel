@@ -13,11 +13,11 @@
       "bundleIdentifier": "com.yenipc002.Vogel",
       "buildNumber": "57",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Profil resmini ya da alıştırma notlarına eklemek istediğin görseli seçebilmen için galeriye erişim isteyebilir.",
-        "NSPhotoLibraryAddUsageDescription": "Alıştırma sonuçlarını veya başarı rozetlerini telefonuna kaydedebilmen için galeriye yazma izni isteyebilir.",
-        "NSMicrophoneUsageDescription": "Konuşma alıştırmasında mikrofonla cevap verebilmek için",
-        "NSSpeechRecognitionUsageDescription": "Konuşma alıştırmasında verdiğin cevabı yazıya dökmek için",
-        "NSUserTrackingUsageDescription": "Reklamların daha alakalı olması için izin verirsen, seçtiğin ilgilere göre reklam göstermemize yardımcı olur. İzin vermesen de uygulama tamamen normal çalışır.",
+        "NSPhotoLibraryUsageDescription": "Profil resminizi ya da alıştırma notlarınıza eklemek istediğiniz görseli seçebilmeniz için galeriye erişim izni istenir.",
+        "NSPhotoLibraryAddUsageDescription": "Alıştırma sonuçlarınızı ve başarı rozetlerinizi telefonunuza kaydedebilmeniz için galeriye yazma izni istenir.",
+        "NSMicrophoneUsageDescription": "Konuşma alıştırmalarında mikrofonla cevap verebilmeniz için gerekir.",
+        "NSSpeechRecognitionUsageDescription": "Konuşma alıştırmasında verdiğiniz cevabı yazıya dökmek için kullanılır.",
+        "NSUserTrackingUsageDescription": "İzin verirseniz reklamlar ilgi alanlarınıza göre seçilir. İzin vermezseniz uygulama aynı şekilde çalışır.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {
@@ -194,7 +194,7 @@
       [
         "expo-tracking-transparency",
         {
-          "userTrackingPermission": "Reklamların daha alakalı olması için izin verirsen, seçtiğin ilgilere göre reklam göstermemize yardımcı olur. İzin vermesen de uygulama tamamen normal çalışır."
+          "userTrackingPermission": "İzin verirseniz reklamlar ilgi alanlarınıza göre seçilir. İzin vermezseniz uygulama aynı şekilde çalışır."
         }
       ],
       [
@@ -202,7 +202,7 @@
         {
           "androidAppId": "ca-app-pub-2275998066828824~8630693235",
           "iosAppId": "ca-app-pub-2275998066828824~8095506611",
-          "userTrackingUsageDescription": "Reklamların daha alakalı olması için izin verirsen, seçtiğin ilgilere göre reklam göstermemize yardımcı olur. İzin vermesen de uygulama tamamen normal çalışır."
+          "userTrackingUsageDescription": "İzin verirseniz reklamlar ilgi alanlarınıza göre seçilir. İzin vermezseniz uygulama aynı şekilde çalışır."
         }
       ],
       "expo-localization",
@@ -217,6 +217,10 @@
       "eas": {
         "projectId": "21745df7-9f0a-4996-9b3f-fb5d891276a1"
       }
+    },
+    "locales": {
+      "tr": "./locales/ios/tr.json",
+      "en": "./locales/ios/en.json"
     }
   }
 }
