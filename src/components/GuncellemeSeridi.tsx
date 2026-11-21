@@ -117,7 +117,7 @@ export function GuncellemeSeridi() {
 
   if (!karar.gorunur || ertelendi) return null;
 
-  const baslik = karar.surum ? `Canlı Döviz ${karar.surum}` : 'Canlı Döviz';
+  const baslik = karar.surum ? `Vogel ${karar.surum}` : 'Vogel';
   const dokunus = () => {
     Haptics.selectionAsync().catch((e) => console.debug('[guncelleme] titreşim:', String(e).slice(0, 80)));
   };
