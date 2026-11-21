@@ -36,6 +36,7 @@ export function AdBanner() {
 
   const mod = getAdsModule();
   if (!mod?.BannerAd || !mod?.BannerAdSize) return null;
+  if (!AD_UNIT_BANNER) return null; // TestFlight / App Review: reklam yok (A13)
 
   const { BannerAd, BannerAdSize } = mod;
 

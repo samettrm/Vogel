@@ -1,5 +1,7 @@
 import { Platform } from 'react-native';
 
+import { birimSec } from './canli-reklam';
+
 // ════════════════════════════════════════════════════════════════
 // ADMOB YAPILANDIRMASI
 //
@@ -50,10 +52,14 @@ const TEST_REWARDED = Platform.select({
   android: 'ca-app-pub-3940256099942544/5354046379',
 }) ?? '';
 
-// ─── EXPORT — dev'de test, prod'da gerçek ID'ler ─────────────────
-export const AD_UNIT_BANNER       = __DEV__ ? TEST_BANNER       : PROD_BANNER;
-export const AD_UNIT_INTERSTITIAL = __DEV__ ? TEST_INTERSTITIAL : PROD_INTERSTITIAL;
-export const AD_UNIT_REWARDED     = __DEV__ ? TEST_REWARDED     : PROD_REWARDED;
+// ─── EXPORT — A13 · 21-11-2026 ───────────────────────────────────
+// Canlı birim YALNIZ App Store / Google Play kurulumunda. __DEV__ TestFlight'ı ve elle
+// kurulan yayın derlemesini ayıramıyordu; canlı reklam alıyordu (yayıncı hesabı
+// 21-11-2026'da kalıcı kapandı). Geliştirme / simülatör / elle kurulum → test birimi;
+// TestFlight / App Review → '' (reklam oluşturulmaz). Karar: ./canli-reklam.ts
+export const AD_UNIT_BANNER       = birimSec(TEST_BANNER, PROD_BANNER);
+export const AD_UNIT_INTERSTITIAL = birimSec(TEST_INTERSTITIAL, PROD_INTERSTITIAL);
+export const AD_UNIT_REWARDED     = birimSec(TEST_REWARDED, PROD_REWARDED);
 
 // ─── Strateji ayarları ───────────────────────────────────────────
 

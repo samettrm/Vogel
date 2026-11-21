@@ -1,0 +1,6 @@
+{
+  "name": "kurulum-ortami",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Uygulamanın nereden kurulduğunu söyler (App Store / TestFlight / Xcode / simülatör · Google Play / diğer / emülatör). Canlı reklam kararı bunu kullanır — Emir Defteri A13, standart: ~/.claude/standards/reklam-standardi.md"
+}

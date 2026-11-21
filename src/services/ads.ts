@@ -108,6 +108,7 @@ let _preloadedInterstitial: any = null;
 function buildInterstitial(): any | null {
   const ads = getAdsModule();
   if (!ads?.InterstitialAd?.createForAdRequest) return null;
+  if (!AD_UNIT_INTERSTITIAL) return null; // TestFlight / App Review: reklam yok (A13)
   try {
     const ad = ads.InterstitialAd.createForAdRequest(AD_UNIT_INTERSTITIAL, {
       requestNonPersonalizedAdsOnly: false,
@@ -213,6 +214,7 @@ let _rewardedLoading = false;
 export function preloadRewardedAd(): void {
   const ads = getAdsModule();
   if (!ads?.RewardedInterstitialAd?.createForAdRequest) return;
+  if (!AD_UNIT_REWARDED) return; // TestFlight / App Review: reklam yok (A13)
   if (_rewardedReady || _rewardedLoading) return;
   _rewardedLoading = true;
   try {
@@ -254,6 +256,7 @@ export function isRewardedReady(): boolean {
 export async function showRewardedAd(): Promise<boolean> {
   const ads = getAdsModule();
   if (!ads?.RewardedInterstitialAd?.createForAdRequest) return false;
+  if (!AD_UNIT_REWARDED) return false; // TestFlight / App Review: reklam yok (A13)
 
   const RewardedAdEventType = ads.RewardedAdEventType ?? {};
   const AdEventType = ads.AdEventType ?? {};

@@ -1,0 +1,4 @@
+# Gradle derleme çıktısı — depoya girmez
+android/build/
+android/.cxx/
+android/.gradle/
