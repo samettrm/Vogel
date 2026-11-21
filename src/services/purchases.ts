@@ -222,7 +222,7 @@ export async function getActivePlanId(): Promise<PlanId | null> {
     if (!active) return null;
 
     // 1. Gerçek SKU literal match
-    const productId = active.productIdentifier;
+    const productId = tabanUrunKimligi(active.productIdentifier);
     if (productId === PRODUCT_IDS.premiumYearly)  return 'yearly';
     if (productId === PRODUCT_IDS.premiumMonthly) return 'monthly';
     if (productId === PRODUCT_IDS.premiumFamily)  return 'family';
@@ -284,6 +284,16 @@ export type PurchaseResult =
   | { ok: true; customerInfo: CustomerInfo }
   | { ok: false; cancelled: boolean; message?: string };
 
+/**
+ * `urun:temelPlan` → `urun` (Android RevenueCat abonelik kimliği). iOS kimliği
+ * olduğu gibi döner.
+ */
+export function tabanUrunKimligi(kimlik: string | null | undefined): string {
+  if (typeof kimlik !== 'string') return '';
+  const i = kimlik.indexOf(':');
+  return i < 0 ? kimlik : kimlik.slice(0, i);
+}
+
 // ─────────────────────────────────────────────────────────────────
 // PREMIUM PAKETLERİ ÇEK (fiyat gösterimi için)
 // ─────────────────────────────────────────────────────────────────
@@ -297,7 +307,10 @@ export async function fetchPremiumPackages(): Promise<PremiumPackage[] | null> {
 
     const result: PremiumPackage[] = [];
     for (const pkg of offering.availablePackages) {
-      const productId = pkg.product.identifier;
+      // 🔴 21-11-2026: Android'de abonelik kimliği `urun:temelPlan` gelir
+      // (ör. `vogel_premium_yearly:yearly`). Düz eşitlik Android'de hiçbir paketi
+      // bulmuyor, satın alma ekranı boş kalıyordu. Taban ürün kimliği kullanılır.
+      const productId = tabanUrunKimligi(pkg.product.identifier);
       const id: PlanId | null =
         productId === PRODUCT_IDS.premiumMonthly  ? 'monthly'
         : productId === PRODUCT_IDS.premiumYearly ? 'yearly'
