@@ -17,7 +17,7 @@ import { useUserStore } from '../src/store/useUserStore';
 type PolicySection = { title: string; body: string };
 
 const POLICY_TR: { lastUpdated: string; sections: PolicySection[] } = {
-  lastUpdated: 'Son güncelleme: Ağustos 2026',
+  lastUpdated: 'Son güncelleme: 21 Kasım 2026',
   sections: [
     {
       title: '1. Giriş',
@@ -33,7 +33,7 @@ const POLICY_TR: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '4. Cihaz ve Kullanım Bilgileri',
-      body: 'Uygulamanın hangi ülkelerde ve hangi cihazlarda kullanıldığını anlamak için şunları kaydediyoruz:\n\n• Ülke ve dil — cihazınızın BÖLGE AYARINDAN okunur\n• Cihaz markası, modeli ve türü (telefon/tablet)\n• İşletim sistemi ve uygulama sürümü\n• Uygulamayı en son ne zaman açtığınız\n• Abonelik durumunuz\n\nBu bilgiler yalnızca toplu istatistik üretmek için kullanılır ve üçüncü şahıslara satılmaz.\n\nKonum izni İSTEMİYORUZ, IP adresinizden konum çıkarımı YAPMIYORUZ ve reklam kimliğinizi bu amaçla kullanmıyoruz. Ülke bilgisi, telefonunuzun dil/bölge ayarından gelir.',
+      body: 'Uygulamanın hangi ülkelerde ve hangi cihazlarda kullanıldığını anlamak için şunları kaydediyoruz:\n\n• Ülke ve dil — cihazınızın BÖLGE AYARINDAN okunur\n• Cihaz markası, modeli ve türü (telefon/tablet)\n• İşletim sistemi ve uygulama sürümü\n• Uygulamayı en son ne zaman açtığınız\n• Abonelik durumunuz\n\nBu bilgiler yalnızca toplu istatistik üretmek için kullanılır ve üçüncü şahıslara satılmaz.\n\nKonum izni İSTEMİYORUZ, IP adresinizden konum çıkarımı YAPMIYORUZ ve reklam kimliğinizi bu amaçla kullanmıyoruz. Ülke bilgisi, telefonunuzun dil/bölge ayarından gelir.\n\nAyrıca uygulamanın hangi bölümlerinin kullanıldığını anlamak için kendi analitik sunucumuza (Cloudflare) kullanım olayları gönderilir: olayın adı (ör. bir dersin başlaması ya da bitmesi, bir özellik ekranının açılması, abonelik ekranının görüntülenmesi, satın alma denemesinin sonucu), kurulum kimliği, platform, ülke, uygulama ve işletim sistemi sürümü ile cihaz ailesi (iPhone, iPad ya da Android). Giriş yaptıysanız olaylar hesap kimliğinizle ilişkilendirilir. Uygulama bir hatayla kapanırsa yalnızca hatanın türü gönderilir. Cevaplarınız, ses kayıtlarınız ve e-postanız gönderilmez.\n\nBildirim izni verdiyseniz ve uygulamayı mağazadan kurduysanız, yeni sürüm çıktığında tek bir \"Yeni bir güncelleme var\" bildirimi gönderebilmek için cihazınızın bildirim belirteci, uygulama sürümü ve dili saklanır. Bildirim Expo Push üzerinden iletilir; pazarlama bildirimi gönderilmez.',
     },
     {
       title: '5. Mikrofon',
@@ -57,7 +57,7 @@ const POLICY_TR: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '10. Üçüncü Taraf Hizmetler',
-      body: 'Verilerinizin bir kısmı şu hizmetler üzerinden işlenir:\n\n• Google Firebase — kimlik doğrulama ve ilerleme senkronizasyonu\n• Google AdMob — reklam gösterimi\n• RevenueCat — abonelik durumu takibi\n• Sentry — hata raporlama\n• Google Sign-In / Apple ile Giriş — kimlik doğrulama\n\nHer hizmet kendi gizlilik politikasına tabidir.',
+      body: 'Verilerinizin bir kısmı şu hizmetler üzerinden işlenir:\n\n• Google Firebase — kimlik doğrulama ve ilerleme senkronizasyonu\n• Google AdMob — reklam gösterimi\n• RevenueCat — abonelik durumu takibi\n• Sentry — hata raporlama\n• Cloudflare — uygulamanın analitik sunucusu ve bildirim kayıtları\n• Expo Push — güncelleme bildiriminin iletimi\n• Google Sign-In / Apple ile Giriş — kimlik doğrulama\n\nHer hizmet kendi gizlilik politikasına tabidir.',
     },
     {
       title: '11. Çocukların Gizliliği',
@@ -75,7 +75,7 @@ const POLICY_TR: { lastUpdated: string; sections: PolicySection[] } = {
 };
 
 const POLICY_EN: { lastUpdated: string; sections: PolicySection[] } = {
-  lastUpdated: 'Last updated: August 2026',
+  lastUpdated: 'Last updated: 21 November 2026',
   sections: [
     {
       title: '1. Introduction',
@@ -91,7 +91,7 @@ const POLICY_EN: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '4. Device and Usage Information',
-      body: "To understand which countries and devices the app is used on, we record:\n\n• Country and language — read from your device REGION SETTING\n• Device brand, model and type (phone/tablet)\n• Operating system and app version\n• When you last opened the app\n• Your subscription status\n\nThis information is used only to produce aggregate statistics and is not sold to third parties.\n\nWe do NOT request location permission, we do NOT infer location from your IP address, and we do not use your advertising identifier for this purpose. Country comes from your phone's language/region setting.",
+      body: "To understand which countries and devices the app is used on, we record:\n\n• Country and language — read from your device REGION SETTING\n• Device brand, model and type (phone/tablet)\n• Operating system and app version\n• When you last opened the app\n• Your subscription status\n\nThis information is used only to produce aggregate statistics and is not sold to third parties.\n\nWe do NOT request location permission, we do NOT infer location from your IP address, and we do not use your advertising identifier for this purpose. Country comes from your phone's language/region setting.\n\nTo understand which parts of the app are used, usage events are also sent to our own analytics server (Cloudflare): the event name (e.g. a lesson started or completed, a feature screen opened, the subscription screen shown, the result of a purchase attempt), an installation identifier, platform, country, app and operating system version, and device family (iPhone, iPad or Android). If you are signed in, events are linked to your account ID. If the app closes because of an error, only the type of the error is sent. Your answers, voice recordings and email address are not sent.\n\nIf you allowed notifications and installed the app from the store, your device's notification token, app version and language are stored so that we can send a single \"A new update is available\" notification when a new version is released. Notifications are delivered via Expo Push; no marketing notifications are sent.",
     },
     {
       title: '5. Microphone',
@@ -115,7 +115,7 @@ const POLICY_EN: { lastUpdated: string; sections: PolicySection[] } = {
     },
     {
       title: '10. Third-Party Services',
-      body: 'Some of your data is processed through these services:\n\n• Google Firebase — authentication and progress sync\n• Google AdMob — advertising\n• RevenueCat — subscription status tracking\n• Sentry — error reporting\n• Google Sign-In / Sign in with Apple — authentication\n\nEach service is subject to its own privacy policy.',
+      body: 'Some of your data is processed through these services:\n\n• Google Firebase — authentication and progress sync\n• Google AdMob — advertising\n• RevenueCat — subscription status tracking\n• Sentry — error reporting\n• Cloudflare — the app’s analytics server and notification records\n• Expo Push — delivery of the update notification\n• Google Sign-In / Sign in with Apple — authentication\n\nEach service is subject to its own privacy policy.',
     },
     {
       title: "11. Children's Privacy",
